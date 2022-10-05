@@ -210,7 +210,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 15
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -502,11 +502,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilemapVisualizer: {fileID: 1805714936}
+  startPosition: {x: 0, y: 0}
   startRandomlyEachIteration: 1
   maxFloorPositions: 100
   minSteps: 10
   maxSteps: 10
-  startPosition: {x: 0, y: 0}
+  chanceToChangeDir: 1
+  levyFlight: 0
+  levyFlightChance: 0.04
+  minStepLength: 3
+  maxStepLength: 6
 --- !u!4 &1564025724
 Transform:
   m_ObjectHideFlags: 0
