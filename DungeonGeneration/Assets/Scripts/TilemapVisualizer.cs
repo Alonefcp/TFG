@@ -13,6 +13,17 @@ public class TilemapVisualizer : MonoBehaviour
         PaintTiles(positions, floorTilemap, floorTile);
     }
 
+    public void PaintFloorTiles(bool[,] map, int width, int height)
+    {
+        for (int i = 0; i < height; i++)
+        {
+            for (int j = 0; j < width; j++)
+            {
+                if(map[i,j]) PaintSingleTile(new Vector2Int(j,i), floorTilemap, floorTile);
+            }
+        }
+    }
+
     private void PaintTiles(IEnumerable<Vector2Int> positions, Tilemap tilemap, TileBase tile)
     {
         foreach (Vector2Int pos in positions)

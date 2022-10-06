@@ -482,6 +482,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1564025724}
   - component: {fileID: 1564025723}
+  - component: {fileID: 1564025725}
   m_Layer: 0
   m_Name: DungeonGeneration
   m_TagString: Untagged
@@ -496,7 +497,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1564025722}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3423eda196787e645ac797e8a8ee5144, type: 3}
   m_Name: 
@@ -527,6 +528,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1564025725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1564025722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a124bfd76b1a5646ab678b1119f3c90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tilemapVisualizer: {fileID: 1805714936}
+  maxFloorPositions: 200
+  mapWidht: 40
+  mapHeight: 20
 --- !u!1 &1574455686
 GameObject:
   m_ObjectHideFlags: 0
