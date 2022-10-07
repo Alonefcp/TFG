@@ -5,9 +5,8 @@ using System.Linq;
 using UnityEngine;
 
 //Diffusion limited aggregation algorithm
-public class DLA : MonoBehaviour
+public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
 {
-
     [SerializeField] private TilemapVisualizer tilemapVisualizer;
 
     [SerializeField] private int maxFloorPositions = 300;
@@ -69,16 +68,17 @@ public class DLA : MonoBehaviour
 
     private HashSet<Vector2Int> DiffusionLimitedAggregation()
     {
-        bool[,] map = new bool[mapHeight, mapWidht]; //false -> wall , true -> floor
+        Map map = new Map(mapWidht, mapHeight); //false -> wall , true -> floor
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
 
         //Dig a "seed" area around your central starting point.
         startPosition = new Vector2Int(mapWidht / 2, mapHeight / 2);
-        map[startPosition.y, startPosition.x] = true;
-        map[startPosition.y, startPosition.x + 1] = true;
-        map[startPosition.y, startPosition.x - 1] = true;
-        map[startPosition.y + 1, startPosition.x] = true;
-        map[startPosition.y - 1, startPosition.x] = true;
+
+        map.SetHasFloor(startPosition, true);
+        map.SetHasFloor(startPosition + new Vector2Int(1, 0), true);
+        map.SetHasFloor(startPosition + new Vector2Int(-1, 0), true);
+        map.SetHasFloor(startPosition + new Vector2Int(0, 1), true);
+        map.SetHasFloor(startPosition + new Vector2Int(0, -1), true);
 
         positions.Add(startPosition);
         positions.Add(startPosition + new Vector2Int(1, 0));
@@ -98,7 +98,7 @@ public class DLA : MonoBehaviour
 
             //Use the "drunkard's walk" algorithm to move randomly
             //If the digger hit a floor tile, then the previous tile they were in also becomes a floor and the digger stops
-            while (!map[diggerPos.y, diggerPos.x])
+            while (!map.IsFloorPosition(diggerPos))
             {
                 diggerPrevPos = diggerPos;
 
@@ -122,7 +122,7 @@ public class DLA : MonoBehaviour
                 }
             }
 
-            map[diggerPrevPos.y, diggerPrevPos.x] = true;
+            map.SetHasFloor(diggerPrevPos, true);
             positions.Add(diggerPrevPos);
         }
 
@@ -131,16 +131,23 @@ public class DLA : MonoBehaviour
 
     private HashSet<Vector2Int> DiffusionLimitedAggregation_CentralAttractor()
     {
-        bool[,] map = new bool[mapHeight, mapWidht]; //false -> wall , true -> floor
+        Map map = new Map(mapWidht, mapHeight);
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
 
         //Dig a "seed" area around your central starting point.
         startPosition = new Vector2Int(mapWidht / 2, mapHeight / 2);
-        map[startPosition.y, startPosition.x] = true;
-        map[startPosition.y, startPosition.x + 1] = true;
-        map[startPosition.y, startPosition.x - 1] = true;
-        map[startPosition.y + 1, startPosition.x] = true;
-        map[startPosition.y - 1, startPosition.x] = true;
+
+        map.SetHasFloor(startPosition, true);
+        map.SetHasFloor(startPosition + new Vector2Int(1, 0), true);
+        map.SetHasFloor(startPosition + new Vector2Int(-1, 0), true);
+        map.SetHasFloor(startPosition + new Vector2Int(0, 1), true);
+        map.SetHasFloor(startPosition + new Vector2Int(0, -1), true);
+
+        positions.Add(startPosition);
+        positions.Add(startPosition + new Vector2Int(1, 0));
+        positions.Add(startPosition + new Vector2Int(-1, 0));
+        positions.Add(startPosition + new Vector2Int(0, 1));
+        positions.Add(startPosition + new Vector2Int(0, -1));
 
         //While the number of floor tiles is less than your desired total
         while (positions.Count < maxFloorPositions)
@@ -154,7 +161,7 @@ public class DLA : MonoBehaviour
             //line path
             List<Point> path = GetLinePoints(diggerPos.x, diggerPos.y, startPosition.x, startPosition.y).ToList();
 
-            while (!map[diggerPos.y, diggerPos.x] && path.Count > 0)
+            while (!map.IsFloorPosition(diggerPos) && path.Count > 0)
             {
                 diggerPrevPos = diggerPos;
                 diggerPos.x = path[0].X;
@@ -162,7 +169,7 @@ public class DLA : MonoBehaviour
                 path.RemoveAt(0);
             }
 
-            map[diggerPrevPos.y, diggerPrevPos.x] = true;
+            map.SetHasFloor(diggerPrevPos, true);
             positions.Add(diggerPrevPos);
         }
 
