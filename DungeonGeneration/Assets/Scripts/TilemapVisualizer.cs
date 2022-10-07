@@ -13,15 +13,20 @@ public class TilemapVisualizer : MonoBehaviour
         PaintTiles(positions, floorTilemap, floorTile);
     }
 
-    public void PaintFloorTiles(bool[,] map, int width, int height)
+    public bool HasTile(Vector2Int position)
     {
-        for (int i = 0; i < height; i++)
-        {
-            for (int j = 0; j < width; j++)
-            {
-                if(map[i,j]) PaintSingleTile(new Vector2Int(j,i), floorTilemap, floorTile);
-            }
-        }
+       return floorTilemap.HasTile((Vector3Int)position);
+    }
+
+    public void PaintSingleTile(Vector2Int position)
+    {
+        Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
+        floorTilemap.SetTile(tileMapPosition, floorTile);
+    }
+
+    public void ClearTilemap()
+    {
+        floorTilemap.ClearAllTiles();
     }
 
     private void PaintTiles(IEnumerable<Vector2Int> positions, Tilemap tilemap, TileBase tile)
@@ -38,8 +43,4 @@ public class TilemapVisualizer : MonoBehaviour
         tilemap.SetTile(tileMapPosition, tile);
     }
 
-    public void ClearTilemap()
-    {
-        floorTilemap.ClearAllTiles();
-    }
 }

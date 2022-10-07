@@ -13,27 +13,64 @@ public class DLA : MonoBehaviour
     [SerializeField] private int maxFloorPositions = 300;
     [SerializeField] private int mapWidht = 80, mapHeight = 40;
     [SerializeField] private bool useCentralAttractor = false;
+    [SerializeField] private bool applyHorizontalSymmetry = false;
+    [SerializeField] private bool applyVerticalSymmetry = false;
+    [SerializeField] private bool applyHorizontalAndVerticalSymmetry = false;
+
     private Vector2Int startPosition;
 
     void Start()
     {
         if(useCentralAttractor)
         {
-            bool[,] map = DiffusionLimitedAggregation_CentralAttractor();
+            HashSet<Vector2Int> map = DiffusionLimitedAggregation_CentralAttractor();
             tilemapVisualizer.ClearTilemap();
-            tilemapVisualizer.PaintFloorTiles(map, mapWidht, mapHeight);
+            if (applyHorizontalSymmetry)
+            {
+                ApplyHorizontalSymmetry(map, mapWidht);
+            }
+            else if (applyVerticalSymmetry)
+            {
+                ApplyVerticalSymmetry(map, mapHeight);
+            }
+            else if (applyHorizontalAndVerticalSymmetry)
+            {
+                ApplyHorizontalAndVerticalSymmetry(map, mapWidht, mapHeight);
+            }
+            else
+            {
+                tilemapVisualizer.PaintFloorTiles(map);
+
+            }
         }
         else
         {
-            bool[,] map = DiffusionLimitedAggregation();
+            HashSet<Vector2Int> map = DiffusionLimitedAggregation();
             tilemapVisualizer.ClearTilemap();
-            tilemapVisualizer.PaintFloorTiles(map, mapWidht, mapHeight);
+            if(applyHorizontalSymmetry)
+            {
+                ApplyHorizontalSymmetry(map, mapWidht);
+            }
+            else if(applyVerticalSymmetry)
+            {
+                ApplyVerticalSymmetry(map, mapHeight);
+            }
+            else if(applyHorizontalAndVerticalSymmetry)
+            {
+                ApplyHorizontalAndVerticalSymmetry(map, mapWidht, mapHeight);
+            }
+            else
+            {
+                tilemapVisualizer.PaintFloorTiles(map);
+
+            }
         }
     }
 
-    private bool[,] DiffusionLimitedAggregation()
+    private HashSet<Vector2Int> DiffusionLimitedAggregation()
     {
         bool[,] map = new bool[mapHeight, mapWidht]; //false -> wall , true -> floor
+        HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
 
         //Dig a "seed" area around your central starting point.
         startPosition = new Vector2Int(mapWidht / 2, mapHeight / 2);
@@ -43,9 +80,15 @@ public class DLA : MonoBehaviour
         map[startPosition.y + 1, startPosition.x] = true;
         map[startPosition.y - 1, startPosition.x] = true;
 
+        positions.Add(startPosition);
+        positions.Add(startPosition + new Vector2Int(1, 0));
+        positions.Add(startPosition + new Vector2Int(-1, 0));
+        positions.Add(startPosition + new Vector2Int(0, 1));
+        positions.Add(startPosition + new Vector2Int(0, -1));
+
 
         //While the number of floor tiles is less than your desired total
-        while (CountNumberFloors(map) < maxFloorPositions)
+        while (positions.Count < maxFloorPositions)
         {
             //Select a starting point at random for your digger
             int xPos = Random.Range(0, mapWidht);
@@ -80,14 +123,16 @@ public class DLA : MonoBehaviour
             }
 
             map[diggerPrevPos.y, diggerPrevPos.x] = true;
+            positions.Add(diggerPrevPos);
         }
 
-        return map;
+        return positions;
     }
 
-    private bool[,] DiffusionLimitedAggregation_CentralAttractor()
+    private HashSet<Vector2Int> DiffusionLimitedAggregation_CentralAttractor()
     {
         bool[,] map = new bool[mapHeight, mapWidht]; //false -> wall , true -> floor
+        HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
 
         //Dig a "seed" area around your central starting point.
         startPosition = new Vector2Int(mapWidht / 2, mapHeight / 2);
@@ -98,7 +143,7 @@ public class DLA : MonoBehaviour
         map[startPosition.y - 1, startPosition.x] = true;
 
         //While the number of floor tiles is less than your desired total
-        while (CountNumberFloors(map) < maxFloorPositions)
+        while (positions.Count < maxFloorPositions)
         {
             //Select a starting point at random for your digger
             int xPos = Random.Range(0, mapWidht);
@@ -118,9 +163,10 @@ public class DLA : MonoBehaviour
             }
 
             map[diggerPrevPos.y, diggerPrevPos.x] = true;
+            positions.Add(diggerPrevPos);
         }
 
-        return map;
+        return positions;
     }
 
     private void Swap<T>(ref T lhs, ref T rhs)
@@ -162,18 +208,65 @@ public class DLA : MonoBehaviour
         yield break;
     }
 
-    private int CountNumberFloors(bool[,] map)
+    private void ApplyHorizontalSymmetry(HashSet<Vector2Int> positions, int mapWidht)
     {
-        int nFloors = 0;
+        int centerX = mapWidht / 2;
 
-        for (int i = 0; i < map.GetLength(0); i++)
+        foreach (Vector2Int pos in positions)
         {
-            for (int j = 0; j < map.GetLength(1); j++)
+            if (pos.x == centerX)
             {
-                if (map[i, j]) nFloors++;
+                tilemapVisualizer.PaintSingleTile(pos);
+            }
+            else
+            {
+                int distX = Mathf.Abs(centerX - pos.x);
+                tilemapVisualizer.PaintSingleTile(new Vector2Int(centerX + distX, pos.y));
+                tilemapVisualizer.PaintSingleTile(new Vector2Int(centerX - distX, pos.y));
+            }
+        }    
+    }
+
+    private void ApplyVerticalSymmetry(HashSet<Vector2Int> positions, int mapHeight)
+    {
+        int centerY = mapHeight / 2;
+
+        foreach (Vector2Int pos in positions)
+        {
+            if (pos.y == centerY)
+            {
+                tilemapVisualizer.PaintSingleTile(pos);
+            }
+            else
+            {
+                int distY = Mathf.Abs(centerY - pos.y);
+                tilemapVisualizer.PaintSingleTile(new Vector2Int(pos.x, centerY + distY));
+                tilemapVisualizer.PaintSingleTile(new Vector2Int(pos.x, centerY - distY));
+            }
+        }  
+    }
+
+    private void ApplyHorizontalAndVerticalSymmetry(HashSet<Vector2Int> positions, int mapWidht, int mapHeight)
+    {
+        int centerX = mapWidht / 2;
+        int centerY = mapHeight / 2;
+
+        foreach (Vector2Int pos in positions)
+        {
+            if (pos.x == centerX && pos.y == centerY)
+            {
+                tilemapVisualizer.PaintSingleTile(pos);
+            }
+            else
+            {
+                int distX = Mathf.Abs(centerX - pos.x);
+                tilemapVisualizer.PaintSingleTile(new Vector2Int(centerX + distX, pos.y));
+                tilemapVisualizer.PaintSingleTile(new Vector2Int(centerX - distX, pos.y));
+
+                int distY = Mathf.Abs(centerY - pos.y);
+                tilemapVisualizer.PaintSingleTile(new Vector2Int(pos.x, centerY + distY));
+                tilemapVisualizer.PaintSingleTile(new Vector2Int(pos.x, centerY - distY));
             }
         }
-
-        return nFloors;
     }
 }

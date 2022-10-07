@@ -25,7 +25,7 @@ public class RandomWalkAlgorithm : MonoBehaviour
     [SerializeField] private int maxFloorPositions = 50;
     [SerializeField] private int minSteps = 10, maxSteps = 20;
     [Range(0.0f, 1.0f)]
-    [SerializeField] float chanceToChangeDir = 1.0f;
+    [SerializeField] float chanceToChangeDirection = 1.0f;
     [SerializeField] bool levyFlight = false;
     [SerializeField] float levyFlightChance = 0.02f;
     [SerializeField] int minStepLength = 3;
@@ -38,11 +38,6 @@ public class RandomWalkAlgorithm : MonoBehaviour
 
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
-
-        //foreach (Vector2Int pos in floorPositions)
-        //{
-        //    Debug.Log(pos);
-        //}
     }
 
 
@@ -96,7 +91,7 @@ public class RandomWalkAlgorithm : MonoBehaviour
 
             walker.pos = newPos;
 
-            if (Random.Range(0.0f,1.0f) <= chanceToChangeDir)
+            if (Random.Range(0.0f,1.0f) <= chanceToChangeDirection)
             {
                 if (levyFlight && Random.Range(0.0f, 1.0f) <= levyFlightChance)
                 {
