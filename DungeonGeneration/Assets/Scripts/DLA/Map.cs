@@ -20,6 +20,11 @@ public class Map
         return map[pos.y, pos.x];
     }
 
+    public bool IsInsideTheMap(Vector2Int pos)
+    {
+        return pos.x >= 0 && pos.x < mapWidth && pos.y >= 0 && pos.y < mapHeight;
+    }
+
     public void SetHasFloor(Vector2Int pos, bool hasWall)
     { 
         map[pos.y, pos.x] = hasWall; 

@@ -504,14 +504,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tilemapVisualizer: {fileID: 1805714936}
   startPosition: {x: 0, y: 0}
-  startRandomlyEachIteration: 1
+  startRandomlyEachIteration: 0
   maxFloorPositions: 400
   minSteps: 10
   maxSteps: 20
-  chanceToChangeDirection: 0.829
+  chanceToChangeDirection: 1
   eliminateSingleWalls: 0
-  levyFlight: 0
-  levyFlightChance: 0.37
+  levyFlight: 1
+  levyFlightChance: 0.19
   minStepLength: 3
   maxStepLength: 8
 --- !u!4 &1564025724
@@ -542,11 +542,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilemapVisualizer: {fileID: 1805714936}
-  maxFloorPositions: 800
+  maxFloorPositions: 1141
   mapWidht: 80
-  mapHeight: 40
+  mapHeight: 60
   eliminateSingleWalls: 0
   useCentralAttractor: 0
+  makeWiderDiagonals: 0
   applyHorizontalSymmetry: 0
   applyVerticalSymmetry: 0
   applyHorizontalAndVerticalSymmetry: 0

@@ -13,6 +13,7 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
     [SerializeField] private int mapWidht = 80, mapHeight = 40;
     [SerializeField] bool eliminateSingleWalls = false;
     [SerializeField] private bool useCentralAttractor = false;
+    [SerializeField] bool makeWiderDiagonals = false;
     [SerializeField] private bool applyHorizontalSymmetry = false;
     [SerializeField] private bool applyVerticalSymmetry = false;
     [SerializeField] private bool applyHorizontalAndVerticalSymmetry = false;
@@ -170,14 +171,83 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
             Vector2Int diggerPrevPos = diggerPos;
 
             //line path
-            List<Point> path = GetLinePoints(diggerPos.x, diggerPos.y, startPosition.x, startPosition.y).ToList();
+            List<Vector2Int> path = GetLinePointsList(diggerPos.x, diggerPos.y, startPosition.x, startPosition.y,out int xstep,out int ystep).ToList();
 
             while (!map.IsFloorPosition(diggerPos) && path.Count > 0)
             {
                 diggerPrevPos = diggerPos;
-                diggerPos.x = path[0].X;
-                diggerPos.y = path[0].Y;
+                diggerPos.x = path[0].x;
+                diggerPos.y = path[0].y;
                 path.RemoveAt(0);
+            }
+
+            if(makeWiderDiagonals)
+            {
+                if (xstep < 0 && ystep < 0)
+                {
+                    Vector2Int pos1 = diggerPrevPos + new Vector2Int(-1, 0);
+                    Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, -1);
+
+                    if (map.IsInsideTheMap(pos1))
+                    {
+                        map.SetHasFloor(pos1, true);
+                        positions.Add(pos1);
+                    }
+                    else if (map.IsInsideTheMap(pos2))
+                    {
+                        map.SetHasFloor(pos2, true);
+                        positions.Add(pos2);
+                    }
+
+                }
+                else if (xstep > 0 && ystep < 0)
+                {
+                    Vector2Int pos1 = diggerPrevPos + new Vector2Int(1, 0);
+                    Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, -1);
+
+                    if (map.IsInsideTheMap(pos1))
+                    {
+                        map.SetHasFloor(pos1, true);
+                        positions.Add(pos1);
+                    }
+                    else if (map.IsInsideTheMap(pos2))
+                    {
+                        map.SetHasFloor(pos2, true);
+                        positions.Add(pos2);
+                    }
+                }
+                else if (xstep < 0 && ystep > 0)
+                {
+                    Vector2Int pos1 = diggerPrevPos + new Vector2Int(-1, 0);
+                    Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, 1);
+
+                    if (map.IsInsideTheMap(pos1))
+                    {
+                        map.SetHasFloor(pos1, true);
+                        positions.Add(pos1);
+                    }
+                    else if (map.IsInsideTheMap(pos2))
+                    {
+                        map.SetHasFloor(pos2, true);
+                        positions.Add(pos2);
+                    }
+                }
+                else if (xstep > 0 && ystep > 0)
+                {
+                    Vector2Int pos1 = diggerPrevPos + new Vector2Int(1, 0);
+                    Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, 1);
+
+                    if (map.IsInsideTheMap(pos1))
+                    {
+                        map.SetHasFloor(pos1, true);
+                        positions.Add(pos1);
+                    }
+                    else if (map.IsInsideTheMap(pos2))
+                    {
+                        map.SetHasFloor(pos2, true);
+                        positions.Add(pos2);
+                    }
+                }
             }
 
             map.SetHasFloor(diggerPrevPos, true);
@@ -224,6 +294,40 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
             }
         }
         yield break;
+    }
+
+    private List<Vector2Int> GetLinePointsList(int x0, int y0, int x1, int y1, out int xstep, out int ystep)
+    {
+        List<Vector2Int> linePoints = new List<Vector2Int>();
+        bool steep = Mathf.Abs(y1 - y0) > Mathf.Abs(x1 - x0);
+
+        if (steep)
+        {
+            Swap<int>(ref x0, ref y0);
+            Swap<int>(ref x1, ref y1);
+        }
+
+        int dx = Mathf.Abs(x1 - x0);
+        int dy = Mathf.Abs(y1 - y0);
+        int error = (dx / 2);
+        ystep = (y0 < y1 ? 1 : -1);
+        xstep = (x0 < x1 ? 1 : -1);
+        int y = y0;
+
+        for (int x = x0; x != (x1 + xstep); x += xstep)
+        {
+            Vector2Int point = new Vector2Int((steep ? y : x), (steep ? x : y));
+            linePoints.Add(point);
+
+            error = error - dy;
+            if (error < 0)
+            {
+                y += ystep;
+                error += dx;
+            }
+        }
+
+        return linePoints;
     }
 
     private void ApplyHorizontalSymmetry(HashSet<Vector2Int> positions, int mapWidht)
