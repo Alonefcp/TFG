@@ -11,6 +11,7 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
 
     [SerializeField] private int maxFloorPositions = 300;
     [SerializeField] private int mapWidht = 80, mapHeight = 40;
+    [SerializeField] bool eliminateSingleWalls = false;
     [SerializeField] private bool useCentralAttractor = false;
     [SerializeField] private bool applyHorizontalSymmetry = false;
     [SerializeField] private bool applyVerticalSymmetry = false;
@@ -41,6 +42,11 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
                 tilemapVisualizer.PaintFloorTiles(map);
 
             }
+
+            if (eliminateSingleWalls)
+            {
+                tilemapVisualizer.EliminateSingleWalls();
+            }
         }
         else
         {
@@ -62,6 +68,11 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
             {
                 tilemapVisualizer.PaintFloorTiles(map);
 
+            }
+
+            if(eliminateSingleWalls)
+            {
+                tilemapVisualizer.EliminateSingleWalls();
             }
         }
     }

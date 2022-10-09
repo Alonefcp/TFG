@@ -26,6 +26,7 @@ public class RandomWalkAlgorithm : MonoBehaviour
     [SerializeField] private int minSteps = 10, maxSteps = 20;
     [Range(0.0f, 1.0f)]
     [SerializeField] float chanceToChangeDirection = 1.0f;
+    [SerializeField] bool eliminateSingleWalls = false;
     [SerializeField] bool levyFlight = false;
     [SerializeField] float levyFlightChance = 0.02f;
     [SerializeField] int minStepLength = 3;
@@ -38,6 +39,10 @@ public class RandomWalkAlgorithm : MonoBehaviour
 
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
+        if(eliminateSingleWalls)
+        {
+            tilemapVisualizer.EliminateSingleWalls();
+        }
     }
 
 

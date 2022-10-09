@@ -29,6 +29,27 @@ public class TilemapVisualizer : MonoBehaviour
         floorTilemap.ClearAllTiles();
     }
 
+    public void EliminateSingleWalls()
+    {
+        foreach (var position in floorTilemap.cellBounds.allPositionsWithin)
+        {
+            Vector2Int pos = (Vector2Int)position;
+
+            bool hasTile = floorTilemap.HasTile((Vector3Int)pos);
+            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1)));
+            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1)));
+            bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0)));
+            bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0)));
+
+
+            if (!hasTile && upperTile && bottomTile && rightTile && leftTile)
+            {
+                Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
+                floorTilemap.SetTile(tileMapPosition, floorTile);
+            }
+        }
+    }
+
     private void PaintTiles(IEnumerable<Vector2Int> positions, Tilemap tilemap, TileBase tile)
     {
         foreach (Vector2Int pos in positions)
