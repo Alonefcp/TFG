@@ -497,7 +497,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1564025722}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3423eda196787e645ac797e8a8ee5144, type: 3}
   m_Name: 
@@ -505,14 +505,14 @@ MonoBehaviour:
   tilemapVisualizer: {fileID: 1805714936}
   startPosition: {x: 0, y: 0}
   startRandomlyEachIteration: 1
-  maxFloorPositions: 400
+  maxFloorPositions: 700
   minSteps: 10
   maxSteps: 20
   chanceToChangeDirection: 1
-  levyFlight: 0
-  levyFlightChance: 0.04
+  levyFlight: 1
+  levyFlightChance: 0.37
   minStepLength: 3
-  maxStepLength: 6
+  maxStepLength: 8
 --- !u!4 &1564025724
 Transform:
   m_ObjectHideFlags: 0
@@ -535,13 +535,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1564025722}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8a124bfd76b1a5646ab678b1119f3c90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   tilemapVisualizer: {fileID: 1805714936}
-  maxFloorPositions: 400
+  maxFloorPositions: 800
   mapWidht: 80
   mapHeight: 40
   useCentralAttractor: 0

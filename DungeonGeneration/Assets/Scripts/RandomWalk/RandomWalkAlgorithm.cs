@@ -95,7 +95,7 @@ public class RandomWalkAlgorithm : MonoBehaviour
             {
                 if (levyFlight && Random.Range(0.0f, 1.0f) <= levyFlightChance)
                 {
-                    walker.dir = GetRandomDirection() * Random.Range(minStepLength, maxStepLength);
+                    walker.dir = GetRandomEightDirection() * Random.Range(minStepLength, maxStepLength);
                 }
                 else
                 {
@@ -109,27 +109,100 @@ public class RandomWalkAlgorithm : MonoBehaviour
 
     private void CalculatePositions(Walker walker, Vector2Int newPos, HashSet<Vector2Int> positions)
     {
+        Walker auxWalker = walker;
+
         while (walker.pos.x != newPos.x || walker.pos.y != newPos.y)
         {
+            bool moveDiagonally = true;
+
+            bool sumadoX = false;
+            bool restadoX = false;
+            bool sumadoY = false;
+            bool restadoY = false;
+
             if (walker.dir.x > 0)
             {
                 walker.pos.x++;
+                sumadoX = true;
             }
             else if (walker.dir.x < 0)
             {
                 walker.pos.x--;
+                restadoX = true;
+            }
+            else
+            {
+                moveDiagonally = false;
             }
 
             if (walker.dir.y > 0)
             {
                 walker.pos.y++;
+                sumadoY = true;
             }
             else if (walker.dir.y < 0)
             {
                 walker.pos.y--;
+                restadoY = true;
+            }
+            else
+            {
+                moveDiagonally = false;
             }
 
             positions.Add(walker.pos);
+            if (moveDiagonally)
+            {
+                if (sumadoX && sumadoY)
+                {
+                    Vector2Int auxPos = walker.pos + new Vector2Int(1, 0);
+                    Vector2Int auxPos1 = walker.pos + new Vector2Int(0, 1);
+                    positions.Add(auxPos);
+                    positions.Add(auxPos1);
+
+                    //positions.Add(newPos + new Vector2Int(1, 0));
+                    //positions.Add(newPos + new Vector2Int(0, 1));
+
+                    positions.Add(auxWalker.pos + new Vector2Int(1, 0));
+                    positions.Add(auxWalker.pos + new Vector2Int(0, 1));
+                }
+                else if (restadoX && restadoY)
+                {
+                    Vector2Int auxPos = walker.pos + new Vector2Int(-1, 0);
+                    Vector2Int auxPos1 = walker.pos + new Vector2Int(0, -1);
+                    positions.Add(auxPos);
+                    positions.Add(auxPos1);
+                    //positions.Add(newPos + new Vector2Int(-1, 0));
+                    //positions.Add(newPos + new Vector2Int(0, -1));
+
+                    positions.Add(auxWalker.pos + new Vector2Int(-1, 0));
+                    positions.Add(auxWalker.pos + new Vector2Int(0, -1));
+                }
+                else if (sumadoX && restadoY)
+                {
+                    Vector2Int auxPos = walker.pos + new Vector2Int(1, 0);
+                    Vector2Int auxPos1 = walker.pos + new Vector2Int(0, -1);
+                    positions.Add(auxPos);
+                    positions.Add(auxPos1);
+                    //positions.Add(newPos + new Vector2Int(1, 0));
+                    //positions.Add(newPos + new Vector2Int(0, -1));
+
+                    positions.Add(auxWalker.pos + new Vector2Int(1, 0));
+                    positions.Add(auxWalker.pos + new Vector2Int(0, -1));
+                }
+                else if (restadoX && sumadoY)
+                {
+                    Vector2Int auxPos = walker.pos + new Vector2Int(-1, 0);
+                    Vector2Int auxPos1 = walker.pos + new Vector2Int(0, 1);
+                    positions.Add(auxPos);
+                    positions.Add(auxPos1);
+                    //positions.Add(newPos + new Vector2Int(-1, 0));
+                    //positions.Add(newPos + new Vector2Int(0, 1));
+
+                    positions.Add(auxWalker.pos + new Vector2Int(-1, 0));
+                    positions.Add(auxWalker.pos + new Vector2Int(0, 1));
+                }
+            }
         }
     }
 
