@@ -46,7 +46,6 @@ public class RandomWalkAlgorithm : MonoBehaviour
         }
     }
 
-
     private HashSet<Vector2Int> RandomWalk()
     {
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();

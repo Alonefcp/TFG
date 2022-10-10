@@ -1,80 +1,65 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using UnityEngine;
 
 //Diffusion limited aggregation algorithm
 public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
 {
+    enum Symmetry {Horizontal, Vertical, Both, None }
+
     [SerializeField] private TilemapVisualizer tilemapVisualizer;
 
-    [SerializeField] private int maxFloorPositions = 300;
     [SerializeField] private int mapWidht = 80, mapHeight = 40;
-    [SerializeField] bool eliminateSingleWalls = false;
+    [Range(0.0f,1.0f)]
+    [SerializeField] private float fillPercentage = 0.5f;
+    [SerializeField] Symmetry symmetryType = Symmetry.None;
     [SerializeField] private bool useCentralAttractor = false;
     [SerializeField] bool makeWiderDiagonals = false;
-    [SerializeField] private bool applyHorizontalSymmetry = false;
-    [SerializeField] private bool applyVerticalSymmetry = false;
-    [SerializeField] private bool applyHorizontalAndVerticalSymmetry = false;
+    [SerializeField] bool eliminateSingleWalls = false;
 
     private Vector2Int startPosition;
+    private int totalTiles;
+    private int maxFloorPositions;
 
     void Start()
     {
-        if(useCentralAttractor)
+        totalTiles = mapWidht * mapHeight;
+        maxFloorPositions = (int)(fillPercentage * totalTiles);
+
+        HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
+
+        if (useCentralAttractor)
         {
-            HashSet<Vector2Int> map = DiffusionLimitedAggregation_CentralAttractor();
-            tilemapVisualizer.ClearTilemap();
-            if (applyHorizontalSymmetry)
-            {
-                ApplyHorizontalSymmetry(map, mapWidht);
-            }
-            else if (applyVerticalSymmetry)
-            {
-                ApplyVerticalSymmetry(map, mapHeight);
-            }
-            else if (applyHorizontalAndVerticalSymmetry)
-            {
-                ApplyHorizontalAndVerticalSymmetry(map, mapWidht, mapHeight);
-            }
-            else
-            {
-                tilemapVisualizer.PaintFloorTiles(map);
-
-            }
-
-            if (eliminateSingleWalls)
-            {
-                tilemapVisualizer.EliminateSingleWalls();
-            }
+            floorPositions = DiffusionLimitedAggregation_CentralAttractor();       
         }
         else
         {
-            HashSet<Vector2Int> map = DiffusionLimitedAggregation();
-            tilemapVisualizer.ClearTilemap();
-            if(applyHorizontalSymmetry)
-            {
-                ApplyHorizontalSymmetry(map, mapWidht);
-            }
-            else if(applyVerticalSymmetry)
-            {
-                ApplyVerticalSymmetry(map, mapHeight);
-            }
-            else if(applyHorizontalAndVerticalSymmetry)
-            {
-                ApplyHorizontalAndVerticalSymmetry(map, mapWidht, mapHeight);
-            }
-            else
-            {
-                tilemapVisualizer.PaintFloorTiles(map);
+            floorPositions = DiffusionLimitedAggregation();
+        }
 
-            }
+        tilemapVisualizer.ClearTilemap();
 
-            if(eliminateSingleWalls)
-            {
-                tilemapVisualizer.EliminateSingleWalls();
-            }
+        if (symmetryType == Symmetry.Horizontal)
+        {
+            ApplyHorizontalSymmetry(floorPositions, mapWidht);
+        }
+        else if (symmetryType == Symmetry.Vertical)
+        {
+            ApplyVerticalSymmetry(floorPositions, mapHeight);
+        }
+        else if (symmetryType == Symmetry.Both)
+        {
+            ApplyHorizontalAndVerticalSymmetry(floorPositions, mapWidht, mapHeight);
+        }
+        else if (symmetryType == Symmetry.None)
+        {
+            tilemapVisualizer.PaintFloorTiles(floorPositions);
+        }
+
+        if (eliminateSingleWalls)
+        {
+            tilemapVisualizer.EliminateSingleWalls();
         }
     }
 
@@ -83,21 +68,10 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
         Map map = new Map(mapWidht, mapHeight); //false -> wall , true -> floor
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
 
-        //Dig a "seed" area around your central starting point.
         startPosition = new Vector2Int(mapWidht / 2, mapHeight / 2);
 
-        map.SetHasFloor(startPosition, true);
-        map.SetHasFloor(startPosition + new Vector2Int(1, 0), true);
-        map.SetHasFloor(startPosition + new Vector2Int(-1, 0), true);
-        map.SetHasFloor(startPosition + new Vector2Int(0, 1), true);
-        map.SetHasFloor(startPosition + new Vector2Int(0, -1), true);
-
-        positions.Add(startPosition);
-        positions.Add(startPosition + new Vector2Int(1, 0));
-        positions.Add(startPosition + new Vector2Int(-1, 0));
-        positions.Add(startPosition + new Vector2Int(0, 1));
-        positions.Add(startPosition + new Vector2Int(0, -1));
-
+        //Dig a "seed" area around your central starting point
+        CreateSeed(map, positions);
 
         //While the number of floor tiles is less than your desired total
         while (positions.Count < maxFloorPositions)
@@ -146,20 +120,10 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
         Map map = new Map(mapWidht, mapHeight);
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
 
-        //Dig a "seed" area around your central starting point.
         startPosition = new Vector2Int(mapWidht / 2, mapHeight / 2);
 
-        map.SetHasFloor(startPosition, true);
-        map.SetHasFloor(startPosition + new Vector2Int(1, 0), true);
-        map.SetHasFloor(startPosition + new Vector2Int(-1, 0), true);
-        map.SetHasFloor(startPosition + new Vector2Int(0, 1), true);
-        map.SetHasFloor(startPosition + new Vector2Int(0, -1), true);
-
-        positions.Add(startPosition);
-        positions.Add(startPosition + new Vector2Int(1, 0));
-        positions.Add(startPosition + new Vector2Int(-1, 0));
-        positions.Add(startPosition + new Vector2Int(0, 1));
-        positions.Add(startPosition + new Vector2Int(0, -1));
+        //Dig a "seed" area around your central starting point
+        CreateSeed(map, positions);
 
         //While the number of floor tiles is less than your desired total
         while (positions.Count < maxFloorPositions)
@@ -171,7 +135,7 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
             Vector2Int diggerPrevPos = diggerPos;
 
             //line path
-            List<Vector2Int> path = GetLinePointsList(diggerPos.x, diggerPos.y, startPosition.x, startPosition.y,out int xstep,out int ystep).ToList();
+            List<Vector2Int> path = GetLinePointsList(diggerPos.x, diggerPos.y, startPosition.x, startPosition.y,out int xStep,out int yStep).ToList();
 
             while (!map.IsFloorPosition(diggerPos) && path.Count > 0)
             {
@@ -181,80 +145,28 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
                 path.RemoveAt(0);
             }
 
-            if(makeWiderDiagonals)
-            {
-                if (xstep < 0 && ystep < 0)
-                {
-                    Vector2Int pos1 = diggerPrevPos + new Vector2Int(-1, 0);
-                    Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, -1);
-
-                    if (map.IsInsideTheMap(pos1))
-                    {
-                        map.SetHasFloor(pos1, true);
-                        positions.Add(pos1);
-                    }
-                    else if (map.IsInsideTheMap(pos2))
-                    {
-                        map.SetHasFloor(pos2, true);
-                        positions.Add(pos2);
-                    }
-
-                }
-                else if (xstep > 0 && ystep < 0)
-                {
-                    Vector2Int pos1 = diggerPrevPos + new Vector2Int(1, 0);
-                    Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, -1);
-
-                    if (map.IsInsideTheMap(pos1))
-                    {
-                        map.SetHasFloor(pos1, true);
-                        positions.Add(pos1);
-                    }
-                    else if (map.IsInsideTheMap(pos2))
-                    {
-                        map.SetHasFloor(pos2, true);
-                        positions.Add(pos2);
-                    }
-                }
-                else if (xstep < 0 && ystep > 0)
-                {
-                    Vector2Int pos1 = diggerPrevPos + new Vector2Int(-1, 0);
-                    Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, 1);
-
-                    if (map.IsInsideTheMap(pos1))
-                    {
-                        map.SetHasFloor(pos1, true);
-                        positions.Add(pos1);
-                    }
-                    else if (map.IsInsideTheMap(pos2))
-                    {
-                        map.SetHasFloor(pos2, true);
-                        positions.Add(pos2);
-                    }
-                }
-                else if (xstep > 0 && ystep > 0)
-                {
-                    Vector2Int pos1 = diggerPrevPos + new Vector2Int(1, 0);
-                    Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, 1);
-
-                    if (map.IsInsideTheMap(pos1))
-                    {
-                        map.SetHasFloor(pos1, true);
-                        positions.Add(pos1);
-                    }
-                    else if (map.IsInsideTheMap(pos2))
-                    {
-                        map.SetHasFloor(pos2, true);
-                        positions.Add(pos2);
-                    }
-                }
-            }
+            if(makeWiderDiagonals) MakeWiderDiagonals(diggerPrevPos, xStep, yStep, map, positions);
 
             map.SetHasFloor(diggerPrevPos, true);
             positions.Add(diggerPrevPos);
         }
 
         return positions;
+    }
+
+    private void CreateSeed(Map map, HashSet<Vector2Int> positions)
+    {
+        map.SetHasFloor(startPosition, true);
+        map.SetHasFloor(startPosition + new Vector2Int(1, 0), true);
+        map.SetHasFloor(startPosition + new Vector2Int(-1, 0), true);
+        map.SetHasFloor(startPosition + new Vector2Int(0, 1), true);
+        map.SetHasFloor(startPosition + new Vector2Int(0, -1), true);
+
+        positions.Add(startPosition);
+        positions.Add(startPosition + new Vector2Int(1, 0));
+        positions.Add(startPosition + new Vector2Int(-1, 0));
+        positions.Add(startPosition + new Vector2Int(0, 1));
+        positions.Add(startPosition + new Vector2Int(0, -1));
     }
 
     private void Swap<T>(ref T lhs, ref T rhs)
@@ -266,36 +178,37 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
     }
 
     //Bresenhams line algorithm
-    private IEnumerable<Point> GetLinePoints(int x0, int y0, int x1, int y1)
-    {
-        bool steep = Mathf.Abs(y1 - y0) > Mathf.Abs(x1 - x0);
+    //private IEnumerable<Point> GetLinePoints(int x0, int y0, int x1, int y1)
+    //{
+    //    bool steep = Mathf.Abs(y1 - y0) > Mathf.Abs(x1 - x0);
 
-        if (steep)
-        {
-            Swap<int>(ref x0, ref y0);
-            Swap<int>(ref x1, ref y1);
-        }
+    //    if (steep)
+    //    {
+    //        Swap<int>(ref x0, ref y0);
+    //        Swap<int>(ref x1, ref y1);
+    //    }
 
-        int dx = Mathf.Abs(x1 - x0);
-        int dy = Mathf.Abs(y1 - y0);
-        int error = (dx / 2);
-        int ystep = (y0 < y1 ? 1 : -1);
-        int xstep = (x0 < x1 ? 1 : -1);
-        int y = y0;
+    //    int dx = Mathf.Abs(x1 - x0);
+    //    int dy = Mathf.Abs(y1 - y0);
+    //    int error = (dx / 2);
+    //    int ystep = (y0 < y1 ? 1 : -1);
+    //    int xstep = (x0 < x1 ? 1 : -1);
+    //    int y = y0;
 
-        for (int x = x0; x != (x1 + xstep); x += xstep)
-        {
-            yield return new Point((steep ? y : x), (steep ? x : y));
-            error = error - dy;
-            if (error < 0)
-            {
-                y += ystep;
-                error += dx;
-            }
-        }
-        yield break;
-    }
+    //    for (int x = x0; x != (x1 + xstep); x += xstep)
+    //    {
+    //        yield return new Point((steep ? y : x), (steep ? x : y));
+    //        error = error - dy;
+    //        if (error < 0)
+    //        {
+    //            y += ystep;
+    //            error += dx;
+    //        }
+    //    }
+    //    yield break;
+    //}
 
+    //Bresenhams line algorithm
     private List<Vector2Int> GetLinePointsList(int x0, int y0, int x1, int y1, out int xstep, out int ystep)
     {
         List<Vector2Int> linePoints = new List<Vector2Int>();
@@ -328,6 +241,75 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
         }
 
         return linePoints;
+    }
+
+    private void MakeWiderDiagonals(Vector2Int diggerPrevPos, int xStep, int yStep, Map map, HashSet<Vector2Int> positions)
+    {
+        if (xStep < 0 && yStep < 0)
+        {
+            Vector2Int pos1 = diggerPrevPos + new Vector2Int(-1, 0);
+            Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, -1);
+
+            if (map.IsInsideTheMap(pos1))
+            {
+                map.SetHasFloor(pos1, true);
+                positions.Add(pos1);
+            }
+            else if (map.IsInsideTheMap(pos2))
+            {
+                map.SetHasFloor(pos2, true);
+                positions.Add(pos2);
+            }
+
+        }
+        else if (xStep > 0 && yStep < 0)
+        {
+            Vector2Int pos1 = diggerPrevPos + new Vector2Int(1, 0);
+            Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, -1);
+
+            if (map.IsInsideTheMap(pos1))
+            {
+                map.SetHasFloor(pos1, true);
+                positions.Add(pos1);
+            }
+            else if (map.IsInsideTheMap(pos2))
+            {
+                map.SetHasFloor(pos2, true);
+                positions.Add(pos2);
+            }
+        }
+        else if (xStep < 0 && yStep > 0)
+        {
+            Vector2Int pos1 = diggerPrevPos + new Vector2Int(-1, 0);
+            Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, 1);
+
+            if (map.IsInsideTheMap(pos1))
+            {
+                map.SetHasFloor(pos1, true);
+                positions.Add(pos1);
+            }
+            else if (map.IsInsideTheMap(pos2))
+            {
+                map.SetHasFloor(pos2, true);
+                positions.Add(pos2);
+            }
+        }
+        else if (xStep > 0 && yStep > 0)
+        {
+            Vector2Int pos1 = diggerPrevPos + new Vector2Int(1, 0);
+            Vector2Int pos2 = diggerPrevPos + new Vector2Int(0, 1);
+
+            if (map.IsInsideTheMap(pos1))
+            {
+                map.SetHasFloor(pos1, true);
+                positions.Add(pos1);
+            }
+            else if (map.IsInsideTheMap(pos2))
+            {
+                map.SetHasFloor(pos2, true);
+                positions.Add(pos2);
+            }
+        }
     }
 
     private void ApplyHorizontalSymmetry(HashSet<Vector2Int> positions, int mapWidht)
