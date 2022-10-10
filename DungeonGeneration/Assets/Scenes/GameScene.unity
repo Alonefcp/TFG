@@ -505,12 +505,13 @@ MonoBehaviour:
   tilemapVisualizer: {fileID: 1805714936}
   startPosition: {x: 0, y: 0}
   startRandomlyEachIteration: 0
-  maxFloorPositions: 400
-  minSteps: 10
-  maxSteps: 20
+  maxFloorPositions: 800
+  minSteps: 15
+  maxSteps: 30
   chanceToChangeDirection: 1
   eliminateSingleWalls: 0
-  levyFlight: 1
+  useEightDirections: 1
+  levyFlight: 0
   levyFlightChance: 0.19
   minStepLength: 3
   maxStepLength: 8

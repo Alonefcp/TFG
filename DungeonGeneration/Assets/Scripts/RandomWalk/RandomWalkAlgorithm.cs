@@ -27,6 +27,7 @@ public class RandomWalkAlgorithm : MonoBehaviour
     [Range(0.0f, 1.0f)]
     [SerializeField] float chanceToChangeDirection = 1.0f;
     [SerializeField] bool eliminateSingleWalls = false;
+    [SerializeField] bool useEightDirections = false;
     [SerializeField] bool levyFlight = false;
     [SerializeField] float levyFlightChance = 0.02f;
     [SerializeField] int minStepLength = 3;
@@ -63,6 +64,8 @@ public class RandomWalkAlgorithm : MonoBehaviour
             int nSteps = Random.Range(minSteps, maxSteps);
             HashSet<Vector2Int> path = SimpleRandomWalk(walker, nSteps);
             positions.UnionWith(path);
+
+            walker.dir = GetRandomDirection();
 
             if (startRandomlyEachIteration)
             {
@@ -104,7 +107,7 @@ public class RandomWalkAlgorithm : MonoBehaviour
                 }
                 else
                 {
-                    walker.dir = GetRandomDirection();
+                    walker.dir = useEightDirections ? GetRandomEightDirection() : GetRandomDirection();
                 }
             }
         }
@@ -165,9 +168,6 @@ public class RandomWalkAlgorithm : MonoBehaviour
                     positions.Add(auxPos);
                     positions.Add(auxPos1);
 
-                    //positions.Add(newPos + new Vector2Int(1, 0));
-                    //positions.Add(newPos + new Vector2Int(0, 1));
-
                     positions.Add(auxWalker.pos + new Vector2Int(1, 0));
                     positions.Add(auxWalker.pos + new Vector2Int(0, 1));
                 }
@@ -177,8 +177,6 @@ public class RandomWalkAlgorithm : MonoBehaviour
                     Vector2Int auxPos1 = walker.pos + new Vector2Int(0, -1);
                     positions.Add(auxPos);
                     positions.Add(auxPos1);
-                    //positions.Add(newPos + new Vector2Int(-1, 0));
-                    //positions.Add(newPos + new Vector2Int(0, -1));
 
                     positions.Add(auxWalker.pos + new Vector2Int(-1, 0));
                     positions.Add(auxWalker.pos + new Vector2Int(0, -1));
@@ -189,8 +187,6 @@ public class RandomWalkAlgorithm : MonoBehaviour
                     Vector2Int auxPos1 = walker.pos + new Vector2Int(0, -1);
                     positions.Add(auxPos);
                     positions.Add(auxPos1);
-                    //positions.Add(newPos + new Vector2Int(1, 0));
-                    //positions.Add(newPos + new Vector2Int(0, -1));
 
                     positions.Add(auxWalker.pos + new Vector2Int(1, 0));
                     positions.Add(auxWalker.pos + new Vector2Int(0, -1));
@@ -201,8 +197,6 @@ public class RandomWalkAlgorithm : MonoBehaviour
                     Vector2Int auxPos1 = walker.pos + new Vector2Int(0, 1);
                     positions.Add(auxPos);
                     positions.Add(auxPos1);
-                    //positions.Add(newPos + new Vector2Int(-1, 0));
-                    //positions.Add(newPos + new Vector2Int(0, 1));
 
                     positions.Add(auxWalker.pos + new Vector2Int(-1, 0));
                     positions.Add(auxWalker.pos + new Vector2Int(0, 1));
