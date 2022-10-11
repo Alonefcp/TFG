@@ -17,10 +17,8 @@ public struct Walker
 }
 
 //Drunkard’s walk or Random Walk algorithm
-public class RandomWalkAlgorithm : MonoBehaviour
+public class RandomWalkAlgorithm : DungeonGenerator
 {
-    [SerializeField] private TilemapVisualizer tilemapVisualizer;
-
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
     [SerializeField] private bool startRandomlyEachIteration = true;
     [SerializeField] private int maxFloorPositions = 50;
@@ -35,13 +33,28 @@ public class RandomWalkAlgorithm : MonoBehaviour
     [SerializeField] int maxStepLength = 7;
 
 
-    void Start()
+    //void Start()
+    //{
+    //    HashSet<Vector2Int> floorPositions = RandomWalk();
+
+    //    tilemapVisualizer.ClearTilemap();
+    //    tilemapVisualizer.PaintFloorTiles(floorPositions);
+    //    if (eliminateSingleWalls)
+    //    {
+    //        tilemapVisualizer.EliminateSingleWalls();
+    //    }
+    //}
+
+    /// <summary>
+    /// Creates a dungeon with the Random Walk or Drunkard's Walk algorithm
+    /// </summary>
+    public override void GenerateDungeon()
     {
         HashSet<Vector2Int> floorPositions = RandomWalk();
 
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
-        if(eliminateSingleWalls)
+        if (eliminateSingleWalls)
         {
             tilemapVisualizer.EliminateSingleWalls();
         }
@@ -247,4 +260,6 @@ public class RandomWalkAlgorithm : MonoBehaviour
             positions.Add(initialWalkerPos + new Vector2Int(0, 1));
         }
     }
+
+    
 }

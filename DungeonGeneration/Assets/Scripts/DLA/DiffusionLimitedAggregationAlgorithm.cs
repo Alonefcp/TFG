@@ -4,11 +4,9 @@ using System.Linq;
 using UnityEngine;
 
 //Diffusion limited aggregation algorithm
-public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
+public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
 {
-    enum Symmetry {Horizontal, Vertical, Both, None }
-
-    [SerializeField] private TilemapVisualizer tilemapVisualizer;
+    enum Symmetry { None, Horizontal, Vertical, Both }
 
     [SerializeField] private int mapWidth = 80, mapHeight = 40;
     [Range(0.0f,1.0f)]
@@ -22,7 +20,51 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
     private int totalTiles;
     private int maxFloorPositions;
 
-    void Start()
+    //void Start()
+    //{
+    //    totalTiles = mapWidth * mapHeight;
+    //    maxFloorPositions = (int)(fillPercentage * totalTiles);
+
+    //    HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
+
+    //    if (useCentralAttractor)
+    //    {
+    //        floorPositions = DiffusionLimitedAggregation_CentralAttractor();
+    //    }
+    //    else
+    //    {
+    //        floorPositions = DiffusionLimitedAggregation();
+    //    }
+
+    //    tilemapVisualizer.ClearTilemap();
+
+    //    if (symmetryType == Symmetry.Horizontal)
+    //    {
+    //        ApplyHorizontalSymmetry(floorPositions, mapWidth);
+    //    }
+    //    else if (symmetryType == Symmetry.Vertical)
+    //    {
+    //        ApplyVerticalSymmetry(floorPositions, mapHeight);
+    //    }
+    //    else if (symmetryType == Symmetry.Both)
+    //    {
+    //        ApplyHorizontalAndVerticalSymmetry(floorPositions, mapWidth, mapHeight);
+    //    }
+    //    else if (symmetryType == Symmetry.None)
+    //    {
+    //        tilemapVisualizer.PaintFloorTiles(floorPositions);
+    //    }
+
+    //    if (eliminateSingleWalls)
+    //    {
+    //        tilemapVisualizer.EliminateSingleWalls();
+    //    }
+    //}
+
+    /// <summary>
+    /// Creates a dungeon with the Diffusion Limited Aggregation algorithm
+    /// </summary>
+    public override void GenerateDungeon()
     {
         totalTiles = mapWidth * mapHeight;
         maxFloorPositions = (int)(fillPercentage * totalTiles);
@@ -31,7 +73,7 @@ public class DiffusionLimitedAggregationAlgorithm : MonoBehaviour
 
         if (useCentralAttractor)
         {
-            floorPositions = DiffusionLimitedAggregation_CentralAttractor();       
+            floorPositions = DiffusionLimitedAggregation_CentralAttractor();
         }
         else
         {
