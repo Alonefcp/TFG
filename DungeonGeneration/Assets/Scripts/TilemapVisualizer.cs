@@ -8,27 +8,46 @@ public class TilemapVisualizer : MonoBehaviour
     [SerializeField] private Tilemap floorTilemap;
     [SerializeField] private TileBase floorTile;
 
+    /// <summary>
+    /// Paints tiles whose position is stored is a structure
+    /// </summary>
+    /// <param name="positions"></param>
     public void PaintFloorTiles(IEnumerable<Vector2Int> positions)
     {
         PaintTiles(positions, floorTilemap, floorTile);
     }
 
+    /// <summary>
+    /// Returns true if th tilemap has a tile in a given position
+    /// </summary>
+    /// <param name="position">Tile position</param>
+    /// <returns></returns>
     public bool HasTile(Vector2Int position)
     {
        return floorTilemap.HasTile((Vector3Int)position);
     }
 
+    /// <summary>
+    /// Paints a single tile
+    /// </summary>
+    /// <param name="position">Tile position</param>
     public void PaintSingleTile(Vector2Int position)
     {
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
         floorTilemap.SetTile(tileMapPosition, floorTile);
     }
 
+    /// <summary>
+    /// Eliminates all tiles of the tilemap
+    /// </summary>
     public void ClearTilemap()
     {
         floorTilemap.ClearAllTiles();
     }
 
+    /// <summary>
+    /// Eliminates from the tilemap all tiles 
+    /// </summary>
     public void EliminateSingleWalls()
     {
         foreach (var position in floorTilemap.cellBounds.allPositionsWithin)
@@ -50,6 +69,12 @@ public class TilemapVisualizer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Paints n tiles on a given tilemap
+    /// </summary>
+    /// <param name="positions">Tiles postions</param>
+    /// <param name="tilemap">The tilemap</param>
+    /// <param name="tile">The tile we want to paint</param>
     private void PaintTiles(IEnumerable<Vector2Int> positions, Tilemap tilemap, TileBase tile)
     {
         foreach (Vector2Int pos in positions)
@@ -58,10 +83,15 @@ public class TilemapVisualizer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Paints a single tile on a given tilemap
+    /// </summary>
+    /// <param name="position">Tile position</param>
+    /// <param name="tilemap">The tilemap</param>
+    /// <param name="tile">The tile we want to paint</param>
     private void PaintSingleTile(Vector2Int position, Tilemap tilemap, TileBase tile)
     {
         Vector3Int tileMapPosition = tilemap.WorldToCell((Vector3Int)position);
         tilemap.SetTile(tileMapPosition, tile);
     }
-
 }

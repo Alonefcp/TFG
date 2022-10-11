@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+//Walker representation
 public struct Walker
 {
     public Walker(Vector2Int _pos, Vector2Int _dir)
@@ -46,6 +47,10 @@ public class RandomWalkAlgorithm : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Performs the Random Walk or Drunkard's Walk algorithm
+    /// </summary>
+    /// <returns>Returns a HashSet with all floor positions</returns>
     private HashSet<Vector2Int> RandomWalk()
     {
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
@@ -77,6 +82,12 @@ public class RandomWalkAlgorithm : MonoBehaviour
         return positions;
     }
 
+    /// <summary>
+    /// Makes a path of nSteps
+    /// </summary>
+    /// <param name="walker">The walker who makes the path</param>
+    /// <param name="nSteps">Path lenght</param>
+    /// <returns>Returns a HashSet with all path positions</returns>
     private HashSet<Vector2Int> SimpleRandomWalk(Walker walker, int nSteps)
     {              
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
@@ -114,6 +125,10 @@ public class RandomWalkAlgorithm : MonoBehaviour
         return positions;
     }
 
+    /// <summary>
+    /// Returns a random cardinal direction (up, down, right , left)
+    /// </summary>
+    /// <returns></returns>
     private Vector2Int GetRandomDirection()
     {
         Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1) };
@@ -121,6 +136,10 @@ public class RandomWalkAlgorithm : MonoBehaviour
         return directions[Random.Range(0, directions.Length)];
     }
 
+    /// <summary>
+    /// Returns a random eight-way direction
+    /// </summary>
+    /// <returns></returns>
     private Vector2Int GetRandomEightDirection()
     {
         Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
@@ -129,6 +148,12 @@ public class RandomWalkAlgorithm : MonoBehaviour
         return directions[Random.Range(0, directions.Length)];
     }
 
+    /// <summary>
+    /// Calculate the positions between the walker positions and his new position
+    /// </summary>
+    /// <param name="walker">Walker struct which contains his position and direction</param>
+    /// <param name="newPos">New walker positions</param>
+    /// <param name="positions">Structure to hold the positions</param>
     private void CalculatePositions(Walker walker, Vector2Int newPos, HashSet<Vector2Int> positions)
     {
         Vector2Int initialWalkerPos = walker.pos;
@@ -177,6 +202,16 @@ public class RandomWalkAlgorithm : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Adds extra positions if the walker moves diagonally
+    /// </summary>
+    /// <param name="initialWalkerPos">Initial walker position</param>
+    /// <param name="currentWalkerPosition"></param>
+    /// <param name="positions">Structure to hold the positions</param>
+    /// <param name="positveX">If the walker goes in the positive X axis</param>
+    /// <param name="negativeX">If the walker goes in the negative X axis</param>
+    /// <param name="positiveY">If the walker goes in the positve Y axis</param>
+    /// <param name="negativeY">If the walker goes in the negative Y axis</param>
     private void AddDiagonalPositions(Vector2Int initialWalkerPos, Vector2Int currentWalkerPosition, HashSet<Vector2Int> positions, bool positveX,  bool negativeX, bool positiveY, bool negativeY)
     {
         if (positveX && positiveY)

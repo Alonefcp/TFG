@@ -505,9 +505,9 @@ MonoBehaviour:
   tilemapVisualizer: {fileID: 1805714936}
   startPosition: {x: 0, y: 0}
   startRandomlyEachIteration: 1
-  maxFloorPositions: 400
-  minSteps: 15
-  maxSteps: 30
+  maxFloorPositions: 900
+  minSteps: 100
+  maxSteps: 100
   chanceToChangeDirection: 1
   eliminateSingleWalls: 0
   useEightDirections: 0
@@ -543,13 +543,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilemapVisualizer: {fileID: 1805714936}
-  mapWidht: 80
+  mapWidth: 80
   mapHeight: 60
   fillPercentage: 0.301
   symmetryType: 3
-  useCentralAttractor: 1
-  makeWiderDiagonals: 1
-  eliminateSingleWalls: 1
+  useCentralAttractor: 0
+  makeWiderDiagonals: 0
+  eliminateSingleWalls: 0
 --- !u!1 &1574455686
 GameObject:
   m_ObjectHideFlags: 0
