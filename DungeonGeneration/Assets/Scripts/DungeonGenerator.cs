@@ -4,7 +4,7 @@ using UnityEngine;
 
 public abstract class DungeonGenerator : MonoBehaviour
 {
-    [SerializeField] protected TilemapVisualizer tilemapVisualizer;
+    [SerializeField] protected TilemapVisualizer tilemapVisualizer = null;
 
     /// <summary>
     /// Creates a dungeon with an algorithm
