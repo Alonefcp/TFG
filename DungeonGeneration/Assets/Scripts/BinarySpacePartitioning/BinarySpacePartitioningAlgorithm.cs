@@ -33,8 +33,95 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
         floorPositions = CreateRooms(roomList);
 
+        List<Vector2Int> roomCenters = new List<Vector2Int>();
+
+        foreach (BoundsInt room in roomList)
+        {
+            roomCenters.Add((Vector2Int)Vector3Int.RoundToInt(room.center));
+        }
+        HashSet<Vector2Int> corridors = ConnectRooms(roomCenters);
+        floorPositions.UnionWith(corridors);
+
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
+    }
+
+    private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters)
+    {
+        HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
+
+        Vector2Int currentRoomCenter = roomCenters[Random.Range(0, roomCenters.Count)];
+        roomCenters.Remove(currentRoomCenter);
+
+        while(roomCenters.Count > 0)
+        {
+            Vector2Int closest = FindClosestPointTo(currentRoomCenter, roomCenters);
+            roomCenters.Remove(closest);
+
+            HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest);
+            currentRoomCenter = closest;
+
+            corridors.UnionWith(newCorridor);
+        }
+
+        return corridors;
+    }
+
+    private HashSet<Vector2Int> CreateCorridor(Vector2Int currentRoomCenter, Vector2Int destination)
+    {
+        HashSet<Vector2Int> corridor = new HashSet<Vector2Int>();
+
+        Vector2Int position = currentRoomCenter;
+        corridor.Add(position);
+
+        while(position.y != destination.y)
+        {
+            if(destination.y > position.y)
+            {
+                position += new Vector2Int(0,1);
+            }
+            else if(destination.y < position.y)
+            {
+                position += new Vector2Int(0,-1);
+            }
+
+            corridor.Add(position);
+        }
+
+        while (position.x != destination.x)
+        {
+            if (destination.x > position.x)
+            {
+                position += new Vector2Int(1,0);
+            }
+            else if (destination.x < position.x)
+            {
+                position += new Vector2Int(-1,0);
+            }
+
+            corridor.Add(position);
+        }
+
+        return corridor;
+    }
+
+    private Vector2Int FindClosestPointTo(Vector2Int currentRoomCenter, List<Vector2Int> roomCenters)
+    {
+        Vector2Int closest = Vector2Int.zero;
+        float distance = float.MaxValue;
+
+        foreach (Vector2Int position in roomCenters)
+        {
+            float currentDistance = Vector2.Distance(position, currentRoomCenter);
+
+            if(currentDistance < distance)
+            {
+                distance = currentDistance;
+                closest = position;
+            }
+        }
+
+        return closest;
     }
 
     private HashSet<Vector2Int> CreateRooms(List<BoundsInt> roomsList)
@@ -121,7 +208,5 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
         roomsQueue.Enqueue(firstRoom);
         roomsQueue.Enqueue(secondRoom);
-    }
-
-   
+    }  
 }
