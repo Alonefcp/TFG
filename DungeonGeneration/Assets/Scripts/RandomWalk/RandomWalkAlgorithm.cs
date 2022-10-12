@@ -122,9 +122,9 @@ public class RandomWalkAlgorithm : DungeonGenerator
 
             walker.pos = newPos;
 
-            if (Random.Range(0.0f,1.0f) <= chanceToChangeDirection)
+            if (Random.value <= chanceToChangeDirection)
             {
-                if (levyFlight && Random.Range(0.0f, 1.0f) <= levyFlightChance)
+                if (levyFlight && Random.value <= levyFlightChance)
                 {
                     walker.dir = GetRandomEightDirection() * Random.Range(minStepLength, maxStepLength);
                 }

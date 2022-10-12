@@ -2,58 +2,81 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BinarySpacePartitioningAlgorithm : MonoBehaviour
+public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 {
-    [SerializeField] protected TilemapVisualizer tilemapVisualizer;
-
     [SerializeField] private int spaceWidth = 20,  spaceHeight = 20;
     [SerializeField] private int minRoomWidth = 4,  minRoomHeight = 4;
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
 
+    [Range(0,10)]
     [SerializeField] private int offset = 1;
 
-    void Start()
+    [SerializeField] bool gridStructure = false;
+
+    //void Start()
+    //{
+    //    List<BoundsInt> roomList = BinarySpacePartitioning(new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0)), minRoomWidth, minRoomHeight);
+
+    //    HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
+
+    //    floorPositions = CreateRooms(roomList);
+
+    //    tilemapVisualizer.ClearTilemap();
+    //    tilemapVisualizer.PaintFloorTiles(floorPositions);
+    //}
+
+    public override void GenerateDungeon()
     {
         List<BoundsInt> roomList = BinarySpacePartitioning(new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0)), minRoomWidth, minRoomHeight);
 
         HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
 
         floorPositions = CreateRooms(roomList);
+
+        tilemapVisualizer.ClearTilemap();
+        tilemapVisualizer.PaintFloorTiles(floorPositions);
     }
 
-    private HashSet<Vector2Int> CreateRooms(List<BoundsInt> roomList)
+    private HashSet<Vector2Int> CreateRooms(List<BoundsInt> roomsList)
     {
-        HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
-
-
-
-        return floorPositions;
+        HashSet<Vector2Int> floor = new HashSet<Vector2Int>();
+        foreach (var room in roomsList)
+        {
+            for (int col = offset; col < room.size.x - offset; col++)
+            {
+                for (int row = offset; row < room.size.y - offset; row++)
+                {
+                    Vector2Int position = (Vector2Int)room.min + new Vector2Int(col, row);
+                    floor.Add(position);
+                }
+            }
+        }
+        return floor;
     }
 
     private List<BoundsInt> BinarySpacePartitioning(BoundsInt spaceToSplit, int minWidth, int minHeight)
     {
-        Queue<BoundsInt> roomsQueue = new Queue<BoundsInt>(); //rooms that can be splitted
+        Queue<BoundsInt> roomsQueue = new Queue<BoundsInt>();
         List<BoundsInt> roomsList = new List<BoundsInt>();
-
         roomsQueue.Enqueue(spaceToSplit);
 
-        while(roomsQueue.Count > 0)
+        while (roomsQueue.Count > 0)
         {
             BoundsInt room = roomsQueue.Dequeue();
 
-            if(room.size.x >= minWidth && room.size.y >= minHeight)
+            if (room.size.y >= minHeight && room.size.x >= minWidth)
             {
-                if(Random.Range(0.0f,1.0f) < 0.5f)
+                if (Random.value < 0.5f)
                 {
-                    if(room.size.y >= minHeight*2) //Horizontal
+                    if (room.size.y >= minHeight * 2)
                     {
-                        HorizontalSplit(minHeight, roomsQueue, room); 
+                        HorizontalSplit(minHeight, roomsQueue, room);
                     }
-                    else if(room.size.x >= minWidth * 2)
+                    else if (room.size.x >= minWidth * 2)
                     {
-                        VerticalSplit(minWidth, roomsQueue, room); //Vertical
+                        VerticalSplit(minWidth, roomsQueue, room);
                     }
-                    else
+                    else if (room.size.x >= minWidth && room.size.y >= minHeight)
                     {
                         roomsList.Add(room);
                     }
@@ -62,13 +85,13 @@ public class BinarySpacePartitioningAlgorithm : MonoBehaviour
                 {
                     if (room.size.x >= minWidth * 2)
                     {
-                        VerticalSplit(minWidth, roomsQueue, room); //Vertical
+                        VerticalSplit(minWidth, roomsQueue, room);
                     }
-                    if (room.size.y >= minHeight * 2) //Horizontal
+                    else if (room.size.y >= minHeight * 2)
                     {
-                        HorizontalSplit(minHeight, roomsQueue, room); 
+                        HorizontalSplit(minHeight, roomsQueue, room);
                     }
-                    else
+                    else if (room.size.x >= minWidth && room.size.y >= minHeight)
                     {
                         roomsList.Add(room);
                     }
@@ -91,7 +114,7 @@ public class BinarySpacePartitioningAlgorithm : MonoBehaviour
 
     private void HorizontalSplit(int minHeight, Queue<BoundsInt> roomsQueue, BoundsInt room)
     {
-        int ySplit = Random.Range(1, room.size.y);
+        int ySplit = gridStructure ? Random.Range(minHeight, room.size.y - minHeight) : Random.Range(1, room.size.y);
 
         BoundsInt firstRoom = new BoundsInt(room.min, new Vector3Int(room.size.x, ySplit, room.size.z));
         BoundsInt secondRoom = new BoundsInt(new Vector3Int(room.min.x, room.min.y + ySplit, room.min.z), new Vector3Int(room.size.x, room.size.y-ySplit, room.size.z));
@@ -99,4 +122,6 @@ public class BinarySpacePartitioningAlgorithm : MonoBehaviour
         roomsQueue.Enqueue(firstRoom);
         roomsQueue.Enqueue(secondRoom);
     }
+
+   
 }
