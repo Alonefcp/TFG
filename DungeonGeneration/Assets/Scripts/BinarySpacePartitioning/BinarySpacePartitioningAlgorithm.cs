@@ -8,10 +8,15 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     [SerializeField] private int minRoomWidth = 4,  minRoomHeight = 4;
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
 
-    [Range(0,10)]
+    [Range(1,10)]
     [SerializeField] private int offset = 1;
 
-    [SerializeField] bool gridStructure = false;
+    [SerializeField] private bool gridStructure = false;
+
+    [SerializeField] private bool showGizmos = false;
+
+    private List<BoundsInt> roomList;
+
 
     //void Start()
     //{
@@ -27,7 +32,9 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
-        List<BoundsInt> roomList = BinarySpacePartitioning(new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0)), minRoomWidth, minRoomHeight);
+        BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
+
+        roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, minRoomHeight);
 
         HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
 
@@ -44,6 +51,20 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
+    }
+
+    private void OnDrawGizmos()
+    {
+        if(showGizmos)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
+
+            foreach (BoundsInt space in roomList)
+            {
+                Gizmos.DrawWireCube(space.center, space.size);
+            }
+        }      
     }
 
     private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters)
@@ -192,6 +213,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     private void VerticalSplit(int minWidth, Queue<BoundsInt> roomsQueue, BoundsInt room)
     {
         int xSplit = Random.Range(1, room.size.x);
+       
         BoundsInt firstRoom = new BoundsInt(room.min, new Vector3Int(xSplit, room.size.y, room.size.z));
         BoundsInt secondRoom = new BoundsInt(new Vector3Int(room.min.x + xSplit,room.min.y, room.min.z), new Vector3Int(room.size.x - xSplit, room.size.y, room.size.z));
 
