@@ -9,9 +9,12 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
 
     [Range(1,10)]
-    [SerializeField] private int offset = 1;
+    [SerializeField] private int roomOffset = 1;
 
-    [SerializeField] private bool gridStructure = false;
+    [SerializeField] private bool widerCorridors = false;
+
+    [SerializeField] private bool verticalGridStructure = false;
+    [SerializeField] private bool horizontalGridStructure = false;
 
     [SerializeField] private bool showGizmos = false;
 
@@ -60,10 +63,10 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             Gizmos.color = Color.red;
             Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
 
-            foreach (BoundsInt space in roomList)
-            {
-                Gizmos.DrawWireCube(space.center, space.size);
-            }
+            //foreach (BoundsInt space in roomList)
+            //{
+            //    Gizmos.DrawWireCube(space.center, space.size);
+            //}
         }      
     }
 
@@ -123,7 +126,36 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             corridor.Add(position);
         }
 
+
+        if (widerCorridors)
+        {
+            HashSet<Vector2Int> corridorSides = new HashSet<Vector2Int>();
+
+            //widdening corridor
+            foreach (Vector2Int Corridor in corridor)
+            {
+                foreach (Vector2Int dir in GetDirectionsArray())
+                {
+                    if (!corridor.Contains(Corridor + dir))
+                    {
+                        corridorSides.Add(Corridor + dir);
+                    }
+                }
+            }
+
+            corridor.UnionWith(corridorSides);
+        }
+
         return corridor;
+    }
+
+
+    private Vector2Int[] GetDirectionsArray()
+    {
+        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
+            new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
+
+        return directions;
     }
 
     private Vector2Int FindClosestPointTo(Vector2Int currentRoomCenter, List<Vector2Int> roomCenters)
@@ -150,9 +182,9 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         HashSet<Vector2Int> floor = new HashSet<Vector2Int>();
         foreach (var room in roomsList)
         {
-            for (int col = offset; col < room.size.x - offset; col++)
+            for (int col = roomOffset; col < room.size.x - roomOffset; col++)
             {
-                for (int row = offset; row < room.size.y - offset; row++)
+                for (int row = roomOffset; row < room.size.y - roomOffset; row++)
                 {
                     Vector2Int position = (Vector2Int)room.min + new Vector2Int(col, row);
                     floor.Add(position);
@@ -212,7 +244,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     private void VerticalSplit(int minWidth, Queue<BoundsInt> roomsQueue, BoundsInt room)
     {
-        int xSplit = Random.Range(1, room.size.x);
+        int xSplit = verticalGridStructure ? Random.Range(minWidth, room.size.x - minWidth) : Random.Range(1, room.size.x);
        
         BoundsInt firstRoom = new BoundsInt(room.min, new Vector3Int(xSplit, room.size.y, room.size.z));
         BoundsInt secondRoom = new BoundsInt(new Vector3Int(room.min.x + xSplit,room.min.y, room.min.z), new Vector3Int(room.size.x - xSplit, room.size.y, room.size.z));
@@ -223,7 +255,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     private void HorizontalSplit(int minHeight, Queue<BoundsInt> roomsQueue, BoundsInt room)
     {
-        int ySplit = gridStructure ? Random.Range(minHeight, room.size.y - minHeight) : Random.Range(1, room.size.y);
+        int ySplit = horizontalGridStructure ? Random.Range(minHeight, room.size.y - minHeight) : Random.Range(1, room.size.y);
 
         BoundsInt firstRoom = new BoundsInt(room.min, new Vector3Int(room.size.x, ySplit, room.size.z));
         BoundsInt secondRoom = new BoundsInt(new Vector3Int(room.min.x, room.min.y + ySplit, room.min.z), new Vector3Int(room.size.x, room.size.y-ySplit, room.size.z));
