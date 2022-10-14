@@ -54,10 +54,11 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         graphRooms = new WeightedGraph<Vector2Int>(false, false);
 
         HashSet<Vector2Int> corridors = ConnectRooms(roomCenters, graphRooms);
-        floorPositions.UnionWith(corridors);
+        //floorPositions.UnionWith(corridors);
 
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
+        tilemapVisualizer.PaintCorridorTiles(corridors);
     }
 
     private void OnDrawGizmos()
@@ -79,7 +80,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
                 foreach (WeightedEdge<Vector2Int> edge in graphRooms.GetEdges())
                 {
                     Gizmos.DrawLine(new Vector3(edge.From.Value.x, edge.From.Value.y, 0.0f), new Vector3(edge.To.Value.x, edge.To.Value.y, 0.0f));
-                }
+                } 
             }
 
             //foreach (BoundsInt space in roomList)
@@ -103,9 +104,10 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             roomCenters.Remove(closest);
             WeightedGraphNode<Vector2Int> closestNode = graph.AddNode(closest);
 
+            HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest);
+
             graph.AddEdge(currentRoomCenterNode, closestNode,0);
 
-            HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest);
             currentRoomCenter = closestNode.Value;
             currentRoomCenterNode = closestNode;
 

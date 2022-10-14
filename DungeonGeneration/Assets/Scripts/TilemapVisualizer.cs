@@ -7,6 +7,7 @@ public class TilemapVisualizer : MonoBehaviour
 {
     [SerializeField] private Tilemap floorTilemap;
     [SerializeField] private TileBase floorTile;
+    [SerializeField] private TileBase corridorTile;
 
     /// <summary>
     /// Paints tiles whose position is stored is a structure
@@ -15,6 +16,11 @@ public class TilemapVisualizer : MonoBehaviour
     public void PaintFloorTiles(IEnumerable<Vector2Int> positions)
     {
         PaintTiles(positions, floorTilemap, floorTile);
+    }
+
+    public void PaintCorridorTiles(IEnumerable<Vector2Int> positions)
+    {
+        PaintTiles(positions, floorTilemap, corridorTile);
     }
 
     /// <summary>

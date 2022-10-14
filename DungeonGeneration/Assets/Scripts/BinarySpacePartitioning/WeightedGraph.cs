@@ -1,18 +1,19 @@
-//using Priority_Queue;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace GraphDataStructure
 {
     #region WeightedGraphNode: Create Node Structure
-    public class WeightedGraphNode<T>
+    public class WeightedGraphNode<T> 
     {
         #region Properties - Index, Value, Neighbors, Weights         
         public int Index { get; set; }
         public T Value { get; set; }
         public List<WeightedGraphNode<T>> Neighbors { get; set; } = new List<WeightedGraphNode<T>>();
         public List<int> Weights { get; set; } = new List<int>();
-        #endregion  
+        public int HeapIndex { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        #endregion
         #region Basic Operations-AddNeighbors, RemoveNeighbors, ToString
         public bool AddNeighbors(WeightedGraphNode<T> neighbor)
         {
@@ -512,7 +513,7 @@ namespace GraphDataStructure
         //    distances[source.Index] = 0;
 
         //    //Create SimplePriorityQueue for dynamicall update the priority of each node on the basis of distance and process accordingly
-        //    SimplePriorityQueue<WeightedGraphNode<T>> nodes = new SimplePriorityQueue<WeightedGraphNode<T>>();
+        //    Heap<WeightedGraphNode<T>> nodes = new Heap<WeightedGraphNode<T>>(0);
         //    for (int i = 0; i < Nodes.Count; i++)
         //    {
         //        nodes.Enqueue(Nodes[i], distances[i]);
