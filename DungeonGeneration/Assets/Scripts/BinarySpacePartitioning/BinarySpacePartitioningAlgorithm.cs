@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using GraphDataStructure;
 
 public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 {
@@ -19,7 +20,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     [SerializeField] private bool showGizmos = false;
 
     private List<BoundsInt> roomList;
-
+    private WeightedGraph<Vector2Int> graphRooms;
 
     //void Start()
     //{
@@ -49,7 +50,10 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         {
             roomCenters.Add((Vector2Int)Vector3Int.RoundToInt(room.center));
         }
-        HashSet<Vector2Int> corridors = ConnectRooms(roomCenters);
+
+        graphRooms = new WeightedGraph<Vector2Int>(false, false);
+
+        HashSet<Vector2Int> corridors = ConnectRooms(roomCenters, graphRooms);
         floorPositions.UnionWith(corridors);
 
         tilemapVisualizer.ClearTilemap();
@@ -63,6 +67,21 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             Gizmos.color = Color.red;
             Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
 
+
+            if (graphRooms != null)
+            {
+                Gizmos.color = Color.green;
+                foreach (WeightedGraphNode<Vector2Int> node in graphRooms.Nodes)
+                {
+                    Gizmos.DrawWireSphere(new Vector3(node.Value.x, node.Value.y, 0.0f), 1.5f);
+                }
+                Gizmos.color = Color.yellow;
+                foreach (WeightedEdge<Vector2Int> edge in graphRooms.GetEdges())
+                {
+                    Gizmos.DrawLine(new Vector3(edge.From.Value.x, edge.From.Value.y, 0.0f), new Vector3(edge.To.Value.x, edge.To.Value.y, 0.0f));
+                }
+            }
+
             //foreach (BoundsInt space in roomList)
             //{
             //    Gizmos.DrawWireCube(space.center, space.size);
@@ -70,20 +89,25 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         }      
     }
 
-    private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters)
+    private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, WeightedGraph<Vector2Int> graph)
     {
         HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
 
         Vector2Int currentRoomCenter = roomCenters[Random.Range(0, roomCenters.Count)];
         roomCenters.Remove(currentRoomCenter);
+        WeightedGraphNode<Vector2Int> currentRoomCenterNode = graph.AddNode(currentRoomCenter);
 
         while(roomCenters.Count > 0)
         {
             Vector2Int closest = FindClosestPointTo(currentRoomCenter, roomCenters);
             roomCenters.Remove(closest);
+            WeightedGraphNode<Vector2Int> closestNode = graph.AddNode(closest);
+
+            graph.AddEdge(currentRoomCenterNode, closestNode,0);
 
             HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest);
-            currentRoomCenter = closest;
+            currentRoomCenter = closestNode.Value;
+            currentRoomCenterNode = closestNode;
 
             corridors.UnionWith(newCorridor);
         }
