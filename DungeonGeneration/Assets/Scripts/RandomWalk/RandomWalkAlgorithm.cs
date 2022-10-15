@@ -35,14 +35,7 @@ public class RandomWalkAlgorithm : DungeonGenerator
 
     //void Start()
     //{
-    //    HashSet<Vector2Int> floorPositions = RandomWalk();
-
-    //    tilemapVisualizer.ClearTilemap();
-    //    tilemapVisualizer.PaintFloorTiles(floorPositions);
-    //    if (eliminateSingleWalls)
-    //    {
-    //        tilemapVisualizer.EliminateSingleWalls();
-    //    }
+    //    GenerateDungeon();
     //}
 
     /// <summary>

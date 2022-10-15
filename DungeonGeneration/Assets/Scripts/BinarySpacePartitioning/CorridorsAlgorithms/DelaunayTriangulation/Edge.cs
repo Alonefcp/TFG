@@ -2,61 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public class Vertex : IEquatable<Vertex>
-{
-    public Vector3 Position { get; private set; }
-
-    public Vertex()
-    {
-
-    }
-
-    public Vertex(Vector3 position)
-    {
-        Position = position;
-    }
-
-    public override bool Equals(object obj)
-    {
-        if (obj is Vertex v)
-        {
-            return Position == v.Position;
-        }
-
-        return false;
-    }
-
-    public bool Equals(Vertex other)
-    {
-        return Position == other.Position;
-    }
-
-    public override int GetHashCode()
-    {
-        return Position.GetHashCode();
-    }
-}
-
-public class Vertex<T> : Vertex
-{
-    public T Item { get; private set; }
-
-    public Vertex(T item)
-    {
-        Item = item;
-    }
-
-    public Vertex(Vector3 position, T item) : base(position)
-    {
-        Item = item;
-    }
-}
-
 public class Edge : IEquatable<Edge>
 {
     public Vertex U { get; set; }
     public Vertex V { get; set; }
+    public float Distance { get; private set; }
+    public bool IsBad { get; set; }
 
     public Edge()
     {
@@ -67,6 +18,8 @@ public class Edge : IEquatable<Edge>
     {
         U = u;
         V = v;
+
+        Distance = Vector3.Distance(u.Position, v.Position);
     }
 
     public static bool operator ==(Edge left, Edge right)
@@ -99,4 +52,22 @@ public class Edge : IEquatable<Edge>
     {
         return U.GetHashCode() ^ V.GetHashCode();
     }
+
+    public static bool AlmostEqual(float x, float y)
+    {
+        return Mathf.Abs(x - y) <= float.Epsilon * Mathf.Abs(x + y) * 2
+            || Mathf.Abs(x - y) < float.MinValue;
+    }
+
+    private static bool AlmostEqual(Vertex left, Vertex right)
+    {
+        return AlmostEqual(left.Position.x, right.Position.x) && AlmostEqual(left.Position.y, right.Position.y);
+    }
+
+    public static bool AlmostEqual(Edge left, Edge right)
+    {
+        return AlmostEqual(left.U, right.U) && AlmostEqual(left.V, right.V)
+            || AlmostEqual(left.U, right.V) && AlmostEqual(left.V, right.U);
+    }
 }
+

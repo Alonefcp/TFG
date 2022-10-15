@@ -9,6 +9,11 @@ public class TilemapVisualizer : MonoBehaviour
     [SerializeField] private TileBase floorTile;
     [SerializeField] private TileBase corridorTile;
 
+    public float GetCellRadius()
+    {
+        return floorTilemap.cellSize.x / 2.0f;
+    }
+
     /// <summary>
     /// Paints tiles whose position is stored is a structure
     /// </summary>

@@ -2,9 +2,9 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class Pathfinding : MonoBehaviour
+public static class AstarPathfinding 
 {
-	public List<Node> FindPath(Grid grid, Vector3 startPos, Vector3 targetPos)
+	public static List<Vector2Int> FindPath(Grid grid, Vector3 startPos, Vector3 targetPos)
 	{
 		Node startNode = grid.NodeFromWorldPoint(startPos);
 		Node targetNode = grid.NodeFromWorldPoint(targetPos);
@@ -50,14 +50,14 @@ public class Pathfinding : MonoBehaviour
 		return null;
 	}
 
-	List<Node> RetracePath(Node startNode, Node endNode)
+	private static List<Vector2Int> RetracePath(Node startNode, Node endNode)
 	{
-		List<Node> path = new List<Node>();
+		List<Vector2Int> path = new List<Vector2Int>();
 		Node currentNode = endNode;
 
 		while (currentNode != startNode)
 		{
-			path.Add(currentNode);
+			path.Add((Vector2Int)Vector3Int.RoundToInt(currentNode.worldPosition));
 			currentNode = currentNode.parent;
 		}
 		path.Reverse();
@@ -65,7 +65,7 @@ public class Pathfinding : MonoBehaviour
 		return path;
 	}
 
-	int GetDistance(Node nodeA, Node nodeB)
+	private static int GetDistance(Node nodeA, Node nodeB)
 	{
 		int dstX = Mathf.Abs(nodeA.gridX - nodeB.gridX);
 		int dstY = Mathf.Abs(nodeA.gridY - nodeB.gridY);
@@ -74,5 +74,4 @@ public class Pathfinding : MonoBehaviour
 			return 14 * dstY + 10 * (dstX - dstY);
 		return 14 * dstX + 10 * (dstY - dstX);
 	}
-
 }

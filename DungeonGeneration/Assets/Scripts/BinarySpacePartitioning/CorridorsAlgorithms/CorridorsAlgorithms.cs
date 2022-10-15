@@ -3,9 +3,40 @@ using System.Collections.Generic;
 using UnityEngine;
 using GraphDataStructure;
 
-public class TunnelingAlgorithm : MonoBehaviour
+public static class CorridorsAlgorithms
 {
-    public HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, WeightedGraph<Vector2Int> graph, bool widerCorridors)
+    //================================================== Delaunay, Prim and A* ====================================================================
+
+
+    public static List<List<Vector2Int>> ConnectRooms(List<Vertex> roomCentersForDelaunay, Grid grid, bool addSomeRemainingEdges=false)
+    {
+        //Delaunay triangulation
+        DelaunayTriangulation delaunayTriangulation = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
+
+        //Prim algorithm
+        HashSet<Edge> edges = PrimAlgorithm.RunMinimumSpanningTree(delaunayTriangulation.Edges, addSomeRemainingEdges);
+
+        List<List<Vector2Int>> paths = new List<List<Vector2Int>>();
+
+        
+        foreach (var edge in edges)
+        {
+            //A* algorithm
+            List<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.Position, edge.V.Position);
+            paths.Add(path);
+
+            //foreach (var node in path)
+            //{
+            //    tilemapVisualizer.PaintSingleTile(new Vector2Int((int)node.worldPosition.x, (int)node.worldPosition.y));
+            //}
+        }
+
+        return paths;
+    }
+
+    
+    //================================================== Tunneling Algorithm ======================================================================
+    public static HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, WeightedGraph<Vector2Int> graph, bool widerCorridors)
     {
         HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
 
@@ -32,7 +63,7 @@ public class TunnelingAlgorithm : MonoBehaviour
         return corridors;
     }
 
-    public HashSet<Vector2Int> CreateCorridor(Vector2Int currentRoomCenter, Vector2Int destination, bool widerCorridors)
+    private static HashSet<Vector2Int> CreateCorridor(Vector2Int currentRoomCenter, Vector2Int destination, bool widerCorridors)
     {
         HashSet<Vector2Int> corridor = new HashSet<Vector2Int>();
 
@@ -91,7 +122,7 @@ public class TunnelingAlgorithm : MonoBehaviour
     }
 
 
-    private Vector2Int[] GetDirectionsArray()
+    private static Vector2Int[] GetDirectionsArray()
     {
         Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
             new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
@@ -99,7 +130,7 @@ public class TunnelingAlgorithm : MonoBehaviour
         return directions;
     }
 
-    private Vector2Int FindClosestPointTo(Vector2Int currentRoomCenter, List<Vector2Int> roomCenters)
+    private static Vector2Int FindClosestPointTo(Vector2Int currentRoomCenter, List<Vector2Int> roomCenters)
     {
         Vector2Int closest = Vector2Int.zero;
         float distance = float.MaxValue;

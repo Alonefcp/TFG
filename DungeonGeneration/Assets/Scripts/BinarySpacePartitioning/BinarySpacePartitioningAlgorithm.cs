@@ -5,9 +5,9 @@ using GraphDataStructure;
 
 public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 {
-    [SerializeField] private Pathfinding pathfinding;
+    enum CorridorsAlgorithm {TunnelingAlgorithm, Delaunay_Prim_Astar}
+
     [SerializeField] private Grid grid;
-    [SerializeField] private TunnelingAlgorithm tunnelingAlgorithm; // creating corridors
     [SerializeField] private int spaceWidth = 20,  spaceHeight = 20;
     [SerializeField] private int minRoomWidth = 4,  minRoomHeight = 4;
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
@@ -15,6 +15,8 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     [Range(1,10)]
     [SerializeField] private int roomOffset = 1;
 
+    [SerializeField] private CorridorsAlgorithm corridorsAlgorithm = CorridorsAlgorithm.TunnelingAlgorithm;
+    [SerializeField] private bool addSomeRemainingEdges = true;
     [SerializeField] private bool widerCorridors = false;
 
     [SerializeField] private bool verticalGridStructure = false;
@@ -25,24 +27,15 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     private List<BoundsInt> roomList;
     private WeightedGraph<Vector2Int> graphRooms;
 
-    private DelaunayTriangulation delaunayTriangulation;
-    HashSet<Prim.PrimEdge> edges;
-    List<List<Node>> paths;
 
     //void Start()
     //{
-    //    List<BoundsInt> roomList = BinarySpacePartitioning(new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0)), minRoomWidth, minRoomHeight);
-
-    //    HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
-
-    //    floorPositions = CreateRooms(roomList);
-
-    //    tilemapVisualizer.ClearTilemap();
-    //    tilemapVisualizer.PaintFloorTiles(floorPositions);
+    //    GenerateDungeon();
     //}
 
     public override void GenerateDungeon()
     {
+        //Create rooms
         BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
         roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, minRoomHeight);
 
@@ -59,34 +52,25 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             roomCentersForDelaunay.Add(new Vertex(room.center));
         }
 
-        graphRooms = new WeightedGraph<Vector2Int>(false, false);
-
-        delaunayTriangulation = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
-        edges = CreateHallways();
-
-        grid.CreateGrid();
-
-        paths = new List<List<Node>>();
-
         tilemapVisualizer.ClearTilemap();
-        foreach (var edge in edges)
-        {
-            List<Node> path = pathfinding.FindPath(grid, edge.U.Position, edge.V.Position);
-            paths.Add(path);
+        tilemapVisualizer.PaintFloorTiles(floorPositions);
 
-            foreach (var node in path)
+        //Create corridors
+        if(corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
+        {
+            graphRooms = new WeightedGraph<Vector2Int>(false, false);
+            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, graphRooms, widerCorridors);
+            tilemapVisualizer.PaintCorridorTiles(corridors);
+        }
+        else
+        {
+            grid.CreateGrid(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
+            List<List<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCentersForDelaunay, grid, addSomeRemainingEdges);
+            foreach (var path in paths)
             {
-                tilemapVisualizer.PaintSingleTile(new Vector2Int((int)node.worldPosition.x, (int)node.worldPosition.y));
+                tilemapVisualizer.PaintFloorTiles(path);
             }
         }
-
-       
-
-        //HashSet<Vector2Int> corridors = tunnelingAlgorithm.ConnectRooms(roomCenters, graphRooms, widerCorridors);
-
-        //floorPositions.UnionWith(corridors);
-        tilemapVisualizer.PaintFloorTiles(floorPositions);
-        //tilemapVisualizer.PaintCorridorTiles(corridors);
     }
 
     private void OnDrawGizmos()
@@ -96,14 +80,14 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             Gizmos.color = Color.red;
             Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
 
-            Gizmos.color = Color.green;
-            if (delaunayTriangulation != null)
-            {
-                foreach (var edge in edges)
-                {
-                    Gizmos.DrawLine(edge.U.Position, edge.V.Position);
-                }
-            }
+            //Gizmos.color = Color.green;
+            //if (delaunayTriangulation != null)
+            //{
+            //    foreach (var edge in edges)
+            //    {
+            //        Gizmos.DrawLine(edge.U.Position, edge.V.Position);
+            //    }
+            //}
 
             //if(paths!=null)
             //{
@@ -116,7 +100,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             //    }
             //}
 
-            
+
 
             //if (graphRooms != null)
             //{
@@ -132,153 +116,10 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             //    }
             //}
 
-            //foreach (BoundsInt space in roomList)
-            //{
-            //    Gizmos.DrawWireCube(space.center, space.size);
-            //}
         }      
     }
 
-    private HashSet<Prim.PrimEdge> CreateHallways()
-    {
-        List<Prim.PrimEdge> edges = new List<Prim.PrimEdge>();
-
-        HashSet<Prim.PrimEdge> selectedEdges = new HashSet<Prim.PrimEdge>();
-
-        foreach (var edge in delaunayTriangulation.Edges)
-        {
-            edges.Add(new Prim.PrimEdge(edge.U, edge.V));
-        }
-
-        List<Prim.PrimEdge> mst = Prim.MinimumSpanningTree(edges, edges[0].U);
-
-        selectedEdges = new HashSet<Prim.PrimEdge>(mst);
-        var remainingEdges = new HashSet<Prim.PrimEdge>(edges);
-        remainingEdges.ExceptWith(selectedEdges);
-
-        foreach (var edge in remainingEdges)
-        {
-            if (Random.value < 0.125)
-            {
-                selectedEdges.Add(edge);
-            }
-        }
-
-        return selectedEdges;
-    }
-
-    //private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, WeightedGraph<Vector2Int> graph)
-    //{
-    //    HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
-
-    //    Vector2Int currentRoomCenter = roomCenters[Random.Range(0, roomCenters.Count)];
-    //    roomCenters.Remove(currentRoomCenter);
-    //    WeightedGraphNode<Vector2Int> currentRoomCenterNode = graph.AddNode(currentRoomCenter);
-
-    //    while(roomCenters.Count > 0)
-    //    {
-    //        Vector2Int closest = FindClosestPointTo(currentRoomCenter, roomCenters);
-    //        roomCenters.Remove(closest);
-    //        WeightedGraphNode<Vector2Int> closestNode = graph.AddNode(closest);
-
-    //        HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest);
-
-    //        graph.AddEdge(currentRoomCenterNode, closestNode,0);
-
-    //        currentRoomCenter = closestNode.Value;
-    //        currentRoomCenterNode = closestNode;
-
-    //        corridors.UnionWith(newCorridor);
-    //    }
-
-    //    return corridors;
-    //}
-
-    //private HashSet<Vector2Int> CreateCorridor(Vector2Int currentRoomCenter, Vector2Int destination)
-    //{
-    //    HashSet<Vector2Int> corridor = new HashSet<Vector2Int>();
-
-    //    Vector2Int position = currentRoomCenter;
-    //    corridor.Add(position);
-
-    //    while(position.y != destination.y)
-    //    {
-    //        if(destination.y > position.y)
-    //        {
-    //            position += new Vector2Int(0,1);
-    //        }
-    //        else if(destination.y < position.y)
-    //        {
-    //            position += new Vector2Int(0,-1);
-    //        }
-
-    //        corridor.Add(position);
-    //    }
-
-    //    while (position.x != destination.x)
-    //    {
-    //        if (destination.x > position.x)
-    //        {
-    //            position += new Vector2Int(1,0);
-    //        }
-    //        else if (destination.x < position.x)
-    //        {
-    //            position += new Vector2Int(-1,0);
-    //        }
-
-    //        corridor.Add(position);
-    //    }
-
-
-    //    if (widerCorridors)
-    //    {
-    //        HashSet<Vector2Int> corridorSides = new HashSet<Vector2Int>();
-
-    //        //widdening corridor
-    //        foreach (Vector2Int Corridor in corridor)
-    //        {
-    //            foreach (Vector2Int dir in GetDirectionsArray())
-    //            {
-    //                if (!corridor.Contains(Corridor + dir))
-    //                {
-    //                    corridorSides.Add(Corridor + dir);
-    //                }
-    //            }
-    //        }
-
-    //        corridor.UnionWith(corridorSides);
-    //    }
-
-    //    return corridor;
-    //}
-
-
-    //private Vector2Int[] GetDirectionsArray()
-    //{
-    //    Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
-    //        new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
-
-    //    return directions;
-    //}
-
-    //private Vector2Int FindClosestPointTo(Vector2Int currentRoomCenter, List<Vector2Int> roomCenters)
-    //{
-    //    Vector2Int closest = Vector2Int.zero;
-    //    float distance = float.MaxValue;
-
-    //    foreach (Vector2Int position in roomCenters)
-    //    {
-    //        float currentDistance = Vector2.Distance(position, currentRoomCenter);
-
-    //        if(currentDistance < distance)
-    //        {
-    //            distance = currentDistance;
-    //            closest = position;
-    //        }
-    //    }
-
-    //    return closest;
-    //}
+    
 
     private HashSet<Vector2Int> CreateRooms(List<BoundsInt> roomsList)
     {

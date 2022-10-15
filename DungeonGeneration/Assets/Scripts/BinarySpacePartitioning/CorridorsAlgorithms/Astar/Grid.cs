@@ -4,13 +4,11 @@ using System.Collections.Generic;
 
 public class Grid : MonoBehaviour
 {
-	public bool onlyDisplayPathGizmos;
-	public Vector2 gridWorldSize;
-	public float nodeRadius;
-	Node[,] grid;
+	//[SerializeField] public bool onlyDisplayPathGizmos;
+	private Node[,] grid;
+	private float nodeDiameter;
 
-	float nodeDiameter;
-	int gridSizeX, gridSizeY;
+	private int gridSizeX, gridSizeY;
 
 
 	public int MaxSize
@@ -21,11 +19,11 @@ public class Grid : MonoBehaviour
 		}
 	}
 
-	public void CreateGrid()
+	public void CreateGrid(int gridWorldSizeX, int gridWorldSizeY, float nodeRadius)
 	{
 		nodeDiameter = nodeRadius * 2;
-		gridSizeX = Mathf.RoundToInt(gridWorldSize.x / nodeDiameter);
-		gridSizeY = Mathf.RoundToInt(gridWorldSize.y / nodeDiameter);
+		gridSizeX = Mathf.RoundToInt(gridWorldSizeX / nodeDiameter);
+		gridSizeY = Mathf.RoundToInt(gridWorldSizeY / nodeDiameter);
 
 		grid = new Node[gridSizeX, gridSizeY];
 		
@@ -42,7 +40,6 @@ public class Grid : MonoBehaviour
 	public List<Node> GetNeighbours(Node node)
 	{
 		List<Node> neighbours = new List<Node>();
-
 
         foreach (var pos in GetDirectionsArray())
         {
@@ -91,8 +88,8 @@ public class Grid : MonoBehaviour
 
 		return directions;
 	}
-	//void OnDrawGizmos()
-	//{
-	//	Gizmos.DrawWireCube(new Vector3(gridWorldSize.x - gridWorldSize.x / 2, gridWorldSize.y - gridWorldSize.y / 2, 0), new Vector3(gridWorldSize.x, gridWorldSize.y, 0));
-	//}
+    //void OnDrawGizmos()
+    //{
+    //    Gizmos.DrawWireCube(new Vector3(gridWorldSize.x - gridWorldSize.x / 2, gridWorldSize.y - gridWorldSize.y / 2, 0), new Vector3(gridWorldSize.x, gridWorldSize.y, 0));
+    //}
 }

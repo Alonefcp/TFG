@@ -1,51 +1,42 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using Random = UnityEngine.Random;
 
-public static class Prim
+public static class PrimAlgorithm
 {
-    public class PrimEdge : Edge
+
+    public static HashSet<Edge> RunMinimumSpanningTree(List<Edge> delaunayEdges, bool addSomeRemainingEdges)
     {
-        public float Distance { get; private set; }
+        List<Edge> edges = new List<Edge>();
 
-        public PrimEdge(Vertex u, Vertex v) : base(u, v)
+        HashSet<Edge> selectedEdges = new HashSet<Edge>();
+
+        foreach (var edge in delaunayEdges)
         {
-            Distance = Vector3.Distance(u.Position, v.Position);
+            edges.Add(new Edge(edge.U, edge.V));
         }
 
-        public static bool operator ==(PrimEdge left, PrimEdge right)
-        {
-            return (left.U == right.U && left.V == right.V)
-                || (left.U == right.V && left.V == right.U);
-        }
+        List<Edge> mst = MinimumSpanningTree(edges, edges[0].U);
 
-        public static bool operator !=(PrimEdge left, PrimEdge right)
-        {
-            return !(left == right);
-        }
+        selectedEdges = new HashSet<Edge>(mst);
+        var remainingEdges = new HashSet<Edge>(edges);
+        remainingEdges.ExceptWith(selectedEdges);
 
-        public override bool Equals(object obj)
+        if(addSomeRemainingEdges)
         {
-            if (obj is PrimEdge e)
+            foreach (var edge in remainingEdges)
             {
-                return this == e;
+                if (Random.value < 0.125)
+                {
+                    selectedEdges.Add(edge);
+                }
             }
-
-            return false;
         }
 
-        public bool Equals(PrimEdge e)
-        {
-            return this == e;
-        }
-
-        public override int GetHashCode()
-        {
-            return U.GetHashCode() ^ V.GetHashCode();
-        }
+        return selectedEdges;
     }
 
-    public static List<PrimEdge> MinimumSpanningTree(List<PrimEdge> edges, Vertex start)
+    private static List<Edge> MinimumSpanningTree(List<Edge> edges, Vertex start)
     {
         HashSet<Vertex> openSet = new HashSet<Vertex>();
         HashSet<Vertex> closedSet = new HashSet<Vertex>();
@@ -58,12 +49,12 @@ public static class Prim
 
         closedSet.Add(start);
 
-        List<PrimEdge> results = new List<PrimEdge>();
+        List<Edge> results = new List<Edge>();
 
         while (openSet.Count > 0)
         {
             bool chosen = false;
-            PrimEdge chosenEdge = null;
+            Edge chosenEdge = null;
             float minWeight = float.PositiveInfinity;
 
             foreach (var edge in edges)

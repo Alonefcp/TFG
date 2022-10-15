@@ -22,43 +22,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
 
     //void Start()
     //{
-    //    totalTiles = mapWidth * mapHeight;
-    //    maxFloorPositions = (int)(fillPercentage * totalTiles);
-
-    //    HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
-
-    //    if (useCentralAttractor)
-    //    {
-    //        floorPositions = DiffusionLimitedAggregation_CentralAttractor();
-    //    }
-    //    else
-    //    {
-    //        floorPositions = DiffusionLimitedAggregation();
-    //    }
-
-    //    tilemapVisualizer.ClearTilemap();
-
-    //    if (symmetryType == Symmetry.Horizontal)
-    //    {
-    //        ApplyHorizontalSymmetry(floorPositions, mapWidth);
-    //    }
-    //    else if (symmetryType == Symmetry.Vertical)
-    //    {
-    //        ApplyVerticalSymmetry(floorPositions, mapHeight);
-    //    }
-    //    else if (symmetryType == Symmetry.Both)
-    //    {
-    //        ApplyHorizontalAndVerticalSymmetry(floorPositions, mapWidth, mapHeight);
-    //    }
-    //    else if (symmetryType == Symmetry.None)
-    //    {
-    //        tilemapVisualizer.PaintFloorTiles(floorPositions);
-    //    }
-
-    //    if (eliminateSingleWalls)
-    //    {
-    //        tilemapVisualizer.EliminateSingleWalls();
-    //    }
+    //    GenerateDungeon();
     //}
 
     /// <summary>
