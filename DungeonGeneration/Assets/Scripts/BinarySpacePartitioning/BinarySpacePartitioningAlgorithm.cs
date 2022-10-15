@@ -24,6 +24,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     private WeightedGraph<Vector2Int> graphRooms;
 
     private DelaunayTriangulation delaunayTriangulation;
+    HashSet<Prim.PrimEdge> edges;
 
     //void Start()
     //{
@@ -58,13 +59,14 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         graphRooms = new WeightedGraph<Vector2Int>(false, false);
 
         delaunayTriangulation = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
+        edges = CreateHallways();
 
-        HashSet<Vector2Int> corridors = tunnelingAlgorithm.ConnectRooms(roomCenters, graphRooms, widerCorridors);
+        //HashSet<Vector2Int> corridors = tunnelingAlgorithm.ConnectRooms(roomCenters, graphRooms, widerCorridors);
 
         //floorPositions.UnionWith(corridors);
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
-        tilemapVisualizer.PaintCorridorTiles(corridors);
+        //tilemapVisualizer.PaintCorridorTiles(corridors);
     }
 
     private void OnDrawGizmos()
@@ -77,7 +79,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             Gizmos.color = Color.green;
             if (delaunayTriangulation != null)
             {
-                foreach (var edge in delaunayTriangulation.Edges)
+                foreach (var edge in edges)
                 {
                     Gizmos.DrawLine(edge.U.Position, edge.V.Position);
                 }
@@ -104,6 +106,34 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             //    Gizmos.DrawWireCube(space.center, space.size);
             //}
         }      
+    }
+
+    private HashSet<Prim.PrimEdge> CreateHallways()
+    {
+        List<Prim.PrimEdge> edges = new List<Prim.PrimEdge>();
+
+        HashSet<Prim.PrimEdge> selectedEdges = new HashSet<Prim.PrimEdge>();
+
+        foreach (var edge in delaunayTriangulation.Edges)
+        {
+            edges.Add(new Prim.PrimEdge(edge.U, edge.V));
+        }
+
+        List<Prim.PrimEdge> mst = Prim.MinimumSpanningTree(edges, edges[0].U);
+
+        selectedEdges = new HashSet<Prim.PrimEdge>(mst);
+        var remainingEdges = new HashSet<Prim.PrimEdge>(edges);
+        remainingEdges.ExceptWith(selectedEdges);
+
+        foreach (var edge in remainingEdges)
+        {
+            if (Random.value < 0.125)
+            {
+                selectedEdges.Add(edge);
+            }
+        }
+
+        return selectedEdges;
     }
 
     //private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, WeightedGraph<Vector2Int> graph)
