@@ -21,6 +21,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     private List<BoundsInt> roomList;
     private WeightedGraph<Vector2Int> graphRooms;
+    private DelaunayTriangulation delaunayTriangulation;
 
     //void Start()
     //{
@@ -36,6 +37,8 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
+        //delaunayTriangulation = new DelaunayTriangulation();
+
         BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
 
         roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, minRoomHeight);
@@ -45,11 +48,15 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         floorPositions = CreateRooms(roomList);
 
         List<Vector2Int> roomCenters = new List<Vector2Int>();
+        List<Vertex> roomCentersForDelaunay = new List<Vertex>();
 
         foreach (BoundsInt room in roomList)
         {
             roomCenters.Add((Vector2Int)Vector3Int.RoundToInt(room.center));
+            roomCentersForDelaunay.Add(new Vertex(room.center));
         }
+
+        delaunayTriangulation = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
 
         graphRooms = new WeightedGraph<Vector2Int>(false, false);
 
@@ -68,20 +75,30 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             Gizmos.color = Color.red;
             Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
 
-
-            if (graphRooms != null)
+            Gizmos.color = Color.green;
+            if (delaunayTriangulation!=null)
             {
-                Gizmos.color = Color.green;
-                foreach (WeightedGraphNode<Vector2Int> node in graphRooms.Nodes)
+                foreach (var edge in delaunayTriangulation.Edges)
                 {
-                    Gizmos.DrawWireSphere(new Vector3(node.Value.x, node.Value.y, 0.0f), 1.5f);
+                    Gizmos.DrawLine(edge.U.Position, edge.V.Position);
                 }
-                Gizmos.color = Color.yellow;
-                foreach (WeightedEdge<Vector2Int> edge in graphRooms.GetEdges())
-                {
-                    Gizmos.DrawLine(new Vector3(edge.From.Value.x, edge.From.Value.y, 0.0f), new Vector3(edge.To.Value.x, edge.To.Value.y, 0.0f));
-                } 
             }
+
+            
+
+            //if (graphRooms != null)
+            //{
+            //    Gizmos.color = Color.green;
+            //    foreach (WeightedGraphNode<Vector2Int> node in graphRooms.Nodes)
+            //    {
+            //        Gizmos.DrawWireSphere(new Vector3(node.Value.x, node.Value.y, 0.0f), 1.5f);
+            //    }
+            //    Gizmos.color = Color.yellow;
+            //    foreach (WeightedEdge<Vector2Int> edge in graphRooms.GetEdges())
+            //    {
+            //        Gizmos.DrawLine(new Vector3(edge.From.Value.x, edge.From.Value.y, 0.0f), new Vector3(edge.To.Value.x, edge.To.Value.y, 0.0f));
+            //    } 
+            //}
 
             //foreach (BoundsInt space in roomList)
             //{
