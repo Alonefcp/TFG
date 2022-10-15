@@ -5,6 +5,8 @@ using GraphDataStructure;
 
 public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 {
+    [SerializeField] private Pathfinding pathfinding;
+    [SerializeField] private Grid grid;
     [SerializeField] private TunnelingAlgorithm tunnelingAlgorithm; // creating corridors
     [SerializeField] private int spaceWidth = 20,  spaceHeight = 20;
     [SerializeField] private int minRoomWidth = 4,  minRoomHeight = 4;
@@ -25,6 +27,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     private DelaunayTriangulation delaunayTriangulation;
     HashSet<Prim.PrimEdge> edges;
+    List<List<Node>> paths;
 
     //void Start()
     //{
@@ -61,10 +64,27 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         delaunayTriangulation = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
         edges = CreateHallways();
 
+        grid.CreateGrid();
+
+        paths = new List<List<Node>>();
+
+        tilemapVisualizer.ClearTilemap();
+        foreach (var edge in edges)
+        {
+            List<Node> path = pathfinding.FindPath(grid, edge.U.Position, edge.V.Position);
+            paths.Add(path);
+
+            foreach (var node in path)
+            {
+                tilemapVisualizer.PaintSingleTile(new Vector2Int((int)node.worldPosition.x, (int)node.worldPosition.y));
+            }
+        }
+
+       
+
         //HashSet<Vector2Int> corridors = tunnelingAlgorithm.ConnectRooms(roomCenters, graphRooms, widerCorridors);
 
         //floorPositions.UnionWith(corridors);
-        tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
         //tilemapVisualizer.PaintCorridorTiles(corridors);
     }
@@ -85,7 +105,18 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
                 }
             }
 
+            //if(paths!=null)
+            //{
+            //    foreach (var path in paths)
+            //    {
+            //        foreach (var node in path)
+            //        {
+            //            Gizmos.DrawWireSphere(node.worldPosition, 1.0f);
+            //        }
+            //    }
+            //}
 
+            
 
             //if (graphRooms != null)
             //{
