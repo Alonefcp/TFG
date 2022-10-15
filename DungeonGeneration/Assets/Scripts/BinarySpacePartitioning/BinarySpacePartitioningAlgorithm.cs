@@ -5,6 +5,7 @@ using GraphDataStructure;
 
 public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 {
+    [SerializeField] private TunnelingAlgorithm tunnelingAlgorithm; // creating corridors
     [SerializeField] private int spaceWidth = 20,  spaceHeight = 20;
     [SerializeField] private int minRoomWidth = 4,  minRoomHeight = 4;
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
@@ -21,6 +22,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     private List<BoundsInt> roomList;
     private WeightedGraph<Vector2Int> graphRooms;
+
     private DelaunayTriangulation delaunayTriangulation;
 
     //void Start()
@@ -37,10 +39,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
-        //delaunayTriangulation = new DelaunayTriangulation();
-
         BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
-
         roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, minRoomHeight);
 
         HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
@@ -56,13 +55,13 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             roomCentersForDelaunay.Add(new Vertex(room.center));
         }
 
-        delaunayTriangulation = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
-
         graphRooms = new WeightedGraph<Vector2Int>(false, false);
 
-        HashSet<Vector2Int> corridors = ConnectRooms(roomCenters, graphRooms);
-        //floorPositions.UnionWith(corridors);
+        delaunayTriangulation = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
 
+        HashSet<Vector2Int> corridors = tunnelingAlgorithm.ConnectRooms(roomCenters, graphRooms, widerCorridors);
+
+        //floorPositions.UnionWith(corridors);
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
         tilemapVisualizer.PaintCorridorTiles(corridors);
@@ -76,7 +75,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
 
             Gizmos.color = Color.green;
-            if (delaunayTriangulation!=null)
+            if (delaunayTriangulation != null)
             {
                 foreach (var edge in delaunayTriangulation.Edges)
                 {
@@ -84,7 +83,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
                 }
             }
 
-            
+
 
             //if (graphRooms != null)
             //{
@@ -97,7 +96,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             //    foreach (WeightedEdge<Vector2Int> edge in graphRooms.GetEdges())
             //    {
             //        Gizmos.DrawLine(new Vector3(edge.From.Value.x, edge.From.Value.y, 0.0f), new Vector3(edge.To.Value.x, edge.To.Value.y, 0.0f));
-            //    } 
+            //    }
             //}
 
             //foreach (BoundsInt space in roomList)
@@ -107,118 +106,118 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         }      
     }
 
-    private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, WeightedGraph<Vector2Int> graph)
-    {
-        HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
+    //private HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, WeightedGraph<Vector2Int> graph)
+    //{
+    //    HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
 
-        Vector2Int currentRoomCenter = roomCenters[Random.Range(0, roomCenters.Count)];
-        roomCenters.Remove(currentRoomCenter);
-        WeightedGraphNode<Vector2Int> currentRoomCenterNode = graph.AddNode(currentRoomCenter);
+    //    Vector2Int currentRoomCenter = roomCenters[Random.Range(0, roomCenters.Count)];
+    //    roomCenters.Remove(currentRoomCenter);
+    //    WeightedGraphNode<Vector2Int> currentRoomCenterNode = graph.AddNode(currentRoomCenter);
 
-        while(roomCenters.Count > 0)
-        {
-            Vector2Int closest = FindClosestPointTo(currentRoomCenter, roomCenters);
-            roomCenters.Remove(closest);
-            WeightedGraphNode<Vector2Int> closestNode = graph.AddNode(closest);
+    //    while(roomCenters.Count > 0)
+    //    {
+    //        Vector2Int closest = FindClosestPointTo(currentRoomCenter, roomCenters);
+    //        roomCenters.Remove(closest);
+    //        WeightedGraphNode<Vector2Int> closestNode = graph.AddNode(closest);
 
-            HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest);
+    //        HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest);
 
-            graph.AddEdge(currentRoomCenterNode, closestNode,0);
+    //        graph.AddEdge(currentRoomCenterNode, closestNode,0);
 
-            currentRoomCenter = closestNode.Value;
-            currentRoomCenterNode = closestNode;
+    //        currentRoomCenter = closestNode.Value;
+    //        currentRoomCenterNode = closestNode;
 
-            corridors.UnionWith(newCorridor);
-        }
+    //        corridors.UnionWith(newCorridor);
+    //    }
 
-        return corridors;
-    }
+    //    return corridors;
+    //}
 
-    private HashSet<Vector2Int> CreateCorridor(Vector2Int currentRoomCenter, Vector2Int destination)
-    {
-        HashSet<Vector2Int> corridor = new HashSet<Vector2Int>();
+    //private HashSet<Vector2Int> CreateCorridor(Vector2Int currentRoomCenter, Vector2Int destination)
+    //{
+    //    HashSet<Vector2Int> corridor = new HashSet<Vector2Int>();
 
-        Vector2Int position = currentRoomCenter;
-        corridor.Add(position);
+    //    Vector2Int position = currentRoomCenter;
+    //    corridor.Add(position);
 
-        while(position.y != destination.y)
-        {
-            if(destination.y > position.y)
-            {
-                position += new Vector2Int(0,1);
-            }
-            else if(destination.y < position.y)
-            {
-                position += new Vector2Int(0,-1);
-            }
+    //    while(position.y != destination.y)
+    //    {
+    //        if(destination.y > position.y)
+    //        {
+    //            position += new Vector2Int(0,1);
+    //        }
+    //        else if(destination.y < position.y)
+    //        {
+    //            position += new Vector2Int(0,-1);
+    //        }
 
-            corridor.Add(position);
-        }
+    //        corridor.Add(position);
+    //    }
 
-        while (position.x != destination.x)
-        {
-            if (destination.x > position.x)
-            {
-                position += new Vector2Int(1,0);
-            }
-            else if (destination.x < position.x)
-            {
-                position += new Vector2Int(-1,0);
-            }
+    //    while (position.x != destination.x)
+    //    {
+    //        if (destination.x > position.x)
+    //        {
+    //            position += new Vector2Int(1,0);
+    //        }
+    //        else if (destination.x < position.x)
+    //        {
+    //            position += new Vector2Int(-1,0);
+    //        }
 
-            corridor.Add(position);
-        }
-
-
-        if (widerCorridors)
-        {
-            HashSet<Vector2Int> corridorSides = new HashSet<Vector2Int>();
-
-            //widdening corridor
-            foreach (Vector2Int Corridor in corridor)
-            {
-                foreach (Vector2Int dir in GetDirectionsArray())
-                {
-                    if (!corridor.Contains(Corridor + dir))
-                    {
-                        corridorSides.Add(Corridor + dir);
-                    }
-                }
-            }
-
-            corridor.UnionWith(corridorSides);
-        }
-
-        return corridor;
-    }
+    //        corridor.Add(position);
+    //    }
 
 
-    private Vector2Int[] GetDirectionsArray()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
-            new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
+    //    if (widerCorridors)
+    //    {
+    //        HashSet<Vector2Int> corridorSides = new HashSet<Vector2Int>();
 
-        return directions;
-    }
+    //        //widdening corridor
+    //        foreach (Vector2Int Corridor in corridor)
+    //        {
+    //            foreach (Vector2Int dir in GetDirectionsArray())
+    //            {
+    //                if (!corridor.Contains(Corridor + dir))
+    //                {
+    //                    corridorSides.Add(Corridor + dir);
+    //                }
+    //            }
+    //        }
 
-    private Vector2Int FindClosestPointTo(Vector2Int currentRoomCenter, List<Vector2Int> roomCenters)
-    {
-        Vector2Int closest = Vector2Int.zero;
-        float distance = float.MaxValue;
+    //        corridor.UnionWith(corridorSides);
+    //    }
 
-        foreach (Vector2Int position in roomCenters)
-        {
-            float currentDistance = Vector2.Distance(position, currentRoomCenter);
+    //    return corridor;
+    //}
 
-            if(currentDistance < distance)
-            {
-                distance = currentDistance;
-                closest = position;
-            }
-        }
 
-        return closest;
-    }
+    //private Vector2Int[] GetDirectionsArray()
+    //{
+    //    Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
+    //        new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
+
+    //    return directions;
+    //}
+
+    //private Vector2Int FindClosestPointTo(Vector2Int currentRoomCenter, List<Vector2Int> roomCenters)
+    //{
+    //    Vector2Int closest = Vector2Int.zero;
+    //    float distance = float.MaxValue;
+
+    //    foreach (Vector2Int position in roomCenters)
+    //    {
+    //        float currentDistance = Vector2.Distance(position, currentRoomCenter);
+
+    //        if(currentDistance < distance)
+    //        {
+    //            distance = currentDistance;
+    //            closest = position;
+    //        }
+    //    }
+
+    //    return closest;
+    //}
 
     private HashSet<Vector2Int> CreateRooms(List<BoundsInt> roomsList)
     {
