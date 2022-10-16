@@ -20,7 +20,7 @@ public static class AstarPathfinding
 
 			if (currentNode == targetNode)
 			{
-				return RetracePath(startNode, targetNode);
+				return RetracePath(startNode, targetNode, grid);
 			}
 
 			foreach (Node neighbour in grid.GetNeighbours(currentNode))
@@ -31,10 +31,24 @@ public static class AstarPathfinding
 				}
 
 				int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
-				if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
+				int extra = 0;
+                if (grid.NodeFromWorldPoint(neighbour.worldPosition).GetType() == Node.NodeType.Floor)
+                {
+                    extra += 10;
+                }
+                else if (grid.NodeFromWorldPoint(neighbour.worldPosition).GetType() == Node.NodeType.Hallway)
+                {
+                    extra += 5;
+                }
+                else
+                {
+                    extra += 1;
+                }
+
+                if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
 				{
 					neighbour.gCost = newMovementCostToNeighbour;
-					neighbour.hCost = GetDistance(neighbour, targetNode);
+					neighbour.hCost = GetDistance(neighbour, targetNode)+extra;
 					neighbour.parent = currentNode;
 
 					if (!openSet.Contains(neighbour))
@@ -50,7 +64,7 @@ public static class AstarPathfinding
 		return null;
 	}
 
-	private static List<Vector2Int> RetracePath(Node startNode, Node endNode)
+	private static List<Vector2Int> RetracePath(Node startNode, Node endNode, Grid grid)
 	{
 		List<Vector2Int> path = new List<Vector2Int>();
 		Node currentNode = endNode;
@@ -59,6 +73,7 @@ public static class AstarPathfinding
 		{
 			path.Add((Vector2Int)Vector3Int.RoundToInt(currentNode.worldPosition));
 			currentNode = currentNode.parent;
+			if(currentNode.GetType()!=Node.NodeType.Floor)grid.NodeFromWorldPoint(currentNode.worldPosition).SetType(Node.NodeType.Hallway);
 		}
 		path.Reverse();
 

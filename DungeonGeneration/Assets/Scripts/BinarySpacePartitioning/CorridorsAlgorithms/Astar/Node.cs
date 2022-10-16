@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Node : IHeapItem<Node>
 {
+	public enum NodeType { None, Floor, Hallway }
 
 	public bool walkable;
 	public Vector3 worldPosition;
@@ -12,7 +13,8 @@ public class Node : IHeapItem<Node>
 	public int gCost;
 	public int hCost;
 	public Node parent;
-	int heapIndex;
+	private int heapIndex;
+	private NodeType nodeType;
 
 	public Node(bool _walkable, Vector3 _worldPos, int _gridX, int _gridY)
 	{
@@ -20,6 +22,18 @@ public class Node : IHeapItem<Node>
 		worldPosition = _worldPos;
 		gridX = _gridX;
 		gridY = _gridY;
+		nodeType = NodeType.None;
+	}
+
+
+	public NodeType GetType()
+	{
+		return nodeType;
+	}
+
+	public void SetType(NodeType _nodeType)
+	{
+		nodeType = _nodeType;
 	}
 
 	public int fCost

@@ -24,11 +24,6 @@ public static class CorridorsAlgorithms
             //A* algorithm
             List<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.Position, edge.V.Position);
             paths.Add(path);
-
-            //foreach (var node in path)
-            //{
-            //    tilemapVisualizer.PaintSingleTile(new Vector2Int((int)node.worldPosition.x, (int)node.worldPosition.y));
-            //}
         }
 
         return paths;

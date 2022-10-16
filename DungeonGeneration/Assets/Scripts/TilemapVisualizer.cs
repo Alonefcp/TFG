@@ -9,6 +9,10 @@ public class TilemapVisualizer : MonoBehaviour
     [SerializeField] private TileBase floorTile;
     [SerializeField] private TileBase corridorTile;
 
+    /// <summary>
+    /// Returns the cell's radius. We assume a cell is n*n.
+    /// </summary>
+    /// <returns></returns>
     public float GetCellRadius()
     {
         return floorTilemap.cellSize.x / 2.0f;
@@ -23,10 +27,10 @@ public class TilemapVisualizer : MonoBehaviour
         PaintTiles(positions, floorTilemap, floorTile);
     }
 
-    public void PaintCorridorTiles(IEnumerable<Vector2Int> positions)
-    {
-        PaintTiles(positions, floorTilemap, corridorTile);
-    }
+    //public void PaintCorridorTiles(IEnumerable<Vector2Int> positions)
+    //{
+    //    PaintTiles(positions, floorTilemap, corridorTile);
+    //}
 
     /// <summary>
     /// Returns true if th tilemap has a tile in a given position
