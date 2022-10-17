@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+//A* algorithm for finding a path
 public static class AstarPathfinding 
 {
 	public static HashSet<Vector2Int> FindPath(Grid grid, Vector3 startPos, Vector3 targetPos)
@@ -75,7 +76,6 @@ public static class AstarPathfinding
 			currentNode = currentNode.parent;
 			if(currentNode.GetNodeType()!=Node.NodeType.Floor)grid.NodeFromWorldPoint(currentNode.worldPosition).SetType(Node.NodeType.Hallway);
 		}
-		//path.Reverse();
 
 		return path;
 	}

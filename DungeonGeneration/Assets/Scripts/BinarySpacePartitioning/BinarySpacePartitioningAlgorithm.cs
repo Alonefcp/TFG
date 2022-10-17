@@ -67,6 +67,8 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             {
                 tilemapVisualizer.PaintFloorTiles(path);
             }
+
+            SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCentersForDelaunay);
         }
     }
 
@@ -94,22 +96,6 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             //        {
             //            Gizmos.DrawWireSphere(node.worldPosition, 1.0f);
             //        }
-            //    }
-            //}
-
-
-
-            //if (graphRooms != null)
-            //{
-            //    Gizmos.color = Color.green;
-            //    foreach (WeightedGraphNode<Vector2Int> node in graphRooms.Nodes)
-            //    {
-            //        Gizmos.DrawWireSphere(new Vector3(node.Value.x, node.Value.y, 0.0f), 1.5f);
-            //    }
-            //    Gizmos.color = Color.yellow;
-            //    foreach (WeightedEdge<Vector2Int> edge in graphRooms.GetEdges())
-            //    {
-            //        Gizmos.DrawLine(new Vector3(edge.From.Value.x, edge.From.Value.y, 0.0f), new Vector3(edge.To.Value.x, edge.To.Value.y, 0.0f));
             //    }
             //}
 

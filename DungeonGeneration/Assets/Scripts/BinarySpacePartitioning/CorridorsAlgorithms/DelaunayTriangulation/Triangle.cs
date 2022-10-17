@@ -22,16 +22,16 @@ public class Triangle : IEquatable<Triangle>
 
     public bool ContainsVertex(Vector3 v)
     {
-        return Vector3.Distance(v, A.Position) < 0.01f
-            || Vector3.Distance(v, B.Position) < 0.01f
-            || Vector3.Distance(v, C.Position) < 0.01f;
+        return Vector3.Distance(v, A.position) < 0.01f
+            || Vector3.Distance(v, B.position) < 0.01f
+            || Vector3.Distance(v, C.position) < 0.01f;
     }
 
     public bool CircumCircleContains(Vector3 v)
     {
-        Vector3 a = A.Position;
-        Vector3 b = B.Position;
-        Vector3 c = C.Position;
+        Vector3 a = A.position;
+        Vector3 b = B.position;
+        Vector3 c = C.position;
 
         float ab = a.sqrMagnitude;
         float cd = b.sqrMagnitude;

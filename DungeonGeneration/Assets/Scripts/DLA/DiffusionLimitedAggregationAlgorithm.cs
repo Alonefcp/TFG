@@ -367,13 +367,13 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
         {
             if (pos.x == centerX)
             {
-                tilemapVisualizer.PaintSingleTile(pos);
+                tilemapVisualizer.PaintSingleFloorTile(pos);
             }
             else
             {
                 int distX = Mathf.Abs(centerX - pos.x);
-                tilemapVisualizer.PaintSingleTile(new Vector2Int(centerX + distX, pos.y));
-                tilemapVisualizer.PaintSingleTile(new Vector2Int(centerX - distX, pos.y));
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(centerX + distX, pos.y));
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(centerX - distX, pos.y));
             }
         }    
     }
@@ -391,13 +391,13 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
         {
             if (pos.y == centerY)
             {
-                tilemapVisualizer.PaintSingleTile(pos);
+                tilemapVisualizer.PaintSingleFloorTile(pos);
             }
             else
             {
                 int distY = Mathf.Abs(centerY - pos.y);
-                tilemapVisualizer.PaintSingleTile(new Vector2Int(pos.x, centerY + distY));
-                tilemapVisualizer.PaintSingleTile(new Vector2Int(pos.x, centerY - distY));
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(pos.x, centerY + distY));
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(pos.x, centerY - distY));
             }
         }  
     }
@@ -417,17 +417,17 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
         {
             if (pos.x == centerX && pos.y == centerY)
             {
-                tilemapVisualizer.PaintSingleTile(pos);
+                tilemapVisualizer.PaintSingleFloorTile(pos);
             }
             else
             {
                 int distX = Mathf.Abs(centerX - pos.x);
-                tilemapVisualizer.PaintSingleTile(new Vector2Int(centerX + distX, pos.y));
-                tilemapVisualizer.PaintSingleTile(new Vector2Int(centerX - distX, pos.y));
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(centerX + distX, pos.y));
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(centerX - distX, pos.y));
 
                 int distY = Mathf.Abs(centerY - pos.y);
-                tilemapVisualizer.PaintSingleTile(new Vector2Int(pos.x, centerY + distY));
-                tilemapVisualizer.PaintSingleTile(new Vector2Int(pos.x, centerY - distY));
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(pos.x, centerY + distY));
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(pos.x, centerY - distY));
             }
         }
     }

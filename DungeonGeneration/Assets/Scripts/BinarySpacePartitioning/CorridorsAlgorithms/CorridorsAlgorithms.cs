@@ -6,21 +6,20 @@ public static class CorridorsAlgorithms
 {
     //================================================== Delaunay, Prim and A* ====================================================================
 
-
     public static List<HashSet<Vector2Int>> ConnectRooms(List<Vertex> roomCentersForDelaunay, Grid grid, bool widerCorridors, bool addSomeRemainingEdges=false)
     {
         //Delaunay triangulation
-        DelaunayTriangulation delaunayTriangulation = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
+        List<Edge> delaunayEdges = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
 
         //Prim algorithm
-        HashSet<Edge> edges = PrimAlgorithm.RunMinimumSpanningTree(delaunayTriangulation.Edges, addSomeRemainingEdges);
+        HashSet<Edge> edges = PrimAlgorithm.RunMinimumSpanningTree(delaunayEdges, addSomeRemainingEdges);
 
         List<HashSet<Vector2Int>> paths = new List<HashSet<Vector2Int>>();
        
         foreach (var edge in edges)
         {
             //A* algorithm
-            HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.Position, edge.V.Position);
+            HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.position, edge.V.position);
 
             if(widerCorridors)
             {

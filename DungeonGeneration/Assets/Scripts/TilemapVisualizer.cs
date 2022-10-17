@@ -46,10 +46,16 @@ public class TilemapVisualizer : MonoBehaviour
     /// Paints a single tile
     /// </summary>
     /// <param name="position">Tile position</param>
-    public void PaintSingleTile(Vector2Int position)
+    public void PaintSingleFloorTile(Vector2Int position)
     {
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
         floorTilemap.SetTile(tileMapPosition, floorTile);
+    }
+
+    public void PaintSingleCorridorTile(Vector2Int position)
+    {
+        Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
+        floorTilemap.SetTile(tileMapPosition, corridorTile);
     }
 
     /// <summary>

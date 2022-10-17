@@ -3,40 +3,29 @@ using System.Collections.Generic;
 using UnityEngine;
 
 //Bowyer-Watson algorithm for Delaunay Triangulation
-public class DelaunayTriangulation
+public static class DelaunayTriangulation
 {
-    public List<Vertex> Vertices { get; private set; }
-    public List<Edge> Edges { get; private set; }
-    public List<Triangle> Triangles { get; private set; }
+    private static List<Vertex> vertices;
+    private static List<Edge> edges;
+    private static List<Triangle> triangles;
 
-    public DelaunayTriangulation()
-    {
-        Edges = new List<Edge>();
-        Triangles = new List<Triangle>();
-    }
+   public static List<Edge> Triangulate(List<Vertex> vertices)
+   {
+        edges = new List<Edge>();
+        triangles = new List<Triangle>();
+        DelaunayTriangulation.vertices = new List<Vertex>(vertices);
 
-    public static DelaunayTriangulation Triangulate(List<Vertex> vertices)
-    {
-        DelaunayTriangulation delaunay = new DelaunayTriangulation();
-        delaunay.Vertices = new List<Vertex>(vertices);
-        delaunay.Triangulate();
-
-        return delaunay;
-    }
-
-    void Triangulate()
-    {
-        float minX = Vertices[0].Position.x;
-        float minY = Vertices[0].Position.y;
+        float minX = DelaunayTriangulation.vertices[0].position.x;
+        float minY = DelaunayTriangulation.vertices[0].position.y;
         float maxX = minX;
         float maxY = minY;
 
-        foreach (var vertex in Vertices)
+        foreach (var vertex in DelaunayTriangulation.vertices)
         {
-            if (vertex.Position.x < minX) minX = vertex.Position.x;
-            if (vertex.Position.x > maxX) maxX = vertex.Position.x;
-            if (vertex.Position.y < minY) minY = vertex.Position.y;
-            if (vertex.Position.y > maxY) maxY = vertex.Position.y;
+            if (vertex.position.x < minX) minX = vertex.position.x;
+            if (vertex.position.x > maxX) maxX = vertex.position.x;
+            if (vertex.position.y < minY) minY = vertex.position.y;
+            if (vertex.position.y > maxY) maxY = vertex.position.y;
         }
 
         float dx = maxX - minX;
@@ -47,15 +36,15 @@ public class DelaunayTriangulation
         Vertex p2 = new Vertex(new Vector2(minX - 1, maxY + deltaMax));
         Vertex p3 = new Vertex(new Vector2(maxX + deltaMax, minY - 1));
 
-        Triangles.Add(new Triangle(p1, p2, p3));
+        triangles.Add(new Triangle(p1, p2, p3));
 
-        foreach (var vertex in Vertices)
+        foreach (var vertex in DelaunayTriangulation.vertices)
         {
             List<Edge> polygon = new List<Edge>();
 
-            foreach (var t in Triangles)
+            foreach (var t in triangles)
             {
-                if (t.CircumCircleContains(vertex.Position))
+                if (t.CircumCircleContains(vertex.position))
                 {
                     t.IsBad = true;
                     polygon.Add(new Edge(t.A, t.B));
@@ -64,7 +53,7 @@ public class DelaunayTriangulation
                 }
             }
 
-            Triangles.RemoveAll((Triangle t) => t.IsBad);
+            triangles.RemoveAll((Triangle t) => t.IsBad);
 
             for (int i = 0; i < polygon.Count; i++)
             {
@@ -82,15 +71,15 @@ public class DelaunayTriangulation
 
             foreach (var edge in polygon)
             {
-                Triangles.Add(new Triangle(edge.U, edge.V, vertex));
+                triangles.Add(new Triangle(edge.U, edge.V, vertex));
             }
         }
 
-        Triangles.RemoveAll((Triangle t) => t.ContainsVertex(p1.Position) || t.ContainsVertex(p2.Position) || t.ContainsVertex(p3.Position));
+        triangles.RemoveAll((Triangle t) => t.ContainsVertex(p1.position) || t.ContainsVertex(p2.position) || t.ContainsVertex(p3.position));
 
         HashSet<Edge> edgeSet = new HashSet<Edge>();
 
-        foreach (var t in Triangles)
+        foreach (var t in triangles)
         {
             var ab = new Edge(t.A, t.B);
             var bc = new Edge(t.B, t.C);
@@ -98,18 +87,20 @@ public class DelaunayTriangulation
 
             if (edgeSet.Add(ab))
             {
-                Edges.Add(ab);
+                edges.Add(ab);
             }
 
             if (edgeSet.Add(bc))
             {
-                Edges.Add(bc);
+                edges.Add(bc);
             }
 
             if (edgeSet.Add(ca))
             {
-                Edges.Add(ca);
+                edges.Add(ca);
             }
         }
-    }
+
+        return edges;
+   }
 }

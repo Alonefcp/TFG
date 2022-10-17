@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System;
 
+//Priority queue (heap)
 public class Heap<T> where T : IHeapItem<T>
 {
 	T[] items;

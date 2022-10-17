@@ -19,7 +19,7 @@ public class Edge : IEquatable<Edge>
         U = u;
         V = v;
 
-        Distance = Vector3.Distance(u.Position, v.Position);
+        Distance = Vector3.Distance(u.position, v.position);
     }
 
     public static bool operator ==(Edge left, Edge right)
@@ -61,7 +61,7 @@ public class Edge : IEquatable<Edge>
 
     private static bool AlmostEqual(Vertex left, Vertex right)
     {
-        return AlmostEqual(left.Position.x, right.Position.x) && AlmostEqual(left.Position.y, right.Position.y);
+        return AlmostEqual(left.position.x, right.position.x) && AlmostEqual(left.position.y, right.position.y);
     }
 
     public static bool AlmostEqual(Edge left, Edge right)

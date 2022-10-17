@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Vertex : IEquatable<Vertex>
 {
-    public Vector3 Position { get; private set; }
+    public Vector3 position { get; private set; }
 
     public Vertex()
     {
@@ -14,14 +14,14 @@ public class Vertex : IEquatable<Vertex>
 
     public Vertex(Vector3 position)
     {
-        Position = position;
+        this.position = position;
     }
 
     public override bool Equals(object obj)
     {
         if (obj is Vertex v)
         {
-            return Position == v.Position;
+            return position == v.position;
         }
 
         return false;
@@ -29,12 +29,12 @@ public class Vertex : IEquatable<Vertex>
 
     public bool Equals(Vertex other)
     {
-        return Position == other.Position;
+        return position == other.position;
     }
 
     public override int GetHashCode()
     {
-        return Position.GetHashCode();
+        return position.GetHashCode();
     }
 }
 
