@@ -1,14 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using GraphDataStructure;
 
 public static class CorridorsAlgorithms
 {
     //================================================== Delaunay, Prim and A* ====================================================================
 
 
-    public static List<List<Vector2Int>> ConnectRooms(List<Vertex> roomCentersForDelaunay, Grid grid, bool addSomeRemainingEdges=false)
+    public static List<HashSet<Vector2Int>> ConnectRooms(List<Vertex> roomCentersForDelaunay, Grid grid, bool widerCorridors, bool addSomeRemainingEdges=false)
     {
         //Delaunay triangulation
         DelaunayTriangulation delaunayTriangulation = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
@@ -16,13 +15,18 @@ public static class CorridorsAlgorithms
         //Prim algorithm
         HashSet<Edge> edges = PrimAlgorithm.RunMinimumSpanningTree(delaunayTriangulation.Edges, addSomeRemainingEdges);
 
-        List<List<Vector2Int>> paths = new List<List<Vector2Int>>();
-
-        
+        List<HashSet<Vector2Int>> paths = new List<HashSet<Vector2Int>>();
+       
         foreach (var edge in edges)
         {
             //A* algorithm
-            List<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.Position, edge.V.Position);
+            HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.Position, edge.V.Position);
+
+            if(widerCorridors)
+            {
+                MakeWiderCorridors(path);
+            }
+
             paths.Add(path);
         }
 
@@ -31,27 +35,22 @@ public static class CorridorsAlgorithms
 
     
     //================================================== Tunneling Algorithm ======================================================================
-    public static HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, WeightedGraph<Vector2Int> graph, bool widerCorridors)
+    public static HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, bool widerCorridors)
     {
         HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
 
         Vector2Int currentRoomCenter = roomCenters[Random.Range(0, roomCenters.Count)];
         roomCenters.Remove(currentRoomCenter);
-        WeightedGraphNode<Vector2Int> currentRoomCenterNode = graph.AddNode(currentRoomCenter);
 
         while (roomCenters.Count > 0)
         {
             Vector2Int closest = FindClosestPointTo(currentRoomCenter, roomCenters);
-            roomCenters.Remove(closest);
-            WeightedGraphNode<Vector2Int> closestNode = graph.AddNode(closest);
+            roomCenters.Remove(closest);          
 
             HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest, widerCorridors);
-
-            graph.AddEdge(currentRoomCenterNode, closestNode, 0);
-
-            currentRoomCenter = closestNode.Value;
-            currentRoomCenterNode = closestNode;
-
+         
+            currentRoomCenter = closest;
+            
             corridors.UnionWith(newCorridor);
         }
 
@@ -96,34 +95,13 @@ public static class CorridorsAlgorithms
 
         if (widerCorridors)
         {
-            HashSet<Vector2Int> corridorSides = new HashSet<Vector2Int>();
-
-            //widdening corridor
-            foreach (Vector2Int Corridor in corridor)
-            {
-                foreach (Vector2Int dir in GetDirectionsArray())
-                {
-                    if (!corridor.Contains(Corridor + dir))
-                    {
-                        corridorSides.Add(Corridor + dir);
-                    }
-                }
-            }
-
-            corridor.UnionWith(corridorSides);
+            MakeWiderCorridors(corridor);
         }
 
         return corridor;
     }
 
 
-    private static Vector2Int[] GetDirectionsArray()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
-            new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
-
-        return directions;
-    }
 
     private static Vector2Int FindClosestPointTo(Vector2Int currentRoomCenter, List<Vector2Int> roomCenters)
     {
@@ -142,5 +120,35 @@ public static class CorridorsAlgorithms
         }
 
         return closest;
+    }
+
+
+//===================================================== Auxiliar methods =================================================
+
+    private static void MakeWiderCorridors(HashSet<Vector2Int> corridor)
+    {
+        HashSet<Vector2Int> corridorSides = new HashSet<Vector2Int>();
+
+        //widdening corridor
+        foreach (Vector2Int pos in corridor)
+        {
+            foreach (Vector2Int dir in GetDirectionsArray())
+            {
+                if (!corridor.Contains(pos + dir))
+                {
+                    corridorSides.Add(pos + dir);
+                }
+            }
+        }
+
+        corridor.UnionWith(corridorSides);
+    }
+
+    private static Vector2Int[] GetDirectionsArray()
+    {
+        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
+            new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
+
+        return directions;
     }
 }

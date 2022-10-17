@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-//Bowyer-Watson algorithm for Delaunay
+//Bowyer-Watson algorithm for Delaunay Triangulation
 public class DelaunayTriangulation
 {
     public List<Vertex> Vertices { get; private set; }

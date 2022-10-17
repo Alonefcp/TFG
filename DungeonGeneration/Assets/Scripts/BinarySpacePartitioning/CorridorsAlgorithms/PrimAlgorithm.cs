@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using Random = UnityEngine.Random;
 
+//Prim Algorithm for Minimum Spanning Tree
 public static class PrimAlgorithm
 {
-
     public static HashSet<Edge> RunMinimumSpanningTree(List<Edge> delaunayEdges, bool addSomeRemainingEdges)
     {
         List<Edge> edges = new List<Edge>();

@@ -38,18 +38,4 @@ public class Vertex : IEquatable<Vertex>
     }
 }
 
-public class Vertex<T> : Vertex
-{
-    public T Item { get; private set; }
-
-    public Vertex(T item)
-    {
-        Item = item;
-    }
-
-    public Vertex(Vector3 position, T item) : base(position)
-    {
-        Item = item;
-    }
-}
 

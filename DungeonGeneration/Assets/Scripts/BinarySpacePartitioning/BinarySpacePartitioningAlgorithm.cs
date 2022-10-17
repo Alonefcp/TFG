@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using GraphDataStructure;
 
 public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 {
@@ -25,7 +24,6 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     [SerializeField] private bool showGizmos = false;
 
     private List<BoundsInt> roomList;
-    private WeightedGraph<Vector2Int> graphRooms;
 
 
     //void Start()
@@ -59,13 +57,12 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         //Create corridors
         if(corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
         {
-            graphRooms = new WeightedGraph<Vector2Int>(false, false);
-            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, graphRooms, widerCorridors);
+            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, widerCorridors);
             tilemapVisualizer.PaintFloorTiles(corridors);
         }
         else
         {
-            List<List<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCentersForDelaunay, grid, addSomeRemainingEdges);
+            List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCentersForDelaunay, grid, widerCorridors, addSomeRemainingEdges);
             foreach (var path in paths)
             {
                 tilemapVisualizer.PaintFloorTiles(path);

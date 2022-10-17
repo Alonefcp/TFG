@@ -26,7 +26,7 @@ public class Node : IHeapItem<Node>
 	}
 
 
-	public NodeType GetType()
+	public NodeType GetNodeType()
 	{
 		return nodeType;
 	}
