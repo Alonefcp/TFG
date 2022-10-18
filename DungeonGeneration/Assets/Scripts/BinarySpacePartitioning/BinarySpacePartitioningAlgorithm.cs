@@ -6,9 +6,9 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 {
     enum CorridorsAlgorithm {TunnelingAlgorithm, Delaunay_Prim_Astar}
 
-    [SerializeField] private Grid grid;
+    [SerializeField] private Grid2D grid;
     [SerializeField] private int spaceWidth = 20,  spaceHeight = 20;
-    [SerializeField] private int minRoomWidth = 4,  minRoomHeight = 4;
+    [SerializeField] private int minRoomWidth = 4, maxRoomWidth = 4,  minRoomHeight = 4, maxRoomHeight = 4;
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
 
     [Range(1,10)]
@@ -21,7 +21,9 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     [SerializeField] private bool verticalGridStructure = false;
     [SerializeField] private bool horizontalGridStructure = false;
 
-    [SerializeField] private bool showGizmos = false;
+    [SerializeField] private bool setSpecialRooms = false;
+
+    //[SerializeField] private bool showGizmos = false;
 
     private List<BoundsInt> roomList;
 
@@ -33,28 +35,26 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
-        //Create rooms
+        //Create and paint rooms
         BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
-        roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, minRoomHeight);
+        roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, maxRoomWidth, minRoomHeight, maxRoomHeight);
 
         HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
         grid.CreateGrid(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
 
         floorPositions = CreateRooms(roomList, grid);
 
-        List<Vector2Int> roomCenters = new List<Vector2Int>();
-        List<Vertex> roomCentersForDelaunay = new List<Vertex>();
+        List<Vertex> roomCenters = new List<Vertex>();
 
         foreach (BoundsInt room in roomList)
         {
-            roomCenters.Add((Vector2Int)Vector3Int.RoundToInt(room.center));
-            roomCentersForDelaunay.Add(new Vertex(room.center));
+            roomCenters.Add(new Vertex(room.center));
         }
 
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
 
-        //Create corridors
+        //Create and paint corridors
         if(corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
         {
             HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, widerCorridors);
@@ -62,49 +62,47 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         }
         else
         {
-            List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCentersForDelaunay, grid, widerCorridors, addSomeRemainingEdges);
+            List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCenters, grid, widerCorridors, addSomeRemainingEdges);
             foreach (var path in paths)
             {
                 tilemapVisualizer.PaintFloorTiles(path);
             }
-
-            SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCentersForDelaunay);
         }
+
+       if(setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters);
     }
 
-    private void OnDrawGizmos()
-    {
-        if(showGizmos)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
+    //private void OnDrawGizmos()
+    //{
+    //    if(showGizmos)
+    //    {
+    //        Gizmos.color = Color.red;
+    //        Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
 
-            //Gizmos.color = Color.green;
-            //if (delaunayTriangulation != null)
-            //{
-            //    foreach (var edge in edges)
-            //    {
-            //        Gizmos.DrawLine(edge.U.Position, edge.V.Position);
-            //    }
-            //}
+    //        //Gizmos.color = Color.green;
+    //        //if (delaunayTriangulation != null)
+    //        //{
+    //        //    foreach (var edge in edges)
+    //        //    {
+    //        //        Gizmos.DrawLine(edge.U.Position, edge.V.Position);
+    //        //    }
+    //        //}
 
-            //if(paths!=null)
-            //{
-            //    foreach (var path in paths)
-            //    {
-            //        foreach (var node in path)
-            //        {
-            //            Gizmos.DrawWireSphere(node.worldPosition, 1.0f);
-            //        }
-            //    }
-            //}
+    //        //if(paths!=null)
+    //        //{
+    //        //    foreach (var path in paths)
+    //        //    {
+    //        //        foreach (var node in path)
+    //        //        {
+    //        //            Gizmos.DrawWireSphere(node.worldPosition, 1.0f);
+    //        //        }
+    //        //    }
+    //        //}
 
-        }      
-    }
+    //    }      
+    //}
 
-    
-
-    private HashSet<Vector2Int> CreateRooms(List<BoundsInt> roomsList, Grid grid)
+    private HashSet<Vector2Int> CreateRooms(List<BoundsInt> roomsList, Grid2D grid)
     {
         HashSet<Vector2Int> floor = new HashSet<Vector2Int>();
         foreach (var room in roomsList)
@@ -122,7 +120,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         return floor;
     }
 
-    private List<BoundsInt> BinarySpacePartitioning(BoundsInt spaceToSplit, int minWidth, int minHeight)
+    private List<BoundsInt> BinarySpacePartitioning(BoundsInt spaceToSplit, int minWidth, int maxWidth, int minHeight, int maxHeight)
     {
         Queue<BoundsInt> roomsQueue = new Queue<BoundsInt>();
         List<BoundsInt> roomsList = new List<BoundsInt>();
@@ -136,30 +134,30 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             {
                 if (Random.value < 0.5f)
                 {
-                    if (room.size.y >= minHeight * Random.Range(1.25f, 3.0f))
+                    if (room.size.y >= Random.Range(minHeight, maxHeight+1) * Random.Range(1.25f, 3.0f))
                     {
                         HorizontalSplit(minHeight, roomsQueue, room);
                     }
-                    else if (room.size.x >= minWidth * Random.Range(1.25f, 3.0f))
+                    else if (room.size.x >= Random.Range(minWidth, maxWidth+1) * Random.Range(1.25f, 3.0f))
                     {
                         VerticalSplit(minWidth, roomsQueue, room);
                     }
-                    else if (room.size.x >= minWidth && room.size.y >= minHeight)
+                    else /*if (room.size.x >= minWidth && room.size.y >= minHeight)*/
                     {
                         roomsList.Add(room);
                     }
                 }
                 else
                 {
-                    if (room.size.x >= minWidth * Random.Range(1.25f, 3.0f))
+                    if (room.size.x >= Random.Range(minWidth, minWidth+1) * Random.Range(1.25f, 3.0f))
                     {
                         VerticalSplit(minWidth, roomsQueue, room);
                     }
-                    else if (room.size.y >= minHeight * Random.Range(1.25f, 3.0f))
+                    else if (room.size.y >= Random.Range(minHeight, maxHeight+1) * Random.Range(1.25f, 3.0f))
                     {
                         HorizontalSplit(minHeight, roomsQueue, room);
                     }
-                    else if (room.size.x >= minWidth && room.size.y >= minHeight)
+                    else /*if (room.size.x >= minWidth && room.size.y >= minHeight)*/
                     {
                         roomsList.Add(room);
                     }

@@ -2,9 +2,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class Grid : MonoBehaviour
+public class Grid2D : MonoBehaviour
 {
-	//[SerializeField] public bool onlyDisplayPathGizmos;
 	private Node[,] grid;
 	private float nodeDiameter;
 
@@ -54,25 +53,6 @@ public class Grid : MonoBehaviour
                 neighbours.Add(grid[checkX, checkY]);
             }
         }
-
-
-		//for (int x = -1; x <= 1; x++)
-		//{
-		//	for (int y = -1; y <= 1; y++)
-		//	{
-		//		if (x == 0 && y == 0)
-		//			continue;
-
-		//		int checkX = node.gridX + x;
-		//		int checkY = node.gridY + y;
-
-		//		if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeY)
-		//		{
-		//			neighbours.Add(grid[checkX, checkY]);
-		//		}
-		//	}
-		//}
-
 		return neighbours;
 	}
 
@@ -88,8 +68,4 @@ public class Grid : MonoBehaviour
 
 		return directions;
 	}
-    //void OnDrawGizmos()
-    //{
-    //    Gizmos.DrawWireCube(new Vector3(gridWorldSize.x - gridWorldSize.x / 2, gridWorldSize.y - gridWorldSize.y / 2, 0), new Vector3(gridWorldSize.x, gridWorldSize.y, 0));
-    //}
 }

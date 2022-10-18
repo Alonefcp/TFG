@@ -6,7 +6,7 @@ public static class CorridorsAlgorithms
 {
     //================================================== Delaunay, Prim and A* ====================================================================
 
-    public static List<HashSet<Vector2Int>> ConnectRooms(List<Vertex> roomCentersForDelaunay, Grid grid, bool widerCorridors, bool addSomeRemainingEdges=false)
+    public static List<HashSet<Vector2Int>> ConnectRooms(List<Vertex> roomCentersForDelaunay, Grid2D grid, bool widerCorridors, bool addSomeRemainingEdges=false)
     {
         //Delaunay triangulation
         List<Edge> delaunayEdges = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
@@ -34,20 +34,24 @@ public static class CorridorsAlgorithms
 
     
     //================================================== Tunneling Algorithm ======================================================================
-    public static HashSet<Vector2Int> ConnectRooms(List<Vector2Int> roomCenters, bool widerCorridors)
+    public static HashSet<Vector2Int> ConnectRooms(List<Vertex> roomCenters, bool widerCorridors)
     {
+        List<Vertex> roomVertex = new List<Vertex>(roomCenters);
         HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
 
-        Vector2Int currentRoomCenter = roomCenters[Random.Range(0, roomCenters.Count)];
-        roomCenters.Remove(currentRoomCenter);
+        Vertex currentVertex = roomVertex[Random.Range(0, roomVertex.Count)];
+        Vector2Int currentRoomCenter = (Vector2Int)Vector3Int.RoundToInt(currentVertex.position);
+        roomVertex.Remove(currentVertex);
 
-        while (roomCenters.Count > 0)
+        while (roomVertex.Count > 0)
         {
-            Vector2Int closest = FindClosestPointTo(currentRoomCenter, roomCenters);
-            roomCenters.Remove(closest);          
+            Vertex closestVertex = FindClosestVertexTo(currentRoomCenter, roomVertex);
+            Vector2Int closest = (Vector2Int)Vector3Int.RoundToInt(closestVertex.position);
+            roomVertex.Remove(closestVertex);          
 
             HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest, widerCorridors);
-         
+
+            currentVertex = closestVertex;
             currentRoomCenter = closest;
             
             corridors.UnionWith(newCorridor);
@@ -102,19 +106,19 @@ public static class CorridorsAlgorithms
 
 
 
-    private static Vector2Int FindClosestPointTo(Vector2Int currentRoomCenter, List<Vector2Int> roomCenters)
+    private static Vertex FindClosestVertexTo(Vector2Int currentRoomCenter, List<Vertex> roomCenters)
     {
-        Vector2Int closest = Vector2Int.zero;
+        Vertex closest = null;
         float distance = float.MaxValue;
 
-        foreach (Vector2Int position in roomCenters)
+        foreach (Vertex vertex in roomCenters)
         {
-            float currentDistance = Vector2.Distance(position, currentRoomCenter);
+            float currentDistance = Vector2.Distance(vertex.position, currentRoomCenter);
 
             if (currentDistance < distance)
             {
                 distance = currentDistance;
-                closest = position;
+                closest = vertex;
             }
         }
 
