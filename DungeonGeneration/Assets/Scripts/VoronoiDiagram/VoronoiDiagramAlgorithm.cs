@@ -5,18 +5,18 @@ using System.Linq;
 using System;
 using Random = UnityEngine.Random;
 
-public struct Tile: IComparable<Tile>
+public struct Cell: IComparable<Cell>
 {
     public Vector2Int seed;
     public float distance;
 
-    public Tile(Vector2Int _seed, float _distance)
+    public Cell(Vector2Int _seed, float _distance)
     {
         seed = _seed;
         distance = _distance;
     }
 
-    public int CompareTo(Tile other)
+    public int CompareTo(Cell other)
     {
         if(distance > other.distance)
         {
@@ -35,8 +35,11 @@ public struct Tile: IComparable<Tile>
 
 public class VoronoiDiagramAlgorithm : DungeonGenerator
 {
+    public enum DistanceAlgorithm {Euclidean, Manhattan}
+
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
     [SerializeField] private int numberOfSeeds = 64;
+    [SerializeField] private DistanceAlgorithm distanceAlgorithm;
 
     void Start()
     {
@@ -46,32 +49,35 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     public override void GenerateDungeon()
     {
         HashSet<Vector2Int> seeds = GenerateSeeds();
-        // Dictionary<Vector2Int, float> voronoi_distance = new Dictionary<Vector2Int, float>(numberOfSeeds);
-        List<Tile> voronoi_distance = new List<Tile>();
-        List<Tile> voronoi_membership = new List<Tile>(mapWidth * mapHeight);
-        for (int i = 0; i < mapWidth*mapHeight; i++)
-        {
-            voronoi_membership.Add(new Tile());
-        }
+
+        List<Cell> distances = new List<Cell>();
+        List<Cell> mapInfo = new List<Cell>(mapWidth * mapHeight);
+        for (int i = 0; i < mapWidth*mapHeight; i++) mapInfo.Add(new Cell());
 
 
-        for (int i = 0; i < voronoi_membership.Count; i++)
+        for (int i = 0; i < mapInfo.Count; i++)
         {
             int x = i % mapWidth;
             int y = i / mapWidth;
 
             foreach (Vector2Int seed in seeds)
             {
-                float distance = Vector2Int.Distance(seed, new Vector2Int(x, y));
+                float distance = 0;
+                if(distanceAlgorithm == DistanceAlgorithm.Euclidean)
+                {
+                    distance = EuclideanDistance(seed, new Vector2Int(x, y));
+                }
+                else if(distanceAlgorithm == DistanceAlgorithm.Manhattan)
+                {
+                    distance = ManhattanDistance(seed, new Vector2Int(x, y));
+                }
 
-                //voronoi_distance[seed] = distance;
-                voronoi_distance.Add(new Tile(seed, distance));
+                distances.Add(new Cell(seed, distance));
             }
 
-
-            voronoi_distance.Sort();
-            voronoi_membership[i] = voronoi_distance[0];
-            voronoi_distance.Clear();
+            distances.Sort();
+            mapInfo[i] = distances[0];
+            distances.Clear();
         }
 
         tilemapVisualizer.ClearTilemap();
@@ -83,16 +89,20 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 int neighbors = 0;
 
                 int tileIndex = MapXYtoIndex(x, y);
-                Vector2Int mySeed = voronoi_membership[tileIndex].seed;
+                Vector2Int mySeed = mapInfo[tileIndex].seed;
 
-                if (voronoi_membership[MapXYtoIndex(x-1, y)].seed != mySeed) { neighbors += 1; }
-                if (voronoi_membership[MapXYtoIndex(x + 1, y)].seed != mySeed) { neighbors += 1; }
-                if (voronoi_membership[MapXYtoIndex(x, y - 1)].seed != mySeed) { neighbors += 1; }
-                if (voronoi_membership[MapXYtoIndex(x, y + 1)].seed != mySeed) { neighbors += 1; }
+                if (mapInfo[MapXYtoIndex(x - 1, y)].seed != mySeed) { neighbors += 1; }
+                if (mapInfo[MapXYtoIndex(x + 1, y)].seed != mySeed) { neighbors += 1; }
+                if (mapInfo[MapXYtoIndex(x, y - 1)].seed != mySeed) { neighbors += 1; }
+                if (mapInfo[MapXYtoIndex(x, y + 1)].seed != mySeed) { neighbors += 1; }
 
                 if (neighbors < 2)
                 {
                     tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                }
+                else
+                {
+                    tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
                 }
             }
         }
@@ -100,10 +110,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         //tilemapVisualizer.PaintCorridorTiles(seeds);
     }
     
-    private int MapXYtoIndex(int x, int y)
-    {
-        return y + (x * mapHeight);
-    }
 
     private HashSet<Vector2Int> GenerateSeeds()
     {
@@ -119,4 +125,19 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
         return seeds;
     }
+
+    private int MapXYtoIndex(int x, int y)
+    {
+        return x + (y * mapWidth);
+    }
+
+    private float ManhattanDistance(Vector2Int from, Vector2Int to)
+    {
+        return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
+    }
+
+    private float EuclideanDistance(Vector2Int from, Vector2Int to) 
+    {
+        return Math.Abs((from - to).magnitude);
+	}
 }
