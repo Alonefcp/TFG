@@ -27,10 +27,10 @@ public class TilemapVisualizer : MonoBehaviour
         PaintTiles(positions, floorTilemap, floorTile);
     }
 
-    //public void PaintCorridorTiles(IEnumerable<Vector2Int> positions)
-    //{
-    //    PaintTiles(positions, floorTilemap, corridorTile);
-    //}
+    public void PaintCorridorTiles(IEnumerable<Vector2Int> positions)
+    {
+        PaintTiles(positions, floorTilemap, corridorTile);
+    }
 
     /// <summary>
     /// Returns true if th tilemap has a tile in a given position
