@@ -74,18 +74,33 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
         }
 
-        tilemapVisualizer.ClearTilemap();
-        foreach (Cell cell in mapInfo)
+        Dictionary<Vector2Int, HashSet<Vector2Int>> sets = new Dictionary<Vector2Int, HashSet<Vector2Int>>();
+        foreach (Tuple<Vector2Int,Color> seed in seeds)
         {
-            foreach (Tuple<Vector2Int, Color> seed in seeds)
-            {
-                if (cell.belongSeed == seed.Item1)
-                {
-                    if (showColours) tilemapVisualizer.PaintSingleFloorTileWithColor(cell.cellPos, seed.Item2);
-                    else tilemapVisualizer.PaintSingleFloorTile(cell.cellPos);
-                }
-            }
+            if (!sets.ContainsKey(seed.Item1))  sets.Add(seed.Item1, new HashSet<Vector2Int>());
         }
+
+
+        tilemapVisualizer.ClearTilemap();
+
+        //foreach (Cell cell in mapInfo)
+        //{
+        //    foreach (Tuple<Vector2Int, Color> seed in seeds)
+        //    {
+        //        if (cell.belongSeed == seed.Item1)
+        //        {
+        //            //if (showColours) tilemapVisualizer.PaintSingleFloorTileWithColor(cell.cellPos, seed.Item2);
+        //            //else tilemapVisualizer.PaintSingleFloorTile(cell.cellPos);
+
+        //            sets[seed.Item1].Add(cell.cellPos);
+        //        }
+        //    }
+        //}
+
+        //for (int i = 0; i < sets[seeds.ElementAt(0).Item1].Count; i++)
+        //{
+        //    tilemapVisualizer.PaintFloorTiles(sets[seeds.ElementAt(0).Item1]);
+        //}
 
         for (int x = 0; x < mapWidth; x++)
         {
@@ -93,12 +108,12 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             {
                 Cell mySeed = mapInfo[MapXYtoIndex(x, y)];
 
-                if(x==0||y==0 || x == mapWidth - 1 || y == mapHeight-1) //borders
+                if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1) //borders
                 {
                     tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
                     continue;
                 }
-                
+
                 if (mapInfo[MapXYtoIndex(x - 1, y)].belongSeed != mySeed.belongSeed ||
                 mapInfo[MapXYtoIndex(x + 1, y)].belongSeed != mySeed.belongSeed ||
                 mapInfo[MapXYtoIndex(x, y - 1)].belongSeed != mySeed.belongSeed ||
@@ -110,11 +125,16 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 mapInfo[MapXYtoIndex(x + 1, y + 1)].belongSeed != mySeed.belongSeed)
                 {
                     if (Random.value > chance) tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
+                    else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                 }
-                
+                else
+                {
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                }
+
             }
         }
-       
+
     }
    
     private HashSet<Tuple<Vector2Int, Color>> GenerateSeeds()
