@@ -6,8 +6,8 @@ using UnityEngine.Tilemaps;
 public class TilemapVisualizer : MonoBehaviour
 {
     [SerializeField] private Tilemap floorTilemap;
-    [SerializeField] private TileBase floorTile;
-    [SerializeField] private TileBase corridorTile;
+    [SerializeField] private Tile floorTile;
+    [SerializeField] private Tile corridorTile;
 
     /// <summary>
     /// Returns the cell's radius. We assume a cell is n*n.
@@ -48,6 +48,14 @@ public class TilemapVisualizer : MonoBehaviour
     /// <param name="position">Tile position</param>
     public void PaintSingleFloorTile(Vector2Int position)
     {
+        floorTile.color = Color.white;
+        Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
+        floorTilemap.SetTile(tileMapPosition, floorTile);
+    }
+
+    public void PaintSingleFloorTileWithColor(Vector2Int position, Color color)
+    {
+        floorTile.color = color;
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
         floorTilemap.SetTile(tileMapPosition, floorTile);
     }
@@ -64,6 +72,7 @@ public class TilemapVisualizer : MonoBehaviour
     public void ClearTilemap()
     {
         floorTilemap.ClearAllTiles();
+        floorTile.color = Color.white;
     }
 
     /// <summary>
