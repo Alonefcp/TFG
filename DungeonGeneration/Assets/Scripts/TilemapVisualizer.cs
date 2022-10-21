@@ -8,6 +8,8 @@ public class TilemapVisualizer : MonoBehaviour
     [SerializeField] private Tilemap floorTilemap;
     [SerializeField] private Tile floorTile;
     [SerializeField] private Tile corridorTile;
+    [SerializeField] private Tile pathTile;
+
 
     /// <summary>
     /// Returns the cell's radius. We assume a cell is n*n.
@@ -29,7 +31,7 @@ public class TilemapVisualizer : MonoBehaviour
 
     public void PaintCorridorTiles(IEnumerable<Vector2Int> positions)
     {
-        PaintTiles(positions, floorTilemap, corridorTile);
+        PaintTiles(positions, floorTilemap, pathTile);
     }
 
     public void EraseTiles(IEnumerable<Vector2Int> positions)

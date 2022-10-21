@@ -36,6 +36,11 @@ public class Node : IHeapItem<Node>
 		nodeType = _nodeType;
 	}
 
+	public void SetIsWalkable(bool b)
+    {
+		walkable = b;
+    }
+
 	public int fCost
 	{
 		get
