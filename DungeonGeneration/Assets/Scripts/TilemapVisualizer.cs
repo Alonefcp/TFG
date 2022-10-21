@@ -32,6 +32,11 @@ public class TilemapVisualizer : MonoBehaviour
         PaintTiles(positions, floorTilemap, corridorTile);
     }
 
+    public void EraseTiles(IEnumerable<Vector2Int> positions)
+    {
+        PaintTiles(positions, floorTilemap, null);
+    }
+
     /// <summary>
     /// Returns true if th tilemap has a tile in a given position
     /// </summary>
