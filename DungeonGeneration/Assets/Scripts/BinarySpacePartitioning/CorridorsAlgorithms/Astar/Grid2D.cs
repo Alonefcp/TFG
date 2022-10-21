@@ -31,7 +31,7 @@ public class Grid2D : MonoBehaviour
 			for (int y = 0; y < gridSizeY; y++)
 			{
 				Vector3 worldPoint = new Vector3(x, y, 0);
-				grid[x, y] = new Node(true, worldPoint, x, y);
+				grid[x, y] = new Node(worldPoint, x, y);
 			}
 		}
 	}
