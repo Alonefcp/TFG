@@ -32,11 +32,14 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
     [SerializeField] private Grid2D grid;
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
+    [Range(2,100)]
     [SerializeField] private int numberOfSeeds = 64;
     [SerializeField] private DistanceAlgorithm distanceAlgorithm;
     [Range(0.0f,1.0f)]
     [SerializeField] private float wallErosion = 0.5f;
     [SerializeField] private bool randomShape = false;
+
+    private List<Edge> edges;
 
     //void Start()
     //{
@@ -66,12 +69,16 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 }
             }
 
-            Vector2Int centerSeed = GetClosestSeedToCenter(seeds);
+            Vector2Int centerSeed = GetClosestSeedTo(seeds, new Vector2Int(mapWidth / 2, mapHeight / 2));
             HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();
 
             Dictionary<Vector2Int, HashSet<Vector2Int>> sets = CreateSets(seeds, mapInfo);
-            ConnectRooms(randomSeeds, centerSeed, sets);
+            EliminateDisjointedRooms(randomSeeds, centerSeed, sets);
+
+            GenerateConnectivity(randomSeeds);
+
             tilemapVisualizer.AddBorderWalls();
+            tilemapVisualizer.PaintPathTiles(randomSeeds);
         }
         else
         {
@@ -82,16 +89,26 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
             CreateWalls(mapInfo);
 
-            Vector2Int centerSeed = GetClosestSeedToCenter(seeds);
-            ConnectRooms(seeds, centerSeed);
+            GenerateConnectivity(seeds);
+
+            tilemapVisualizer.PaintPathTiles(seeds);
+
+            
         }
     }
 
-    //private void OnDrawGizmos()
-    //{
-    //    Gizmos.color = Color.red;
-    //    Gizmos.DrawWireCube(new Vector3(mapWidth / 2, mapHeight / 2), new Vector3(mapWidth, mapHeight));
-    //}
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        //Gizmos.DrawWireCube(new Vector3(mapWidth / 2, mapHeight / 2), new Vector3(mapWidth, mapHeight));
+        if (edges != null)
+        {
+            foreach (Edge edge in edges)
+            {
+                Gizmos.DrawLine(edge.U.position, edge.V.position);
+            }
+        }
+    }
 
     private HashSet<Vector2Int> GenerateSeeds()
     {
@@ -223,6 +240,29 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         }
     }
 
+    private void GenerateConnectivity(HashSet<Vector2Int> seeds)
+    {
+        List<Vertex> vertex = new List<Vertex>();
+        foreach (Vector2Int seed in seeds)
+        {
+            vertex.Add(new Vertex(new Vector3(seed.x, seed.y, 0)));
+        }
+
+        edges = DelaunayTriangulation.Triangulate(vertex);
+        Debug.Log(edges.Count);
+        HashSet<Edge> primEdges = PrimAlgorithm.RunMinimumSpanningTree(edges, true);
+
+        foreach (Edge edge in primEdges)
+        {
+            HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.position, edge.V.position);
+            if (path != null) tilemapVisualizer.PaintFloorTiles(path);
+            else 
+            { 
+                Debug.LogWarning("Couldn't find a path"); 
+            }
+        }
+    }
+
     private Dictionary<Vector2Int, HashSet<Vector2Int>> CreateSets(HashSet<Vector2Int> borderSeeds, List<Cell> mapInfo)
     {
         Dictionary<Vector2Int, HashSet<Vector2Int>> sets = new Dictionary<Vector2Int, HashSet<Vector2Int>>();
@@ -247,38 +287,40 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         return sets;
     }
 
-    private Vector2Int GetClosestSeedToCenter(HashSet<Vector2Int> seeds)
-    {
-        Vector2Int destination = new Vector2Int(mapWidth / 2, mapHeight / 2);
+    private Vector2Int GetClosestSeedTo(HashSet<Vector2Int> seeds, Vector2Int destination)
+    {       
         float minDistance = float.MaxValue;
-        Vector2Int centerSeed = new Vector2Int(0, 0);
+        Vector2Int closestSeed = new Vector2Int(0, 0);
         foreach (Vector2Int seed in seeds)
         {
+            if (seed == destination) continue;
+
             float distance = Vector2Int.Distance(seed, destination);
 
             if (distance < minDistance)
             {
                 minDistance = distance;
-                centerSeed = seed;
+                closestSeed = seed;
             }
-
-            //tilemapVisualizer.PaintSingleFloorTileWithColor(seed, Color.red);
         }
 
-        return centerSeed;
+        return closestSeed;
     }
 
-    private void ConnectRooms(HashSet<Vector2Int> seeds, Vector2Int centerSeed, Dictionary<Vector2Int, HashSet<Vector2Int>> sets=null)
+    private void EliminateDisjointedRooms(HashSet<Vector2Int> seeds, Vector2Int centerSeed, Dictionary<Vector2Int, HashSet<Vector2Int>> sets)
     {
+        Vector2Int seedToDelete = new Vector2Int(-1,-1);
         foreach (Vector2Int seed in seeds)
         {
-            HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, new Vector3(centerSeed.x, centerSeed.y, 0), new Vector3(seed.x, seed.y, 0));
-            if (path != null) tilemapVisualizer.PaintFloorTiles(path);
-            else
+            HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, new Vector3(centerSeed.x, centerSeed.y, 0), new Vector3(seed.x, seed.y, 0));           
+            if(path == null)
             {              
                 tilemapVisualizer.EraseTiles(sets[seed]);
+                seedToDelete = seed;
             }
         }
+
+        if(seedToDelete!= new Vector2Int(-1,-1))seeds.Remove(seedToDelete);
     }
 
     private int MapXYtoIndex(int x, int y)

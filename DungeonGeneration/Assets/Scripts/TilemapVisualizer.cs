@@ -31,6 +31,11 @@ public class TilemapVisualizer : MonoBehaviour
 
     public void PaintCorridorTiles(IEnumerable<Vector2Int> positions)
     {
+        PaintTiles(positions, floorTilemap, corridorTile);
+    }
+
+    public void PaintPathTiles(IEnumerable<Vector2Int> positions)
+    {
         PaintTiles(positions, floorTilemap, pathTile);
     }
 
