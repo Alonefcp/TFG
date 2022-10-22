@@ -30,6 +30,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 {
     public enum DistanceAlgorithm {Euclidean, Manhattan}
 
+    [SerializeField] private Grid2D grid;
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
     [SerializeField] private int numberOfSeeds = 64;
     [SerializeField] private DistanceAlgorithm distanceAlgorithm;
@@ -37,12 +38,10 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     [SerializeField] private float wallErosion = 0.5f;
     [SerializeField] private bool randomShape = false;
 
-    [SerializeField] private Grid2D grid;
-
-    void Start()
-    {
-        GenerateDungeon();
-    }
+    //void Start()
+    //{
+    //    GenerateDungeon();
+    //}
 
     public override void GenerateDungeon()
     {
@@ -50,26 +49,29 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
         if(randomShape)
         {
-            HashSet<Vector2Int> seeds = GenerateSeeds1(out HashSet<Vector2Int> borderSeeds);
+            HashSet<Vector2Int> seeds = GenerateSeeds(out HashSet<Vector2Int> borderSeeds);
             List<Cell> mapInfo = VoronoiDiagram(seeds);
             tilemapVisualizer.ClearTilemap();
 
             CreateWalls(mapInfo);
-            Dictionary<Vector2Int, HashSet<Vector2Int>> sets = CreateSets(borderSeeds, mapInfo);
+            Dictionary<Vector2Int, HashSet<Vector2Int>> borderSets = CreateSets(borderSeeds, mapInfo);
 
-            for (int i = 0; i < sets.Count; i++)
+            for (int i = 0; i < borderSets.Count; i++)
             {
-                tilemapVisualizer.EraseTiles(sets[borderSeeds.ElementAt(i)]);
+                tilemapVisualizer.EraseTiles(borderSets[borderSeeds.ElementAt(i)]);
 
-                foreach (Vector2Int seed in sets[borderSeeds.ElementAt(i)])
+                foreach (Vector2Int seed in borderSets[borderSeeds.ElementAt(i)])
                 {
-                    grid.NodeFromWorldPoint(new Vector3(seed.x, seed.y, 0)).SetIsWalkable(false);
+                    grid.NodeFromWorldPoint(new Vector3(seed.x, seed.y, 0)).SetIsWalkable(false);                   
                 }
             }
 
             Vector2Int centerSeed = GetClosestSeedToCenter(seeds);
             HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();
-            ConnectRooms(randomSeeds, centerSeed);
+
+            Dictionary<Vector2Int, HashSet<Vector2Int>> sets = CreateSets(seeds, mapInfo);
+            ConnectRooms(randomSeeds, centerSeed, sets);
+            tilemapVisualizer.AddBorderWalls();
         }
         else
         {
@@ -106,7 +108,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         return seeds;
     }
 
-    private HashSet<Vector2Int> GenerateSeeds1(out HashSet<Vector2Int> borderSeeds)
+    private HashSet<Vector2Int> GenerateSeeds(out HashSet<Vector2Int> borderSeeds)
     {
         HashSet<Vector2Int> seeds = new HashSet<Vector2Int>();
 
@@ -217,7 +219,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 {
                     tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                 }
-
             }
         }
     }
@@ -267,15 +268,15 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         return centerSeed;
     }
 
-    private void ConnectRooms(HashSet<Vector2Int> seeds, Vector2Int centerSeed)
+    private void ConnectRooms(HashSet<Vector2Int> seeds, Vector2Int centerSeed, Dictionary<Vector2Int, HashSet<Vector2Int>> sets=null)
     {
         foreach (Vector2Int seed in seeds)
         {
             HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, new Vector3(centerSeed.x, centerSeed.y, 0), new Vector3(seed.x, seed.y, 0));
             if (path != null) tilemapVisualizer.PaintFloorTiles(path);
             else
-            {
-                Debug.Log("No path");
+            {              
+                tilemapVisualizer.EraseTiles(sets[seed]);
             }
         }
     }

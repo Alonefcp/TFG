@@ -92,16 +92,36 @@ public class TilemapVisualizer : MonoBehaviour
             Vector2Int pos = (Vector2Int)position;
 
             bool hasTile = floorTilemap.HasTile((Vector3Int)pos);
-            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1)));
-            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1)));
+            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1)));
+            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1)));
             bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0)));
             bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0)));
 
 
             if (!hasTile && upperTile && bottomTile && rightTile && leftTile)
             {
-                Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
+                Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
                 floorTilemap.SetTile(tileMapPosition, floorTile);
+            }
+        }
+    }
+
+    public void AddBorderWalls()
+    {
+        foreach (var position in floorTilemap.cellBounds.allPositionsWithin)
+        {
+            Vector2Int pos = (Vector2Int)position;
+
+            bool hasTile = floorTilemap.HasTile((Vector3Int)pos) ;
+            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, 1)))==floorTile);
+            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, -1))) == floorTile);
+            bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(1, 0))) == floorTile);
+            bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(-1, 0))) == floorTile);
+
+            if (!hasTile && (upperTile || bottomTile || rightTile || leftTile))
+            {
+                Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
+                floorTilemap.SetTile(tileMapPosition, corridorTile);
             }
         }
     }
