@@ -9,6 +9,10 @@ public class Grid2D : MonoBehaviour
 
 	private int gridSizeX, gridSizeY;
 
+	public Grid2D()
+    {
+
+    }
 
 	public int MaxSize
 	{
@@ -35,6 +39,8 @@ public class Grid2D : MonoBehaviour
 			}
 		}
 	}
+
+	
 
 	public List<Node> GetNeighbours(Node node)
 	{

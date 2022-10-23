@@ -65,7 +65,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
 
         if (eliminateSingleWalls)
         {
-            tilemapVisualizer.EliminateSingleWalls();
+            tilemapVisualizer.EliminateSingleSpaces();
         }
     }
 

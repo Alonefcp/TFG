@@ -38,6 +38,8 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     [Range(0.0f,1.0f)]
     [SerializeField] private float wallErosion = 0.5f;
     [SerializeField] private bool randomShape = false;
+    [SerializeField] private bool eliminateSingleWalls = false;
+    [SerializeField] private bool eliminateSingleFloors = false;
 
     private List<Edge> edges;
 
@@ -65,20 +67,16 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
                 foreach (Vector2Int seed in borderSets[borderSeeds.ElementAt(i)])
                 {
-                    grid.NodeFromWorldPoint(new Vector3(seed.x, seed.y, 0)).SetIsWalkable(false);                   
+                    grid.NodeFromWorldPoint(new Vector3(seed.x, seed.y, 0)).SetIsWalkable(false);
                 }
             }
 
             HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();
-            Vector2Int centerSeed = GetClosestSeedTo(randomSeeds, new Vector2Int(mapWidth / 2, mapHeight / 2));
-
-            //Dictionary<Vector2Int, HashSet<Vector2Int>> sets = CreateSets(seeds, mapInfo);
-            //EliminateDisjointedRooms(randomSeeds, centerSeed, sets);
     
             GenerateConnectivity(randomSeeds);
 
             tilemapVisualizer.AddBorderWalls();
-            tilemapVisualizer.PaintPathTiles(randomSeeds);
+            //tilemapVisualizer.PaintPathTiles(randomSeeds);
         }
         else
         {
@@ -91,24 +89,25 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
             GenerateConnectivity(seeds);
 
-            //tilemapVisualizer.PaintPathTiles(seeds);
-
-            
+            //tilemapVisualizer.PaintPathTiles(seeds);     
         }
+
+        if(eliminateSingleWalls) tilemapVisualizer.EliminateSingleWalls();
+        if (eliminateSingleFloors) tilemapVisualizer.EliminateSingleFloors(); 
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        //Gizmos.DrawWireCube(new Vector3(mapWidth / 2, mapHeight / 2), new Vector3(mapWidth, mapHeight));
-        if (edges != null)
-        {
-            foreach (Edge edge in edges)
-            {
-                Gizmos.DrawLine(edge.U.position, edge.V.position);
-            }
-        }
-    }
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.red;
+    //    Gizmos.DrawWireCube(new Vector3(mapWidth / 2, mapHeight / 2), new Vector3(mapWidth, mapHeight));
+    //    if (edges != null)
+    //    {
+    //        foreach (Edge edge in edges)
+    //        {
+    //            Gizmos.DrawLine(edge.U.position, edge.V.position);
+    //        }
+    //    }
+    //}
 
     private HashSet<Vector2Int> GenerateSeeds()
     {
@@ -131,8 +130,8 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
         borderSeeds = new HashSet<Vector2Int>();
 
-        int offsetX = mapWidth / 12;
-        int offsetY = mapHeight / 12;
+        int offsetX = mapWidth / 10;
+        int offsetY = mapHeight / 10;
 
         for (int i = 0; i < mapHeight - offsetY; i += offsetY)
         {
@@ -269,8 +268,11 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.position, edge.V.position);
             if (path != null) tilemapVisualizer.PaintFloorTiles(path);
             else 
-            { 
-                Debug.LogWarning("Couldn't find a path"); 
+            {               
+                Grid2D g = new Grid2D();
+                g.CreateGrid(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());
+                HashSet<Vector2Int> path1 = AstarPathfinding.FindPath(g, edge.U.position, edge.V.position);
+                tilemapVisualizer.PaintFloorTiles(path1);
             }
         }    
     }

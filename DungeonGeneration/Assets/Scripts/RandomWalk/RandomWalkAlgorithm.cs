@@ -49,7 +49,7 @@ public class RandomWalkAlgorithm : DungeonGenerator
         tilemapVisualizer.PaintFloorTiles(floorPositions);
         if (eliminateSingleWalls)
         {
-            tilemapVisualizer.EliminateSingleWalls();
+            tilemapVisualizer.EliminateSingleSpaces();
         }
     }
 
