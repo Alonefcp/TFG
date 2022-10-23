@@ -69,12 +69,12 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 }
             }
 
-            Vector2Int centerSeed = GetClosestSeedTo(seeds, new Vector2Int(mapWidth / 2, mapHeight / 2));
             HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();
+            Vector2Int centerSeed = GetClosestSeedTo(randomSeeds, new Vector2Int(mapWidth / 2, mapHeight / 2));
 
-            Dictionary<Vector2Int, HashSet<Vector2Int>> sets = CreateSets(seeds, mapInfo);
-            EliminateDisjointedRooms(randomSeeds, centerSeed, sets);
-
+            //Dictionary<Vector2Int, HashSet<Vector2Int>> sets = CreateSets(seeds, mapInfo);
+            //EliminateDisjointedRooms(randomSeeds, centerSeed, sets);
+    
             GenerateConnectivity(randomSeeds);
 
             tilemapVisualizer.AddBorderWalls();
@@ -91,7 +91,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
             GenerateConnectivity(seeds);
 
-            tilemapVisualizer.PaintPathTiles(seeds);
+            //tilemapVisualizer.PaintPathTiles(seeds);
 
             
         }
@@ -249,8 +249,20 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         }
 
         edges = DelaunayTriangulation.Triangulate(vertex);
-        Debug.Log(edges.Count);
-        HashSet<Edge> primEdges = PrimAlgorithm.RunMinimumSpanningTree(edges, true);
+
+        if(edges.Count<=0) //if we can't make a graph with Delaunay
+        {
+            Vertex prev = vertex[0];
+            for (int i = 1; i < vertex.Count; i++)
+            {
+                edges.Add(new Edge(prev, vertex[i]));
+                prev = vertex[i];
+            }
+        }
+
+        ConnectDisjointedSeeds(vertex, edges, seeds); //if we can make a graph with Delaunay but a seed is disjointed
+
+        HashSet<Edge> primEdges = PrimAlgorithm.RunMinimumSpanningTree(edges, false);
 
         foreach (Edge edge in primEdges)
         {
@@ -260,6 +272,28 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             { 
                 Debug.LogWarning("Couldn't find a path"); 
             }
+        }    
+    }
+
+    private void ConnectDisjointedSeeds(List<Vertex> vertex, List<Edge> edges, HashSet<Vector2Int> seeds)
+    {
+        HashSet<Vector2Int> disjointedSeed = new HashSet<Vector2Int>();
+        foreach (Vertex v in vertex)
+        {
+            foreach (Edge e in edges)
+            {
+                if (!(e.U.position == v.position && e.V.position == v.position))
+                {
+                    disjointedSeed.Add(new Vector2Int((int)v.position.x, (int)v.position.y));
+                }
+            }
+        }
+        foreach (Vector2Int seed in disjointedSeed)
+        {
+            Vector2Int c = GetClosestSeedTo(seeds, seed);
+            Vertex a = new Vertex(new Vector3(seed.x, seed.y, 0));
+            Vertex b = new Vertex(new Vector3(c.x, c.y, 0));
+            edges.Add(new Edge(a, b));
         }
     }
 
