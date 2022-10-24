@@ -77,6 +77,7 @@ public static class AstarPathfinding
 			if(currentNode.GetNodeType()!=Node.NodeType.Floor)grid.NodeFromWorldPoint(currentNode.worldPosition).SetType(Node.NodeType.Hallway);
 		}
 
+		path.Add(startNode.worldPosition);
 		return path;
 	}
 
