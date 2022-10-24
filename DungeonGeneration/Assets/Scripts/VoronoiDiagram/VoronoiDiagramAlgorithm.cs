@@ -28,7 +28,7 @@ public struct Cell
 
 public class VoronoiDiagramAlgorithm : DungeonGenerator
 {
-    public enum DistanceAlgorithm {Euclidean, Manhattan}
+    public enum DistanceAlgorithm {Euclidean, Manhattan, Chebyshev}
 
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
     [Range(2,100)]
@@ -161,7 +161,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         List<Cell> mapInfo = new List<Cell>(mapWidth * mapHeight);
         for (int i = 0; i < mapWidth * mapHeight; i++) mapInfo.Add(new Cell());
 
-
         for (int i = 0; i < mapInfo.Count; i++)
         {
             int x = i % mapWidth;
@@ -171,7 +170,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
             foreach (Vector2Int seed in seeds)
             {
-                float distance = (distanceAlgorithm == DistanceAlgorithm.Euclidean) ? EuclideanDistance(new Vector2Int(x, y), seed) : ManhattanDistance(new Vector2Int(x, y), seed); ;
+                float distance = CalculateDistance(new Vector2Int(x, y), seed);
 
                 if (distance < mindistance)
                 {
@@ -182,12 +181,33 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                     cell.SetBelongSeed(nearestSeed);
                     mapInfo[i] = cell;
                 }
-
             }
-
         }
 
         return mapInfo;
+    }
+
+    private float CalculateDistance(Vector2Int from, Vector2Int to)
+    {
+        float distance = 0;
+
+        switch (distanceAlgorithm)
+        {
+            case DistanceAlgorithm.Euclidean:
+                distance = EuclideanDistance(from, to);
+                break;
+            case DistanceAlgorithm.Manhattan:
+                distance = ManhattanDistance(from, to);
+                break;
+            case DistanceAlgorithm.Chebyshev:
+               distance = ChebyshevDistance(from, to);
+                break;
+            default:
+                distance = EuclideanDistance(from, to);
+                break;
+        }
+
+        return distance;
     }
 
     private void CreateWalls(List<Cell> mapInfo)
@@ -353,6 +373,11 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     private float ManhattanDistance(Vector2Int from, Vector2Int to)
     {
         return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
+    }
+
+    private float ChebyshevDistance(Vector2Int from, Vector2Int to)
+    {
+        return Mathf.Max(Mathf.Abs(from.x - to.x) , Mathf.Abs(from.y - to.y));
     }
 
     private float EuclideanDistance(Vector2Int from, Vector2Int to) 
