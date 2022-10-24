@@ -6,7 +6,6 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 {
     enum CorridorsAlgorithm {TunnelingAlgorithm, Delaunay_Prim_Astar}
 
-    [SerializeField] private Grid2D grid;
     [SerializeField] private int spaceWidth = 20,  spaceHeight = 20;
     [SerializeField] private int minRoomWidth = 4, maxRoomWidth = 4,  minRoomHeight = 4, maxRoomHeight = 4;
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
@@ -25,6 +24,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     //[SerializeField] private bool showGizmos = false;
 
+    private Grid2D grid;
     private List<BoundsInt> roomList;
 
 
@@ -40,7 +40,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, maxRoomWidth, minRoomHeight, maxRoomHeight);
 
         HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
-        grid.CreateGrid(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
+        grid = new Grid2D(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
 
         floorPositions = CreateRooms(roomList, grid);
 
@@ -48,7 +48,8 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
         foreach (BoundsInt room in roomList)
         {
-            roomCenters.Add(new Vertex(room.center));
+            Vector2Int center = (Vector2Int)Vector3Int.RoundToInt(room.center);
+            roomCenters.Add(new Vertex(center));
         }
 
         tilemapVisualizer.ClearTilemap();
@@ -112,7 +113,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
                 for (int row = roomOffset; row < room.size.y - roomOffset; row++)
                 {
                     Vector2Int position = (Vector2Int)room.min + new Vector2Int(col, row);
-                    grid.NodeFromWorldPoint(new Vector3(position.x, position.y, 0.0f)).SetType(Node.NodeType.Floor);                    
+                    grid.NodeFromWorldPoint(position).SetType(Node.NodeType.Floor);                    
                     floor.Add(position);
                 }
             }
@@ -142,7 +143,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
                     {
                         VerticalSplit(minWidth, roomsQueue, room);
                     }
-                    else /*if (room.size.x >= minWidth && room.size.y >= minHeight)*/
+                    else 
                     {
                         roomsList.Add(room);
                     }
@@ -157,7 +158,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
                     {
                         HorizontalSplit(minHeight, roomsQueue, room);
                     }
-                    else /*if (room.size.x >= minWidth && room.size.y >= minHeight)*/
+                    else 
                     {
                         roomsList.Add(room);
                     }

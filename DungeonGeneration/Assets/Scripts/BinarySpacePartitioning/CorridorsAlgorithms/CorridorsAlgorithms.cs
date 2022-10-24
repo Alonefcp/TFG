@@ -40,13 +40,13 @@ public static class CorridorsAlgorithms
         HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
 
         Vertex currentVertex = roomVertex[Random.Range(0, roomVertex.Count)];
-        Vector2Int currentRoomCenter = (Vector2Int)Vector3Int.RoundToInt(currentVertex.position);
+        Vector2Int currentRoomCenter = currentVertex.position;
         roomVertex.Remove(currentVertex);
 
         while (roomVertex.Count > 0)
         {
             Vertex closestVertex = FindClosestVertexTo(currentRoomCenter, roomVertex);
-            Vector2Int closest = (Vector2Int)Vector3Int.RoundToInt(closestVertex.position);
+            Vector2Int closest = closestVertex.position;
             roomVertex.Remove(closestVertex);          
 
             HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest, widerCorridors);

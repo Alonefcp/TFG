@@ -5,14 +5,14 @@ using UnityEngine;
 
 public class Vertex : IEquatable<Vertex>
 {
-    public Vector3 position { get; private set; }
+    public Vector2Int position { get; private set; }
 
     public Vertex()
     {
 
     }
 
-    public Vertex(Vector3 position)
+    public Vertex(Vector2Int position)
     {
         this.position = position;
     }

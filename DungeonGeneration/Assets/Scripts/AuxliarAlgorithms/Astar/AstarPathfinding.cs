@@ -5,7 +5,7 @@ using System.Collections.Generic;
 //A* algorithm for finding a path
 public static class AstarPathfinding 
 {
-	public static HashSet<Vector2Int> FindPath(Grid2D grid, Vector3 startPos, Vector3 targetPos)
+	public static HashSet<Vector2Int> FindPath(Grid2D grid, Vector2Int startPos, Vector2Int targetPos)
 	{
 		Node startNode = grid.NodeFromWorldPoint(startPos);
 		Node targetNode = grid.NodeFromWorldPoint(targetPos);
@@ -72,7 +72,7 @@ public static class AstarPathfinding
 
 		while (currentNode != startNode)
 		{
-			path.Add((Vector2Int)Vector3Int.RoundToInt(currentNode.worldPosition));
+			path.Add(currentNode.worldPosition);
 			currentNode = currentNode.parent;
 			if(currentNode.GetNodeType()!=Node.NodeType.Floor)grid.NodeFromWorldPoint(currentNode.worldPosition).SetType(Node.NodeType.Hallway);
 		}

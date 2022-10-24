@@ -30,7 +30,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 {
     public enum DistanceAlgorithm {Euclidean, Manhattan}
 
-    [SerializeField] private Grid2D grid;
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
     [Range(2,100)]
     [SerializeField] private int numberOfSeeds = 64;
@@ -41,6 +40,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     [SerializeField] private bool eliminateSingleWalls = false;
     [SerializeField] private bool eliminateSingleFloors = false;
 
+    private Grid2D grid;
     private List<Edge> edges;
 
     //void Start()
@@ -49,30 +49,21 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     //}
 
     public override void GenerateDungeon()
-    {
-        grid.CreateGrid(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());
+    {       
+        grid = new Grid2D(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());
 
         if(randomShape)
         {
             HashSet<Vector2Int> seeds = GenerateSeeds(out HashSet<Vector2Int> borderSeeds);
             List<Cell> mapInfo = VoronoiDiagram(seeds);
+
             tilemapVisualizer.ClearTilemap();
-
             CreateWalls(mapInfo);
+
             Dictionary<Vector2Int, HashSet<Vector2Int>> borderSets = CreateSets(borderSeeds, mapInfo);
+            EraseBorderSets(borderSets, borderSeeds);
 
-            for (int i = 0; i < borderSets.Count; i++)
-            {
-                tilemapVisualizer.EraseTiles(borderSets[borderSeeds.ElementAt(i)]);
-
-                foreach (Vector2Int seed in borderSets[borderSeeds.ElementAt(i)])
-                {
-                    grid.NodeFromWorldPoint(new Vector3(seed.x, seed.y, 0)).SetIsWalkable(false);
-                }
-            }
-
-            HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();
-    
+            HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();   
             GenerateConnectivity(randomSeeds);
 
             tilemapVisualizer.AddBorderWalls();
@@ -84,7 +75,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             List<Cell> mapInfo = VoronoiDiagram(seeds);
 
             tilemapVisualizer.ClearTilemap();
-
             CreateWalls(mapInfo);
 
             GenerateConnectivity(seeds);
@@ -244,7 +234,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         List<Vertex> vertex = new List<Vertex>();
         foreach (Vector2Int seed in seeds)
         {
-            vertex.Add(new Vertex(new Vector3(seed.x, seed.y, 0)));
+            vertex.Add(new Vertex(seed));
         }
 
         edges = DelaunayTriangulation.Triangulate(vertex);
@@ -269,8 +259,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             if (path != null) tilemapVisualizer.PaintFloorTiles(path);
             else 
             {               
-                Grid2D g = new Grid2D();
-                g.CreateGrid(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());
+                Grid2D g = new Grid2D(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());            
                 HashSet<Vector2Int> path1 = AstarPathfinding.FindPath(g, edge.U.position, edge.V.position);
                 tilemapVisualizer.PaintFloorTiles(path1);
             }
@@ -292,9 +281,9 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         }
         foreach (Vector2Int seed in disjointedSeed)
         {
-            Vector2Int c = GetClosestSeedTo(seeds, seed);
-            Vertex a = new Vertex(new Vector3(seed.x, seed.y, 0));
-            Vertex b = new Vertex(new Vector3(c.x, c.y, 0));
+            Vector2Int closestSeed = GetClosestSeedTo(seeds, seed);
+            Vertex a = new Vertex(seed);
+            Vertex b = new Vertex(closestSeed);
             edges.Add(new Edge(a, b));
         }
     }
@@ -343,20 +332,17 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         return closestSeed;
     }
 
-    private void EliminateDisjointedRooms(HashSet<Vector2Int> seeds, Vector2Int centerSeed, Dictionary<Vector2Int, HashSet<Vector2Int>> sets)
+    private void EraseBorderSets(Dictionary<Vector2Int, HashSet<Vector2Int>> borderSets, HashSet<Vector2Int> borderSeeds)
     {
-        Vector2Int seedToDelete = new Vector2Int(-1,-1);
-        foreach (Vector2Int seed in seeds)
+        for (int i = 0; i < borderSets.Count; i++)
         {
-            HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, new Vector3(centerSeed.x, centerSeed.y, 0), new Vector3(seed.x, seed.y, 0));           
-            if(path == null)
-            {              
-                tilemapVisualizer.EraseTiles(sets[seed]);
-                seedToDelete = seed;
+            tilemapVisualizer.EraseTiles(borderSets[borderSeeds.ElementAt(i)]);
+
+            foreach (Vector2Int seed in borderSets[borderSeeds.ElementAt(i)])
+            {
+                grid.NodeFromWorldPoint(seed).SetIsWalkable(false);
             }
         }
-
-        if(seedToDelete!= new Vector2Int(-1,-1))seeds.Remove(seedToDelete);
     }
 
     private int MapXYtoIndex(int x, int y)

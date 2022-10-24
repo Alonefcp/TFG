@@ -15,10 +15,10 @@ public static class DelaunayTriangulation
         triangles = new List<Triangle>();
         DelaunayTriangulation.vertices = new List<Vertex>(vertices);
 
-        float minX = DelaunayTriangulation.vertices[0].position.x;
-        float minY = DelaunayTriangulation.vertices[0].position.y;
-        float maxX = minX;
-        float maxY = minY;
+        int minX = DelaunayTriangulation.vertices[0].position.x;
+        int minY = DelaunayTriangulation.vertices[0].position.y;
+        int maxX = minX;
+        int maxY = minY;
 
         foreach (var vertex in DelaunayTriangulation.vertices)
         {
@@ -28,13 +28,13 @@ public static class DelaunayTriangulation
             if (vertex.position.y > maxY) maxY = vertex.position.y;
         }
 
-        float dx = maxX - minX;
-        float dy = maxY - minY;
-        float deltaMax = Mathf.Max(dx, dy) * 2;
+        int dx = maxX - minX;
+        int dy = maxY - minY;
+        int deltaMax = Mathf.Max(dx, dy) * 2;
 
-        Vertex p1 = new Vertex(new Vector2(minX - 1, minY - 1));
-        Vertex p2 = new Vertex(new Vector2(minX - 1, maxY + deltaMax));
-        Vertex p3 = new Vertex(new Vector2(maxX + deltaMax, minY - 1));
+        Vertex p1 = new Vertex(new Vector2Int(minX - 1, minY - 1));
+        Vertex p2 = new Vertex(new Vector2Int(minX - 1, maxY + deltaMax));
+        Vertex p3 = new Vertex(new Vector2Int(maxX + deltaMax, minY - 1));
 
         triangles.Add(new Triangle(p1, p2, p3));
 

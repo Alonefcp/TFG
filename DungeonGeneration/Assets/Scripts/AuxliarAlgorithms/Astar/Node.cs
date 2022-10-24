@@ -6,7 +6,7 @@ public class Node : IHeapItem<Node>
 	public enum NodeType { None, Floor, Hallway }
 
 	public bool walkable;
-	public Vector3 worldPosition;
+	public Vector2Int worldPosition;
 	public int gridX;
 	public int gridY;
 
@@ -16,7 +16,7 @@ public class Node : IHeapItem<Node>
 	private int heapIndex;
 	private NodeType nodeType;
 
-	public Node(Vector3 _worldPos, int _gridX, int _gridY, bool _walkable=true)
+	public Node(Vector2Int _worldPos, int _gridX, int _gridY, bool _walkable=true)
 	{
 		walkable = _walkable;
 		worldPosition = _worldPos;

@@ -19,7 +19,7 @@ public class Edge : IEquatable<Edge>
         U = u;
         V = v;
 
-        Distance = Vector3.Distance(u.position, v.position);
+        Distance = Vector2Int.Distance(u.position, v.position);
     }
 
     public static bool operator ==(Edge left, Edge right)
