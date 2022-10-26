@@ -233,7 +233,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Creates the walls between all the sets
+    /// Creates the walls between all the sets.
     /// </summary>
     /// <param name="mapInfo">List with info about every map seed</param>
     private void CreateWalls(List<Cell> mapInfo)
@@ -344,7 +344,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Connects the seeds that could't connect with the restafter the Delaunay triangulation.
+    /// Connects the seeds that could't connect with the rest after the Delaunay triangulation.
     /// </summary>
     /// <param name="vertex">List with all Delaunay vertex</param>
     /// <param name="edges">List with all Delaunay edges</param>
@@ -446,7 +446,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Conerts a map position to an index
+    /// Conerts a map position to an index.
     /// </summary>
     /// <param name="x">X map position</param>
     /// <param name="y">Y map position</param>
@@ -489,6 +489,11 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         return /*Math.Abs(*/(from - to).magnitude/*)*/;
 	}
 
+    /// <summary>
+    /// Returns an array with this directions: (1,0), (-1,0), (0,1), (0,-1),
+    /// (1,1),(-1,1),(1,-1),(-1,-1).
+    /// </summary>
+    /// <returns></returns>
     private static Vector2Int[] GetDirectionsArray()
     {
         Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
