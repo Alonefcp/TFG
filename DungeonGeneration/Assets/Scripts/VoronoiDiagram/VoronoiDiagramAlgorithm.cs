@@ -31,6 +31,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 {
     public enum DistanceAlgorithm {Euclidean, Manhattan, Chebyshev}
 
+    [Range(20,150)]
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
     [Range(2,100)]
     [SerializeField] private int numberOfSeeds = 64;
@@ -69,7 +70,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();   
             GenerateConnectivity(randomSeeds);
 
-            //tilemapVisualizer.PaintFloorTiles(randomSeeds);
+            //tilemapVisualizer.PaintPathTiles(randomSeeds);
             tilemapVisualizer.AddBorderWalls();
         }
         else
@@ -81,7 +82,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             CreateWalls(mapInfo);
 
             GenerateConnectivity(seeds);
-            //tilemapVisualizer.PaintFloorTiles(seeds);     
+            //tilemapVisualizer.PaintPathTiles(seeds);     
         }
 
         if(eliminateSingleWalls) tilemapVisualizer.EliminateSingleWalls();
@@ -131,8 +132,8 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
         borderSeeds = new HashSet<Vector2Int>();
 
-        int offsetX = mapWidth / 10;
-        int offsetY = mapHeight / 10;
+        int offsetX = mapWidth / 16;
+        int offsetY = mapHeight / 16;
 
         for (int i = 0; i < mapHeight - offsetY; i += offsetY)
         {
@@ -260,8 +261,8 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 mapInfo[MapXYtoIndex(x - 1, y - 1)].belongSeed != mySeed.belongSeed ||
                 mapInfo[MapXYtoIndex(x + 1, y + 1)].belongSeed != mySeed.belongSeed)
                 {
-                    if (Random.value > wallErosion) 
-                    { 
+                    if (Random.value > wallErosion)
+                    {
                         tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
                         //grid.NodeFromWorldPoint(new Vector3(x, y, 0)).SetIsWalkable(false);
                     }

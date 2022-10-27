@@ -6,7 +6,9 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 {
     enum CorridorsAlgorithm {TunnelingAlgorithm, Delaunay_Prim_Astar}
 
+    [Range(40,150)]
     [SerializeField] private int spaceWidth = 20,  spaceHeight = 20;
+    [Range(4,10)]
     [SerializeField] private int minRoomWidth = 4, maxRoomWidth = 4,  minRoomHeight = 4, maxRoomHeight = 4;
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
 

@@ -8,6 +8,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
 {
     enum Symmetry { None, Horizontal, Vertical, Both }
 
+    [Range(20,150)]
     [SerializeField] private int mapWidth = 80, mapHeight = 40;
     [Range(0.0f,1.0f)]
     [SerializeField] private float fillPercentage = 0.5f;
