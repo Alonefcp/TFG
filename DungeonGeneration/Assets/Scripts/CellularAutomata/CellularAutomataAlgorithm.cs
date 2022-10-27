@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class CellularAutomataAlgorithm : DungeonGenerator
 {
-    [SerializeField]
-    private int mapWidth = 50, mapHeight = 50;
+    enum Neighborhood { Moore, VonNeummann}
 
-    [Range(0.0f,1.0f)]
-    [SerializeField]
-    private float noisePercent = 0.55f;
-    [SerializeField]
-    private int iterations = 1;
+    [SerializeField] private int mapWidth = 80;
+    [SerializeField] private int mapHeight = 60;
+    [SerializeField] private int iterations = 5;
+    [Range(0.0f, 1.0f)]
+    [SerializeField] private float fillPercent = 0.45f;
+    [SerializeField] private Neighborhood neighborhood = Neighborhood.Moore;
 
     //void Start()
     //{
@@ -21,85 +21,88 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     public override void GenerateDungeon()
     {
         tilemapVisualizer.ClearTilemap();
-        List<bool> mapInfo = GenerateNoise();
-        CellularAutomata(mapInfo);
-    }
- 
-    private List<bool> GenerateNoise()
-    {
-        List<bool> noise = new List<bool>(); // true: floor , false: wall
-        for (int i = 0; i < mapWidth * mapHeight; i++) 
-        { 
-            noise.Add(false); 
-        }
 
-        for (int i = 0; i < noise.Count; i++)
-        {
-            int x = i % mapWidth;
-            int y = i / mapWidth;
-
-            float rnd = Random.Range(0.0f, 1.0f);           
-           
-            if(rnd > noisePercent)
-            {
-                noise[i] = true;
-                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
-            }
-            else
-            {
-                tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
-            }
-            
-        }
-
-        return noise;
+        int[,] map = GenerateNoise();    
+        CellularAutomata(map);
     }
 
-    private void CellularAutomata(List<bool> noise)
-    {
-        for (int i = 0; i < iterations; i++)
-        {
-            List<bool> map = new List<bool>(noise);
 
-            for (int x = 1; x < mapWidth-1; x++)
+    private int[,] GenerateNoise()
+    {
+        int[,] map = new int[mapWidth, mapHeight];
+
+        for (int x = 0; x < mapWidth; x++)
+        {
+            for (int y = 0; y < mapHeight; y++)
             {
-                for (int y = 1; y < mapHeight-1; y++)
+                if (x == 0 || x == mapWidth - 1 || y == 0 || y == mapHeight - 1)
                 {
-                    int index = MapXYtoIndex(x, y);
+                    tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
+                    map[x, y] = 1;
+                }
+                else
+                {
+                    map[x, y] = (Random.Range(0.0f, 1.0f) < fillPercent) ? 1 : 0;
 
-                    int neighbors = 0;
-
-                    if (!map[index - 1]) { neighbors += 1; }
-                    if (!map[index + 1]) { neighbors += 1; }
-                    if (!map[index - mapWidth]) { neighbors += 1; }
-                    if (!map[index + mapWidth]) { neighbors += 1; }
-                    if (!map[index - (mapWidth - 1)]) { neighbors += 1; }
-                    if (!map[index - (mapWidth + 1)]) { neighbors += 1; }
-                    if (!map[index + (mapWidth - 1)]) { neighbors += 1; }
-                    if (!map[index + (mapWidth + 1)]) { neighbors += 1; }
-
-                    if (neighbors > 4 || neighbors==0)
-                    {
-                        tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
-                    }
-                    else
-                    {
-                        tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
-                    }
+                    if (map[x, y] == 1) tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
+                    else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                 }
             }
         }
+
+        return map;
     }
 
-    /// <summary>
-    /// Conerts a map position to an index.
-    /// </summary>
-    /// <param name="x">X map position</param>
-    /// <param name="y">Y map position</param>
-    /// <returns></returns>
-    private int MapXYtoIndex(int x, int y)
+    private void CellularAutomata(int[,] map)
     {
-        return x + (y * mapWidth);
+        for (int i = 0; i < iterations; i++)
+        {
+            for (int x = 0; x < mapWidth; x++)
+            {
+                for (int y = 0; y < mapHeight; y++)
+                {
+                    int neighbourWallTiles = GetWallNeighbourCount(map, x, y);
+
+                    if (neighbourWallTiles > 4)
+                    {
+                        map[x, y] = 1;
+                        tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
+                    }
+                    else if (neighbourWallTiles < 4)
+                    {
+                        map[x, y] = 0;
+                        tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                    }
+
+                }
+            }
+        }
+     
     }
 
+    private int GetWallNeighbourCount(int[,] map,int X, int Y)
+    {
+        int nWalls = 0;
+        for (int neighbourX = X - 1; neighbourX <= X + 1; neighbourX++)
+        {
+            for (int neighbourY = Y - 1; neighbourY <= Y + 1; neighbourY++)
+            {
+                if (neighbourX >= 0 && neighbourX < mapWidth && neighbourY >= 0 && neighbourY < mapHeight)
+                {
+                    if (neighbourX != X || neighbourY != Y)
+                    {
+                        nWalls += map[neighbourX, neighbourY];
+                    }
+                }
+                else
+                {
+                    nWalls++;
+                }
+            }
+        }
+
+        return nWalls;
+    }
+
+    
 }
