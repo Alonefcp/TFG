@@ -29,7 +29,7 @@ public class TilemapVisualizer : MonoBehaviour
         PaintTiles(positions, floorTilemap, floorTile);
     }
 
-    public void PaintCorridorTiles(IEnumerable<Vector2Int> positions)
+    public void PaintWallTiles(IEnumerable<Vector2Int> positions)
     {
         PaintTiles(positions, floorTilemap, corridorTile);
     }
@@ -72,7 +72,7 @@ public class TilemapVisualizer : MonoBehaviour
         floorTilemap.SetTile(tileMapPosition, floorTile);
     }
 
-    public void PaintSingleCorridorTile(Vector2Int position)
+    public void PaintSingleWallTile(Vector2Int position)
     {
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
         floorTilemap.SetTile(tileMapPosition, corridorTile);

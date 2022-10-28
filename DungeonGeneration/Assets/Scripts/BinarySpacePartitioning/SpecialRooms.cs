@@ -9,7 +9,7 @@ public static class SpecialRooms
         Vertex start = roomCentersForDelaunay[Random.Range(0, roomCentersForDelaunay.Count)];
         roomCentersForDelaunay.Remove(start);
 
-        tilemapVisualizer.PaintSingleCorridorTile(start.position);
+        tilemapVisualizer.PaintSingleWallTile(start.position);
 
         float maxDistance = -1;
 
@@ -25,6 +25,6 @@ public static class SpecialRooms
             }
         }
 
-        tilemapVisualizer.PaintSingleCorridorTile(furthest.position);
+        tilemapVisualizer.PaintSingleWallTile(furthest.position);
     }
 }

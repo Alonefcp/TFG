@@ -247,7 +247,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
                 if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1) //map boundaries
                 {
-                    tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
                     continue;
                 }
 
@@ -263,7 +263,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 {
                     if (Random.value > wallErosion)
                     {
-                        tilemapVisualizer.PaintSingleCorridorTile(new Vector2Int(x, y));
+                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
                         //grid.NodeFromWorldPoint(new Vector3(x, y, 0)).SetIsWalkable(false);
                     }
                     else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
