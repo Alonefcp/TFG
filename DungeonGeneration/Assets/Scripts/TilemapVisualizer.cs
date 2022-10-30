@@ -59,15 +59,13 @@ public class TilemapVisualizer : MonoBehaviour
     /// </summary>
     /// <param name="position">Tile position</param>
     public void PaintSingleFloorTile(Vector2Int position)
-    {
-        floorTile.color = Color.white;
+    {      
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
         floorTilemap.SetTile(tileMapPosition, floorTile);
     }
 
     public void PaintSingleFloorTileWithColor(Vector2Int position, Color color)
     {
-        floorTile.color = color;
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
         floorTilemap.SetTile(tileMapPosition, floorTile);
     }
@@ -78,13 +76,18 @@ public class TilemapVisualizer : MonoBehaviour
         floorTilemap.SetTile(tileMapPosition, corridorTile);
     }
 
+    public void PaintSinglePathTile(Vector2Int position)
+    {
+        Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
+        floorTilemap.SetTile(tileMapPosition, pathTile);
+    }
+
     /// <summary>
     /// Eliminates all tiles of the tilemap
     /// </summary>
     public void ClearTilemap()
     {
         floorTilemap.ClearAllTiles();
-        floorTile.color = Color.white;
     }
 
     /// <summary>

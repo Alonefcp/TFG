@@ -29,7 +29,7 @@ public struct Cell
 
 public class VoronoiDiagramAlgorithm : DungeonGenerator
 {
-    public enum DistanceAlgorithm {Euclidean, Manhattan, Chebyshev}
+    enum DistanceAlgorithm {Euclidean, Manhattan, Chebyshev}
 
     [Range(20,150)]
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
