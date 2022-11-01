@@ -135,7 +135,7 @@ public static class CorridorsAlgorithms
         //widdening corridor
         foreach (Vector2Int pos in corridor)
         {
-            foreach (Vector2Int dir in GetDirectionsArray())
+            foreach (Vector2Int dir in Directions.GetEightDiretionsArray())
             {
                 if (!corridor.Contains(pos + dir))
                 {
@@ -145,13 +145,5 @@ public static class CorridorsAlgorithms
         }
 
         corridor.UnionWith(corridorSides);
-    }
-
-    private static Vector2Int[] GetDirectionsArray()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
-            new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
-
-        return directions;
     }
 }

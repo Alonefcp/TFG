@@ -51,12 +51,11 @@ public class Grid2D
 	//	}
 	//}
 	
-
 	public List<Node> GetNeighbours(Node node)
 	{
 		List<Node> neighbours = new List<Node>();
 
-        foreach (var pos in GetDirectionsArray())
+        foreach (var pos in Directions.GetFourDirectionsArray())
         {
 			if (pos.x == 0 && pos.y == 0)
                 continue;
@@ -76,12 +75,5 @@ public class Grid2D
 	public Node NodeFromWorldPoint(Vector2Int worldPosition)
 	{
 		return grid[worldPosition.x, worldPosition.y];
-	}
-
-	private Vector2Int[] GetDirectionsArray()
-	{
-		Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1)};
-
-		return directions;
 	}
 }

@@ -25,7 +25,7 @@ public class Room : IComparable<Room>
 
         foreach (TileCoord tile in tiles)
         {
-            Vector2Int[] directions = GetFourDirectionsArray();          
+            Vector2Int[] directions = Directions.GetFourDirectionsArray();          
             foreach (Vector2Int dir in directions)
             {
                 int neighbourX = tile.posX + dir.x;
@@ -74,12 +74,5 @@ public class Room : IComparable<Room>
     public bool IsConnected(Room other)
     {
         return connectedRooms.Contains(other);
-    }
-
-    private Vector2Int[] GetFourDirectionsArray()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1) };
-
-        return directions;
     }
 }

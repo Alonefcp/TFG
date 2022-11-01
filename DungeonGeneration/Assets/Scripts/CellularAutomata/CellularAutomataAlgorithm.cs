@@ -28,6 +28,8 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     [Range(0.0f, 1.0f)]
     [SerializeField] private float fillPercent = 0.45f;
     [SerializeField] private Neighborhood neighborhood = Neighborhood.Moore;
+    [Range(1,3)]
+    [SerializeField] private int connectionSize = 1;
     [Range(0, 100)]
     [SerializeField] private int wallThresholdSize = 50;
     [Range(0, 100)]
@@ -126,7 +128,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
     private int GetWallNeighbours(int x, int y)
     {
-        Vector2Int[] directions = (neighborhood == Neighborhood.Moore) ? GetEightDiretionsArray() : GetFourDirectionsArray();
+        Vector2Int[] directions = (neighborhood == Neighborhood.Moore) ? Directions.GetEightDiretionsArray() : Directions.GetFourDirectionsArray();
         int nWalls = 0;
         foreach (Vector2Int dir in directions)
         {
@@ -282,7 +284,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.posX, tile1.posY, tile2.posX, tile2.posY);
         foreach (Vector2Int coord in line)
         {
-            DrawBiggerTile(coord, 1);          
+            DrawBiggerTile(coord, connectionSize);          
         }      
     }
 
@@ -347,7 +349,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             TileCoord tile = queue.Dequeue();
             tiles.Add(tile);
 
-            Vector2Int[] fourDirectionsArray = GetFourDirectionsArray();
+            Vector2Int[] fourDirectionsArray = Directions.GetFourDirectionsArray();
             foreach (Vector2Int dir in fourDirectionsArray)
             {
                 int neighbourX = tile.posX + dir.x;
@@ -365,20 +367,5 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }
 
         return tiles;
-    }
-
-    private Vector2Int[] GetEightDiretionsArray()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
-            new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
-
-        return directions;
-    }
-
-    private Vector2Int[] GetFourDirectionsArray()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1)};
-            
-        return directions;
     }
 }

@@ -9,17 +9,17 @@ using Random = UnityEngine.Random;
 public struct Cell
 {
     public Vector2Int cellPos;
-    public Vector2Int belongSeed; //closestSeed
+    public Vector2Int closestSeed; 
     public Cell(Vector2Int _cellPos)
     {
         cellPos = _cellPos;
         
-        belongSeed = new Vector2Int();
+        closestSeed = new Vector2Int();
     }
 
-    public void SetBelongSeed(Vector2Int seed) 
+    public void SetClosestSeed(Vector2Int seed) 
     {
-        belongSeed = seed;
+        closestSeed = seed;
     }
     public void SetCellPos(Vector2Int pos)
     {
@@ -195,7 +195,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                     Vector2Int nearestSeed = seed;
                     Cell cell = new Cell();
                     cell.SetCellPos(new Vector2Int(x, y));
-                    cell.SetBelongSeed(nearestSeed);
+                    cell.SetClosestSeed(nearestSeed);
                     mapInfo[i] = cell;
                 }
             }
@@ -251,15 +251,15 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                     continue;
                 }
 
-                if (mapInfo[MapXYtoIndex(x - 1, y)].belongSeed != mySeed.belongSeed ||
-                mapInfo[MapXYtoIndex(x + 1, y)].belongSeed != mySeed.belongSeed ||
-                mapInfo[MapXYtoIndex(x, y - 1)].belongSeed != mySeed.belongSeed ||
-                mapInfo[MapXYtoIndex(x, y + 1)].belongSeed != mySeed.belongSeed ||
+                if (mapInfo[MapXYtoIndex(x - 1, y)].closestSeed != mySeed.closestSeed ||
+                mapInfo[MapXYtoIndex(x + 1, y)].closestSeed != mySeed.closestSeed ||
+                mapInfo[MapXYtoIndex(x, y - 1)].closestSeed != mySeed.closestSeed ||
+                mapInfo[MapXYtoIndex(x, y + 1)].closestSeed != mySeed.closestSeed ||
 
-                mapInfo[MapXYtoIndex(x - 1, y - 1)].belongSeed != mySeed.belongSeed ||
-                mapInfo[MapXYtoIndex(x + 1, y + 1)].belongSeed != mySeed.belongSeed ||
-                mapInfo[MapXYtoIndex(x - 1, y - 1)].belongSeed != mySeed.belongSeed ||
-                mapInfo[MapXYtoIndex(x + 1, y + 1)].belongSeed != mySeed.belongSeed)
+                mapInfo[MapXYtoIndex(x - 1, y - 1)].closestSeed != mySeed.closestSeed ||
+                mapInfo[MapXYtoIndex(x + 1, y + 1)].closestSeed != mySeed.closestSeed ||
+                mapInfo[MapXYtoIndex(x - 1, y - 1)].closestSeed != mySeed.closestSeed ||
+                mapInfo[MapXYtoIndex(x + 1, y + 1)].closestSeed != mySeed.closestSeed)
                 {
                     if (Random.value > wallErosion)
                     {
@@ -332,7 +332,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         //widdening path
         foreach (Vector2Int pos in path)
         {
-            foreach (Vector2Int dir in GetDirectionsArray())
+            foreach (Vector2Int dir in Directions.GetEightDiretionsArray())
             {
                 if (!path.Contains(pos + dir))
                 {
@@ -392,7 +392,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         {
             foreach (Vector2Int seed in seeds)
             {
-                if (cell.belongSeed == seed)
+                if (cell.closestSeed == seed)
                 {
                     sets[seed].Add(cell.cellPos);
                 }
@@ -489,17 +489,4 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     {
         return /*Math.Abs(*/(from - to).magnitude/*)*/;
 	}
-
-    /// <summary>
-    /// Returns an array with this directions: (1,0), (-1,0), (0,1), (0,-1),
-    /// (1,1),(-1,1),(1,-1),(-1,-1).
-    /// </summary>
-    /// <returns></returns>
-    private static Vector2Int[] GetDirectionsArray()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
-            new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
-
-        return directions;
-    }
 }

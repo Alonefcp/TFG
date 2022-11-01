@@ -62,7 +62,7 @@ public class RandomWalkAlgorithm : DungeonGenerator
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
 
         //pick a map cell as the starting point
-        Walker walker = new Walker(startPosition, GetRandomDirection());
+        Walker walker = new Walker(startPosition, Directions.GetRandomFourDirection());
 
         //turn the selected map cell into floor
         positions.Add(startPosition);
@@ -75,7 +75,7 @@ public class RandomWalkAlgorithm : DungeonGenerator
             HashSet<Vector2Int> path = SimpleRandomWalk(walker, nSteps);
             positions.UnionWith(path);
 
-            walker.dir = GetRandomDirection();
+            walker.dir = Directions.GetRandomFourDirection();
 
             if (startRandomlyEachIteration)
             {
@@ -119,11 +119,11 @@ public class RandomWalkAlgorithm : DungeonGenerator
             {
                 if (levyFlight && Random.value <= levyFlightChance)
                 {
-                    walker.dir = GetRandomEightDirection() * Random.Range(minStepLength, maxStepLength);
+                    walker.dir = Directions.GetRandomEightDirection() * Random.Range(minStepLength, maxStepLength);
                 }
                 else
                 {
-                    walker.dir = useEightDirections ? GetRandomEightDirection() : GetRandomDirection();
+                    walker.dir = useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection();
                 }
             }
         }
@@ -131,28 +131,7 @@ public class RandomWalkAlgorithm : DungeonGenerator
         return positions;
     }
 
-    /// <summary>
-    /// Returns a random cardinal direction (up, down, right , left)
-    /// </summary>
-    /// <returns></returns>
-    private Vector2Int GetRandomDirection()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1) };
-
-        return directions[Random.Range(0, directions.Length)];
-    }
-
-    /// <summary>
-    /// Returns a random eight-way direction
-    /// </summary>
-    /// <returns></returns>
-    private Vector2Int GetRandomEightDirection()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
-            new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
-
-        return directions[Random.Range(0, directions.Length)];
-    }
+    
 
     /// <summary>
     /// Calculate the positions between the walker positions and his new position
