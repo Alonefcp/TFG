@@ -150,7 +150,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
             Vector2Int diggerPrevPos = diggerPos;
 
             //line path
-            List<Vector2Int> path = GetLinePointsList(diggerPos.x, diggerPos.y, startPosition.x, startPosition.y,out int xStep,out int yStep).ToList();
+            List<Vector2Int> path = BresenhamsLineAlgorithm.GetLinePointsList(diggerPos.x, diggerPos.y, startPosition.x, startPosition.y,out int xStep,out int yStep).ToList();
 
             while (!map.IsFloorPosition(diggerPos) && path.Count > 0)
             {
@@ -187,95 +187,6 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
         positions.Add(startPosition + new Vector2Int(-1, 0));
         positions.Add(startPosition + new Vector2Int(0, 1));
         positions.Add(startPosition + new Vector2Int(0, -1));
-    }
-
-    /// <summary>
-    /// Swaps between two numbers
-    /// </summary>
-    /// <typeparam name="T">number type</typeparam>
-    /// <param name="lhs">First number</param>
-    /// <param name="rhs">Second number</param>
-    private void Swap<T>(ref T lhs, ref T rhs)
-    {
-        T temp;
-        temp = lhs;
-        lhs = rhs;
-        rhs = temp;
-    }
-
-    //Bresenhams line algorithm
-    //private IEnumerable<Point> GetLinePoints(int x0, int y0, int x1, int y1)
-    //{
-    //    bool steep = Mathf.Abs(y1 - y0) > Mathf.Abs(x1 - x0);
-
-    //    if (steep)
-    //    {
-    //        Swap<int>(ref x0, ref y0);
-    //        Swap<int>(ref x1, ref y1);
-    //    }
-
-    //    int dx = Mathf.Abs(x1 - x0);
-    //    int dy = Mathf.Abs(y1 - y0);
-    //    int error = (dx / 2);
-    //    int ystep = (y0 < y1 ? 1 : -1);
-    //    int xstep = (x0 < x1 ? 1 : -1);
-    //    int y = y0;
-
-    //    for (int x = x0; x != (x1 + xstep); x += xstep)
-    //    {
-    //        yield return new Point((steep ? y : x), (steep ? x : y));
-    //        error = error - dy;
-    //        if (error < 0)
-    //        {
-    //            y += ystep;
-    //            error += dx;
-    //        }
-    //    }
-    //    yield break;
-    //}
-
-    /// <summary>
-    /// Returns the points from a line which goes from (x0,y0) to (x1,y1). It uses Bresenhams line algorithm
-    /// </summary>
-    /// <param name="x0"></param>
-    /// <param name="y0"></param>
-    /// <param name="x1"></param>
-    /// <param name="y1"></param>
-    /// <param name="xstep">X line direction</param>
-    /// <param name="ystep">Y line direction</param>
-    /// <returns></returns>
-    private List<Vector2Int> GetLinePointsList(int x0, int y0, int x1, int y1, out int xstep, out int ystep)
-    {
-        List<Vector2Int> linePoints = new List<Vector2Int>();
-        bool steep = Mathf.Abs(y1 - y0) > Mathf.Abs(x1 - x0);
-
-        if (steep)
-        {
-            Swap<int>(ref x0, ref y0);
-            Swap<int>(ref x1, ref y1);
-        }
-
-        int dx = Mathf.Abs(x1 - x0);
-        int dy = Mathf.Abs(y1 - y0);
-        int error = (dx / 2);
-        ystep = (y0 < y1 ? 1 : -1);
-        xstep = (x0 < x1 ? 1 : -1);
-        int y = y0;
-
-        for (int x = x0; x != (x1 + xstep); x += xstep)
-        {
-            Vector2Int point = new Vector2Int((steep ? y : x), (steep ? x : y));
-            linePoints.Add(point);
-
-            error = error - dy;
-            if (error < 0)
-            {
-                y += ystep;
-                error += dx;
-            }
-        }
-
-        return linePoints;
     }
 
     /// <summary>

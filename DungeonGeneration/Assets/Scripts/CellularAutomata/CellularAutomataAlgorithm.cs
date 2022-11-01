@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public struct TileCoord
 {
@@ -43,9 +45,8 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         tilemapVisualizer.ClearTilemap();
 
         map = GenerateNoise();    
-        CellularAutomata();
-        EraseRegions();  
-        
+        RunCellularAutomata();
+        EraseRegions();         
     }
 
     private TileType[,] GenerateNoise()
@@ -75,7 +76,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         return map;
     }
 
-    private void CellularAutomata()
+    private void RunCellularAutomata()
     {
         for (int i = 0; i < iterations; i++)
         {
@@ -277,8 +278,32 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
     private void CreateConnection(Room room1, Room room2, TileCoord tile1, TileCoord tile2) 
     {
-        Room.ConnectRooms(room1, room2);
-        Debug.DrawLine(new Vector3(tile1.posX,tile1.posY), new Vector3(tile2.posX, tile2.posY), Color.red, 10);
+        Room.ConnectRooms(room1, room2);     
+        List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.posX, tile1.posY, tile2.posX, tile2.posY);
+        foreach (Vector2Int coord in line)
+        {
+            DrawBiggerTile(coord, 1);          
+        }      
+    }
+
+    private void DrawBiggerTile(Vector2Int coord, int radius)
+    {
+        for (int x = -radius; x <= radius; x++)
+        {
+            for (int y = -radius; y <= radius; y++)
+            {
+                if (x * x + y * y <= radius * radius)
+                {
+                    int drawX = coord.x+x;
+                    int drawY = coord.y+y;
+                    if (drawX >= 0 && drawX < mapWidth && drawY >= 0 && drawY < mapHeight)
+                    {
+                        map[drawX, drawY] = TileType.Floor;
+                        tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(drawX, drawY));
+                    }
+                }
+            }
+        }
     }
 
     private List<List<TileCoord>> GetRegionsOfType(TileType tileType)
