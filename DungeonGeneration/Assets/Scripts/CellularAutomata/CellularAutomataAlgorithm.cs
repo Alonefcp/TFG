@@ -7,7 +7,8 @@ using Random = UnityEngine.Random;
 public class CellularAutomataAlgorithm : DungeonGenerator
 {
     enum Neighborhood {Moore, VonNeummann}
-    enum Rule {Rule3=3,Rule4=4, Rule5=5}
+    enum MooreRule {Rule3=3, Rule4=4, Rule5=5}
+    enum VonNeummannRule {Rule1=1, Rule2=2, Rule3=3}
     public enum TileType {Wall = 1, Floor = 0}
 
     [Range(30,200)]
@@ -17,7 +18,8 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     [Range(0.0f, 1.0f)]
     [SerializeField] private float fillPercent = 0.45f;
     [SerializeField] private Neighborhood neighborhood = Neighborhood.Moore;
-    [SerializeField] private Rule rule = Rule.Rule4;
+    [SerializeField] private MooreRule mooreRule = MooreRule.Rule4;
+    [SerializeField] private VonNeummannRule vonNeummannRule = VonNeummannRule.Rule2;
     [Range(1,3)]
     [SerializeField] private int connectionSize = 1;
     [Range(0, 100)]
@@ -43,21 +45,42 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
     private void SetFillPercentBasedOnRule()
     {
-        switch (rule)
+        if(neighborhood==Neighborhood.Moore)
         {
-            case Rule.Rule3:
-                fillPercent = 0.28f;
-                break;
-            case Rule.Rule4:
-                fillPercent = 0.46f;
-                break;
-            case Rule.Rule5:
-                fillPercent = 0.66f;
-                break;
-            default:
-                fillPercent = 0.46f;
-                break;
+            switch (mooreRule)
+            {
+                case MooreRule.Rule3:
+                    fillPercent = 0.28f;
+                    break;
+                case MooreRule.Rule4:
+                    fillPercent = 0.46f;
+                    break;
+                case MooreRule.Rule5:
+                    fillPercent = 0.66f;
+                    break;
+                default:
+                    fillPercent = 0.46f;
+                    break;
+            }
         }
+        else
+        {
+            switch (vonNeummannRule)
+            {
+                case VonNeummannRule.Rule1:
+                    fillPercent = 0.13f;
+                    break;
+                case VonNeummannRule.Rule2:
+                    fillPercent = 0.46f;
+                    break;
+                case VonNeummannRule.Rule3:
+                    fillPercent = 0.84f;
+                    break;
+                default:
+                    fillPercent = 0.46f;
+                    break;
+            }
+        }       
     }
 
     private TileType[,] GenerateNoise()
@@ -111,9 +134,9 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
     private void MooreAutomata(TileType[,] map, int x, int y,int neighbourWallTiles)
     {
-        int ruleNumber = (int)rule;
+        int ruleNumber = (int)mooreRule;
         
-        if (neighbourWallTiles > ruleNumber) //>3 , >4 , >5
+        if (neighbourWallTiles > ruleNumber) 
         {
             map[x, y] = TileType.Wall;
             tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
@@ -127,12 +150,13 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
     private void VonNeummannAutomata(TileType[,] map, int x, int y, int neighbourWallTiles)
     {
-        if (neighbourWallTiles > 2)
+        int ruleNumber = (int)vonNeummannRule;
+        if (neighbourWallTiles > ruleNumber)
         {
             map[x, y] = TileType.Wall;
             tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
         }
-        else if (neighbourWallTiles < 2)
+        else if (neighbourWallTiles < ruleNumber)
         {
             map[x, y] = TileType.Floor;
             tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
@@ -194,7 +218,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             }
             else //we store floor regions which are bigger than the floorThresholdSize, to connect them
             {
-                leftFloorRegions.Add(new Room(floorRegion, map));
+                leftFloorRegions.Add(new Room(floorRegion, map,mapWidth,mapHeight));
             }
         }
 

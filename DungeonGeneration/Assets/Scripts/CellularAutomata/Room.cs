@@ -16,7 +16,7 @@ public class Room : IComparable<Room>
     {
     }
 
-    public Room(List<Vector2Int> _tiles, CellularAutomataAlgorithm.TileType[,] map)
+    public Room(List<Vector2Int> _tiles, CellularAutomataAlgorithm.TileType[,] map, int mapWidth, int mapHeight)
     {
         tiles = _tiles;
         roomSize = tiles.Count;
@@ -30,8 +30,8 @@ public class Room : IComparable<Room>
             {
                 int neighbourX = tile.x + dir.x;
                 int neighbourY = tile.y + dir.y;
-
-                if (map[neighbourX, neighbourY] == CellularAutomataAlgorithm.TileType.Wall)
+                
+                if (neighbourX>=0 && neighbourX<mapWidth && neighbourY>=0 && neighbourY<mapHeight && map[neighbourX, neighbourY] == CellularAutomataAlgorithm.TileType.Wall)
                 {
                     borderTiles.Add(tile);
                 }
