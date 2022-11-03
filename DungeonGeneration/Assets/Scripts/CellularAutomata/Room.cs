@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class Room : IComparable<Room>
 {
-    public List<TileCoord> tiles;
-    public List<TileCoord> borderTiles;
+    public List<Vector2Int> tiles;
+    public List<Vector2Int> borderTiles;
     public List<Room> connectedRooms;
     public int roomSize;
     public bool isAccessibleFromMainRoom;
@@ -16,20 +16,20 @@ public class Room : IComparable<Room>
     {
     }
 
-    public Room(List<TileCoord> _tiles, CellularAutomataAlgorithm.TileType[,] map)
+    public Room(List<Vector2Int> _tiles, CellularAutomataAlgorithm.TileType[,] map)
     {
         tiles = _tiles;
         roomSize = tiles.Count;
         connectedRooms = new List<Room>();
-        borderTiles = new List<TileCoord>();
+        borderTiles = new List<Vector2Int>();
 
-        foreach (TileCoord tile in tiles)
+        foreach (Vector2Int tile in tiles)
         {
             Vector2Int[] directions = Directions.GetFourDirectionsArray();          
             foreach (Vector2Int dir in directions)
             {
-                int neighbourX = tile.posX + dir.x;
-                int neighbourY = tile.posY + dir.y;
+                int neighbourX = tile.x + dir.x;
+                int neighbourY = tile.y + dir.y;
 
                 if (map[neighbourX, neighbourY] == CellularAutomataAlgorithm.TileType.Wall)
                 {

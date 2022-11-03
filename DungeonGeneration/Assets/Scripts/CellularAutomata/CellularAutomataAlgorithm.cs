@@ -4,21 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public struct TileCoord
-{
-    public TileCoord(int x, int y)
-    {
-        posX = x;
-        posY = y;
-    }
-
-    public int posX;
-    public int posY;
-}
-
 public class CellularAutomataAlgorithm : DungeonGenerator
 {
     enum Neighborhood {Moore, VonNeummann}
+    enum Rule {Rule3=3,Rule4=4, Rule5=5}
     public enum TileType {Wall = 1, Floor = 0}
 
     [Range(30,200)]
@@ -28,6 +17,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     [Range(0.0f, 1.0f)]
     [SerializeField] private float fillPercent = 0.45f;
     [SerializeField] private Neighborhood neighborhood = Neighborhood.Moore;
+    [SerializeField] private Rule rule = Rule.Rule4;
     [Range(1,3)]
     [SerializeField] private int connectionSize = 1;
     [Range(0, 100)]
@@ -43,7 +33,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     //}
 
     public override void GenerateDungeon()
-    {
+    {        
         tilemapVisualizer.ClearTilemap();
 
         map = GenerateNoise();    
@@ -51,8 +41,29 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         EraseRegions();         
     }
 
+    private void SetFillPercentBasedOnRule()
+    {
+        switch (rule)
+        {
+            case Rule.Rule3:
+                fillPercent = 0.28f;
+                break;
+            case Rule.Rule4:
+                fillPercent = 0.46f;
+                break;
+            case Rule.Rule5:
+                fillPercent = 0.66f;
+                break;
+            default:
+                fillPercent = 0.46f;
+                break;
+        }
+    }
+
     private TileType[,] GenerateNoise()
     {
+        SetFillPercentBasedOnRule();
+
         TileType[,] map = new TileType[mapWidth, mapHeight];
 
         for (int x = 0; x < mapWidth; x++)
@@ -100,12 +111,14 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
     private void MooreAutomata(TileType[,] map, int x, int y,int neighbourWallTiles)
     {
-        if (neighbourWallTiles > 4) //>=5 , > 4
+        int ruleNumber = (int)rule;
+        
+        if (neighbourWallTiles > ruleNumber) //>3 , >4 , >5
         {
             map[x, y] = TileType.Wall;
             tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
         }
-        else if (neighbourWallTiles < 4)
+        else if (neighbourWallTiles < ruleNumber)
         {
             map[x, y] = TileType.Floor;
             tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
@@ -151,32 +164,32 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     private void EraseRegions()
     {
         //Erase wall regions
-        List<List<TileCoord>> wallRegions = GetRegionsOfType(TileType.Wall);
+        List<List<Vector2Int>> wallRegions = GetRegionsOfType(TileType.Wall);
 
-        foreach (List<TileCoord> wallRegion in wallRegions)
+        foreach (List<Vector2Int> wallRegion in wallRegions)
         {
             if (wallRegion.Count <= wallThresholdSize)
             {
-                foreach (TileCoord tile in wallRegion)
+                foreach (Vector2Int tile in wallRegion)
                 {
-                    map[tile.posX, tile.posY] = TileType.Floor;                   
-                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(tile.posX, tile.posY));
+                    map[tile.x, tile.y] = TileType.Floor;                   
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(tile.x, tile.y));
                 }
             }       
         }
 
         //Erase floor regions
         List<Room> leftFloorRegions = new List<Room>();
-        List<List<TileCoord>> floorRegions = GetRegionsOfType(TileType.Floor);
+        List<List<Vector2Int>> floorRegions = GetRegionsOfType(TileType.Floor);
 
-        foreach (List<TileCoord> floorRegion in floorRegions)
+        foreach (List<Vector2Int> floorRegion in floorRegions)
         {
             if (floorRegion.Count <= floorThresholdSize)
             {
-                foreach (TileCoord tile in floorRegion)
+                foreach (Vector2Int tile in floorRegion)
                 {
-                    map[tile.posX, tile.posY] = TileType.Wall;
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(tile.posX, tile.posY));
+                    map[tile.x, tile.y] = TileType.Wall;
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(tile.x, tile.y));
                 }
             }
             else //we store floor regions which are bigger than the floorThresholdSize, to connect them
@@ -220,8 +233,8 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }
 
         int bestDistance = 0;
-        TileCoord bestTile1 = new TileCoord(); ;
-        TileCoord bestTile2 = new TileCoord(); ;
+        Vector2Int bestTile1 = new Vector2Int();
+        Vector2Int bestTile2 = new Vector2Int(); 
         Room bestRoom1 = new Room();
         Room bestRoom2 = new Room();
         bool possibleConnectionFound = false;
@@ -242,10 +255,10 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                 {
                     for (int tileIndex2 = 0; tileIndex2 < room2.borderTiles.Count; tileIndex2++)
                     {
-                        TileCoord tile1 = room1.borderTiles[tileIndex1];
-                        TileCoord tile2 = room2.borderTiles[tileIndex2];
+                        Vector2Int tile1 = room1.borderTiles[tileIndex1];
+                        Vector2Int tile2 = room2.borderTiles[tileIndex2];
 
-                        int distanceBetweenRooms = (int)Vector2.Distance(new Vector2(tile1.posX,tile1.posY), new Vector2(tile2.posX, tile2.posY));/*(int)(Mathf.Pow((tile1.posX - tile2.posX), 2) + Mathf.Pow((tile1.posY - tile2.posY), 2));*/
+                        int distanceBetweenRooms = (int)Vector2.Distance(new Vector2(tile1.x,tile1.y), new Vector2(tile2.x, tile2.y));/*(int)(Mathf.Pow((tile1.posX - tile2.posX), 2) + Mathf.Pow((tile1.posY - tile2.posY), 2));*/
                         if(distanceBetweenRooms < bestDistance || !possibleConnectionFound)
                         {
                             possibleConnectionFound = true;
@@ -257,7 +270,6 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                         }
                     }
                 }
-
             }
 
             if(possibleConnectionFound && !forceAccessibilityFromMainRoom)
@@ -278,10 +290,10 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }
     }
 
-    private void CreateConnection(Room room1, Room room2, TileCoord tile1, TileCoord tile2) 
+    private void CreateConnection(Room room1, Room room2, Vector2Int tile1, Vector2Int tile2) 
     {
         Room.ConnectRooms(room1, room2);     
-        List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.posX, tile1.posY, tile2.posX, tile2.posY);
+        List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.x, tile1.y, tile2.x, tile2.y);
         foreach (Vector2Int coord in line)
         {
             DrawBiggerTile(coord, connectionSize);          
@@ -308,9 +320,9 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }
     }
 
-    private List<List<TileCoord>> GetRegionsOfType(TileType tileType)
+    private List<List<Vector2Int>> GetRegionsOfType(TileType tileType)
     {
-        List<List<TileCoord>> regions = new List<List<TileCoord>>();
+        List<List<Vector2Int>> regions = new List<List<Vector2Int>>();
         bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
 
         for (int x = 0; x < mapWidth; x++)
@@ -319,12 +331,12 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             {
                 if (!visitedTiles[x, y] && map[x, y] == tileType)
                 {
-                    List<TileCoord> newRegion = GetRegionTiles(x, y);
+                    List<Vector2Int> newRegion = GetRegionTiles(x, y);
                     regions.Add(newRegion);
 
-                    foreach (TileCoord tile in newRegion)
+                    foreach (Vector2Int tile in newRegion)
                     {
-                        visitedTiles[tile.posX, tile.posY] = true;
+                        visitedTiles[tile.x, tile.y] = true;
                     }
                 }
             }
@@ -334,33 +346,33 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     }
 
     //Flood fil algorithm
-    private List<TileCoord> GetRegionTiles(int startX, int startY)
+    private List<Vector2Int> GetRegionTiles(int startX, int startY)
     {
-        List<TileCoord> tiles = new List<TileCoord>();
+        List<Vector2Int> tiles = new List<Vector2Int>();
         bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
         TileType tileType = map[startX, startY];
 
-        Queue<TileCoord> queue = new Queue<TileCoord>();
-        queue.Enqueue(new TileCoord(startX, startY));
+        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        queue.Enqueue(new Vector2Int(startX, startY));
         visitedTiles[startX, startY] = true;
 
         while (queue.Count > 0)
         {
-            TileCoord tile = queue.Dequeue();
+            Vector2Int tile = queue.Dequeue();
             tiles.Add(tile);
 
             Vector2Int[] fourDirectionsArray = Directions.GetFourDirectionsArray();
             foreach (Vector2Int dir in fourDirectionsArray)
             {
-                int neighbourX = tile.posX + dir.x;
-                int neighbourY = tile.posY + dir.y;
+                int neighbourX = tile.x + dir.x;
+                int neighbourY = tile.y + dir.y;
 
                 if (neighbourX >= 0 && neighbourX < mapWidth && neighbourY >= 0 && neighbourY < mapHeight)
                 {
                     if (!visitedTiles[neighbourX, neighbourY] && map[neighbourX, neighbourY] == tileType)
                     {
                         visitedTiles[neighbourX, neighbourY] = true;
-                        queue.Enqueue(new TileCoord(neighbourX, neighbourY));
+                        queue.Enqueue(new Vector2Int(neighbourX, neighbourY));
                     }
                 }
             }
