@@ -30,7 +30,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     {
         tilemapVisualizer.ClearTilemap();
 
-        float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, seed, noiseScale, octaves, persistance, lacunarity, offset);
+        float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, seed, noiseScale, octaves, persistance, lacunarity, this.offset);
 
         for (int y = 0; y < mapHeight; y++)
         {
@@ -38,19 +38,95 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
             {
                 if (noiseTexture[x, y] < threshold)
                 {
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                 }
                 else
                 {
-                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
                 }
                 //tilemapVisualizer.PaintSingleFloorTileWithColor(new Vector2Int(x, y), Color.Lerp(Color.black, Color.white, noiseTexture[x, y]));
             }
         }
 
-       //DrawPerlinNoiseTexture(noiseTexture);
+        AddBorders(noiseTexture);
+
+        //DrawPerlinNoiseTexture(noiseTexture);
     }
-    
+
+    private void AddBorders(float[,] noiseTexture)
+    {
+        int newPoint;
+        float reduction = 0.5f;
+        int offset = 7;
+
+        //bottom
+        for (int x = 0; x < mapWidth; x++)
+        {
+            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, Random.Range(0.0f, 100000.0f)) - reduction) * offset);
+
+            newPoint += (offset / 2);
+            for (int y = newPoint; y >= 0; y--)
+            {
+                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                noiseTexture[x, y] = 1;
+            }
+        }
+
+        //up
+        for (int x = 0; x < mapWidth; x++)
+        {
+            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, Random.Range(0.0f, 100000.0f)) - reduction) * offset);
+            newPoint += (offset / 2);
+
+            if (newPoint == 0)
+            {
+                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, mapHeight - 1));
+                noiseTexture[x, mapHeight - 1] = 1;
+                continue;
+            }
+
+            for (int y = mapHeight - newPoint; y < mapHeight; y++)
+            {
+                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                noiseTexture[x, y] = 1;
+            }
+        }
+
+        //left
+        for (int y = 0; y < mapHeight; y++)
+        {
+            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(Random.Range(0.0f, 100000.0f), y) - reduction) * offset);
+
+            newPoint += (offset / 2);
+            for (int x = newPoint; x >= 0; x--)
+            {
+                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                noiseTexture[x, y] = 1;
+            }
+        }
+
+        //right
+        for (int y = 0; y < mapHeight; y++)
+        {
+            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(Random.Range(0.0f, 100000.0f), y) - reduction) * offset);
+            newPoint += (offset / 2);
+
+            if (newPoint == 0)
+            {
+                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(mapWidth-1,y));
+                noiseTexture[mapWidth-1, y] = 1;
+                continue;
+            }
+
+            for (int x = mapWidth - newPoint; x < mapWidth; x++)
+            {
+                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                noiseTexture[x, y] = 1;
+            }
+        }
+    }
+
+
     private float[,] GenerateTextureWithPerlinNoise(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
     {
         float[,] noiseTextue = new float[mapWidth, mapHeight];
