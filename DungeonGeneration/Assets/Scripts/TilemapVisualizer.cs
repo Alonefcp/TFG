@@ -7,7 +7,7 @@ public class TilemapVisualizer : MonoBehaviour
 {
     [SerializeField] private Tilemap floorTilemap;
     [SerializeField] private Tile floorTile;
-    [SerializeField] private Tile corridorTile;
+    [SerializeField] private Tile wallTile;
     [SerializeField] private Tile pathTile;
 
 
@@ -31,7 +31,7 @@ public class TilemapVisualizer : MonoBehaviour
 
     public void PaintWallTiles(IEnumerable<Vector2Int> positions)
     {
-        PaintTiles(positions, floorTilemap, corridorTile);
+        PaintTiles(positions, floorTilemap, wallTile);
     }
 
     public void PaintPathTiles(IEnumerable<Vector2Int> positions)
@@ -66,6 +66,7 @@ public class TilemapVisualizer : MonoBehaviour
 
     public void PaintSingleFloorTileWithColor(Vector2Int position, Color color)
     {
+        floorTile.color = color;
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
         floorTilemap.SetTile(tileMapPosition, floorTile);
     }
@@ -73,7 +74,7 @@ public class TilemapVisualizer : MonoBehaviour
     public void PaintSingleWallTile(Vector2Int position)
     {
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
-        floorTilemap.SetTile(tileMapPosition, corridorTile);
+        floorTilemap.SetTile(tileMapPosition, wallTile);
     }
 
     public void PaintSinglePathTile(Vector2Int position)
@@ -87,6 +88,7 @@ public class TilemapVisualizer : MonoBehaviour
     /// </summary>
     public void ClearTilemap()
     {
+        floorTile.color = Color.white;
         floorTilemap.ClearAllTiles();
     }
 
@@ -120,7 +122,7 @@ public class TilemapVisualizer : MonoBehaviour
         {
             Vector2Int pos = (Vector2Int)position;
 
-            bool hasTile = floorTilemap.HasTile((Vector3Int)pos) ;
+            bool hasTile = floorTilemap.HasTile((Vector3Int)pos);
             bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, 1)))==floorTile);
             bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, -1))) == floorTile);
             bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(1, 0))) == floorTile);
@@ -129,7 +131,7 @@ public class TilemapVisualizer : MonoBehaviour
             if (!hasTile && (upperTile || bottomTile || rightTile || leftTile))
             {
                 Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
-                floorTilemap.SetTile(tileMapPosition, corridorTile);
+                floorTilemap.SetTile(tileMapPosition, wallTile);
             }
         }
     }
@@ -140,7 +142,7 @@ public class TilemapVisualizer : MonoBehaviour
         {
             Vector2Int pos = (Vector2Int)position;
 
-            bool hasTile = floorTilemap.HasTile((Vector3Int)pos) && floorTilemap.GetTile((Vector3Int)pos)==corridorTile;
+            bool hasTile = floorTilemap.HasTile((Vector3Int)pos) && floorTilemap.GetTile((Vector3Int)pos)==wallTile;
             bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, 1))) == floorTile);
             bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, -1))) == floorTile);
             bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(1, 0))) == floorTile);
@@ -161,15 +163,15 @@ public class TilemapVisualizer : MonoBehaviour
             Vector2Int pos = (Vector2Int)position;
 
             bool hasTile = floorTilemap.HasTile((Vector3Int)pos) && floorTilemap.GetTile((Vector3Int)pos) == floorTile;
-            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, 1))) == corridorTile);
-            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, -1))) == corridorTile);
-            bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(1, 0))) == corridorTile);
-            bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(-1, 0))) == corridorTile);
+            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, 1))) == wallTile);
+            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, -1))) == wallTile);
+            bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(1, 0))) == wallTile);
+            bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(-1, 0))) == wallTile);
 
             if (hasTile && upperTile && bottomTile && rightTile && leftTile)
             {
                 Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
-                floorTilemap.SetTile(tileMapPosition, corridorTile);
+                floorTilemap.SetTile(tileMapPosition, wallTile);
             }
         }
     }

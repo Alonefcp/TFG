@@ -7,12 +7,14 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     [Range(10, 200)]
     [SerializeField] private int mapWidth = 10, mapHeight = 10;
     [SerializeField] private float noiseScale = 0.3f;
-    [Range(0,10)]
+    [Range(0,8)]
     [SerializeField] private int octaves = 4;
     [Range(0.0f,1.0f)]
     [SerializeField] private float persistance = 0.5f;
-    [Range(1,20)]
+    [Range(1,10)]
     [SerializeField] private float lacunarity = 2.0f;
+    [Range(0.0f, 1.0f)]
+    [SerializeField] private float threshold = 0.5f;
     [SerializeField] private int seed;
     [SerializeField] private Vector2 offset;
     [SerializeField] private Renderer textureRenderer;
@@ -26,8 +28,27 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
+        tilemapVisualizer.ClearTilemap();
+
         float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, seed, noiseScale, octaves, persistance, lacunarity, offset);
-        DrawPerlinNoiseTexture(noiseTexture);
+
+        for (int y = 0; y < mapHeight; y++)
+        {
+            for (int x = 0; x < mapWidth; x++)
+            {
+                if (noiseTexture[x, y] < threshold)
+                {
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                }
+                else
+                {
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                }
+                //tilemapVisualizer.PaintSingleFloorTileWithColor(new Vector2Int(x, y), Color.Lerp(Color.black, Color.white, noiseTexture[x, y]));
+            }
+        }
+
+       //DrawPerlinNoiseTexture(noiseTexture);
     }
     
     private float[,] GenerateTextureWithPerlinNoise(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
