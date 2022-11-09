@@ -14,11 +14,20 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     [Range(1,10)]
     [SerializeField] private float lacunarity = 2.0f;
     [Range(0.0f, 1.0f)]
-    [SerializeField] private float threshold = 0.5f;
+    [SerializeField] private float fillPercent = 0.5f;
     [SerializeField] private Vector2 offset;
     [SerializeField] private bool useRandomSeed = true;
     [SerializeField] private string seed;
-    [SerializeField] private Renderer textureRenderer;
+    [SerializeField] private int wallThresholdSize=10;
+    [SerializeField] private int floorThresholdSize=10;
+    [SerializeField] private bool connectRegions = true;
+    [Range(1, 3)]
+    [SerializeField] private int connectionSize = 1;
+    [Range(2, 8)]
+    [SerializeField] int borderInterval = 2;
+    [Range(5.0f, 10.0f)]
+    [SerializeField] float borderOffset = 7.0f;
+    [SerializeField] private bool addBiggerBorders = true;
 
     private System.Random rng = null;
 
@@ -34,38 +43,54 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
 
         tilemapVisualizer.ClearTilemap();
 
-        float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, noiseScale, octaves, persistance, lacunarity, this.offset);
+        float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, noiseScale, octaves, persistance, lacunarity, offset);
 
         for (int y = 0; y < mapHeight; y++)
         {
             for (int x = 0; x < mapWidth; x++)
             {
-                if(x==0 || y==0 || x == mapWidth-1 || y== mapHeight-1)
+                if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1)
                 {
                     tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    noiseTexture[x, y] = 1;
                     continue;
                 }
 
-                if (noiseTexture[x, y] < threshold)
+                if (noiseTexture[x, y] < fillPercent)
                 {
                     tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                    noiseTexture[x, y] = 0;
                 }
                 else
                 {
                     tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    noiseTexture[x, y] = 1;
                 }
                 //tilemapVisualizer.PaintSingleFloorTileWithColor(new Vector2Int(x, y), Color.Lerp(Color.black, Color.white, noiseTexture[x, y]));
             }
         }
 
-        int interval = 2;
-        float offset = 7.0f;
-        AddBottomBorders(noiseTexture,offset,interval);
-        AddUpBorders(noiseTexture, offset, interval);
-        AddLeftBorders(noiseTexture, offset, interval);
-        AddRightBorders(noiseTexture, offset, interval);
+        if(addBiggerBorders)
+        {
+            AddBottomBorders(noiseTexture, borderOffset, borderInterval);
+            AddUpBorders(noiseTexture, borderOffset, borderInterval);
+            AddLeftBorders(noiseTexture, borderOffset, borderInterval);
+            AddRightBorders(noiseTexture, borderOffset, borderInterval);
+        }
 
-        //AddBorders(noiseTexture);       
+        EraseRegions(noiseTexture);
+
+        for (int y = 0; y < mapHeight; y++)
+        {
+            for (int x = 0; x < mapWidth; x++)
+            {
+                if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1)
+                {
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    noiseTexture[x, y] = 1;
+                }
+            }
+        }
     }
 
     private void AddUpBorders(float[,] noiseTexture, float offset, int interval)
@@ -281,79 +306,6 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
     }
 
-    private void AddBorders(float[,] noiseTexture)
-    {
-        int newPoint;
-        float reduction = 0.5f;
-        int offset = 7;
-
-        //bottom
-        for (int x = 0; x < mapWidth; x++)
-        {
-            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, rng.Next(0, 100000)) - reduction) * offset);
-
-            newPoint += (offset / 2);
-            for (int y = newPoint; y >= 0; y--)
-            {
-                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                noiseTexture[x, y] = 1;
-            }
-        }
-
-        //up
-        for (int x = 0; x < mapWidth; x++)
-        {
-            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, rng.Next(0, 100000)) - reduction) * offset);
-            newPoint += (offset / 2);
-
-            if (newPoint == 0)
-            {
-                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, mapHeight - 1));
-                noiseTexture[x, mapHeight - 1] = 1;
-                continue;
-            }
-
-            for (int y = mapHeight - newPoint; y < mapHeight; y++)
-            {
-                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                noiseTexture[x, y] = 1;
-            }
-        }
-
-        //left
-        for (int y = 0; y < mapHeight; y++)
-        {
-            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(rng.Next(0, 100000), y) - reduction) * offset);
-
-            newPoint += (offset / 2);
-            for (int x = newPoint; x >= 0; x--)
-            {
-                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                noiseTexture[x, y] = 1;
-            }
-        }
-
-        //right
-        for (int y = 0; y < mapHeight; y++)
-        {
-            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(rng.Next(0, 100000), y) - reduction) * offset);
-            newPoint += (offset / 2);
-
-            if (newPoint == 0)
-            {
-                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(mapWidth-1,y));
-                noiseTexture[mapWidth-1, y] = 1;
-                continue;
-            }
-
-            for (int x = mapWidth - newPoint; x < mapWidth; x++)
-            {
-                tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                noiseTexture[x, y] = 1;
-            }
-        }
-    }
-
     private float[,] GenerateTextureWithPerlinNoise(int mapWidth, int mapHeight, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
     {
         float[,] noiseTextue = new float[mapWidth, mapHeight];
@@ -418,22 +370,222 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         return noiseTextue;
     }
 
-    private void DrawPerlinNoiseTexture(float[,] noiseTexture)
+    private void EraseRegions(float[,] map)
     {
-        Texture2D texture2D = new Texture2D(mapWidth, mapHeight);
-        Color32[] colourMap = new Color32[mapWidth * mapHeight];
+        //Erase wall regions
+        List<List<Vector2Int>> wallRegions = GetRegionsOfType(map, 1);
 
-        for (int y = 0; y < mapHeight; y++)
+        foreach (List<Vector2Int> wallRegion in wallRegions)
         {
-            for (int x = 0; x < mapWidth; x++)
+            if (wallRegion.Count <= wallThresholdSize)
             {
-                colourMap[y * mapWidth + x] = Color32.Lerp(Color.black, Color.white, noiseTexture[x, y]);
+                foreach (Vector2Int tile in wallRegion)
+                {
+                    map[tile.x, tile.y] = 0;
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(tile.x, tile.y));
+                }
             }
         }
 
-        texture2D.SetPixels32(colourMap,0);
-        texture2D.Apply();
-        textureRenderer.sharedMaterial.mainTexture = texture2D;
-        textureRenderer.transform.localScale = new Vector3(mapWidth, 1.0f, mapHeight);
+        //Erase floor regions
+        List<List<Vector2Int>> floorRegions = GetRegionsOfType(map, 0);
+        List<Room> leftFloorRegions = new List<Room>();
+
+        foreach (List<Vector2Int> floorRegion in floorRegions)
+        {
+            if (floorRegion.Count <= floorThresholdSize)
+            {
+                foreach (Vector2Int tile in floorRegion)
+                {
+                    map[tile.x, tile.y] = 1;
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(tile.x, tile.y));
+                }
+            }
+            else //we store floor regions which are bigger than the floorThresholdSize, to connect them
+            {
+                leftFloorRegions.Add(new Room(floorRegion, map, mapWidth, mapHeight));
+            }
+        }
+
+        if (connectRegions && leftFloorRegions.Count > 0)
+        {
+            leftFloorRegions.Sort();
+            leftFloorRegions[0].isMainRoom = true;
+            leftFloorRegions[0].isAccessibleFromMainRoom = true;
+            ConnectClosestRooms(map,leftFloorRegions);
+        }
+    }
+    //Flood fil algorithm
+    private List<Vector2Int> GetRegionTiles(int startX, int startY,float[,] map)
+    {
+        List<Vector2Int> tiles = new List<Vector2Int>();
+        bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
+        float tileType = map[startX, startY];
+
+        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        queue.Enqueue(new Vector2Int(startX, startY));
+        visitedTiles[startX, startY] = true;
+
+        while (queue.Count > 0)
+        {
+            Vector2Int tile = queue.Dequeue();
+            tiles.Add(tile);
+
+            Vector2Int[] fourDirectionsArray = Directions.GetFourDirectionsArray();
+            foreach (Vector2Int dir in fourDirectionsArray)
+            {
+                int neighbourX = tile.x + dir.x;
+                int neighbourY = tile.y + dir.y;
+
+                if (neighbourX >= 0 && neighbourX < mapWidth && neighbourY >= 0 && neighbourY < mapHeight)
+                {
+                    if (!visitedTiles[neighbourX, neighbourY] && map[neighbourX, neighbourY] == tileType)
+                    {
+                        visitedTiles[neighbourX, neighbourY] = true;
+                        queue.Enqueue(new Vector2Int(neighbourX, neighbourY));
+                    }
+                }
+            }
+        }
+
+        return tiles;
+    }
+
+    private List<List<Vector2Int>> GetRegionsOfType(float[,] map,float tileType)
+    {
+        List<List<Vector2Int>> regions = new List<List<Vector2Int>>();
+        bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
+
+        for (int x = 0; x < mapWidth; x++)
+        {
+            for (int y = 0; y < mapHeight; y++)
+            {
+                if (!visitedTiles[x, y] && map[x, y] == tileType)
+                {
+                    List<Vector2Int> newRegion = GetRegionTiles(x, y,map);
+                    regions.Add(newRegion);
+
+                    foreach (Vector2Int tile in newRegion)
+                    {
+                        visitedTiles[tile.x, tile.y] = true;
+                    }
+                }
+            }
+        }
+
+        return regions;
+    }
+
+    private void ConnectClosestRooms(float[,] map,List<Room> survivingRooms, bool forceAccessibilityFromMainRoom = false)
+    {
+        List<Room> roomList1 = new List<Room>();
+        List<Room> roomList2 = new List<Room>();
+
+        if (forceAccessibilityFromMainRoom)
+        {
+            foreach (Room room in survivingRooms)
+            {
+                if (room.isAccessibleFromMainRoom)
+                {
+                    roomList2.Add(room);
+                }
+                else
+                {
+                    roomList1.Add(room);
+                }
+            }
+        }
+        else
+        {
+            roomList1 = survivingRooms;
+            roomList2 = survivingRooms;
+        }
+
+        int bestDistance = 0;
+        Vector2Int bestTile1 = new Vector2Int();
+        Vector2Int bestTile2 = new Vector2Int();
+        Room bestRoom1 = new Room();
+        Room bestRoom2 = new Room();
+        bool possibleConnectionFound = false;
+
+        foreach (Room room1 in roomList1)
+        {
+            if (!forceAccessibilityFromMainRoom)
+            {
+                possibleConnectionFound = false;
+                if (room1.connectedRooms.Count > 0) continue;
+            }
+
+            foreach (Room room2 in roomList2)
+            {
+                if (room1 == room2 || room1.IsConnected(room2)) continue;
+
+                for (int tileIndex1 = 0; tileIndex1 < room1.borderTiles.Count; tileIndex1++)
+                {
+                    for (int tileIndex2 = 0; tileIndex2 < room2.borderTiles.Count; tileIndex2++)
+                    {
+                        Vector2Int tile1 = room1.borderTiles[tileIndex1];
+                        Vector2Int tile2 = room2.borderTiles[tileIndex2];
+
+                        int distanceBetweenRooms = (int)Vector2.Distance(new Vector2(tile1.x, tile1.y), new Vector2(tile2.x, tile2.y));/*(int)(Mathf.Pow((tile1.posX - tile2.posX), 2) + Mathf.Pow((tile1.posY - tile2.posY), 2));*/
+                        if (distanceBetweenRooms < bestDistance || !possibleConnectionFound)
+                        {
+                            possibleConnectionFound = true;
+                            bestDistance = distanceBetweenRooms;
+                            bestTile1 = tile1;
+                            bestTile2 = tile2;
+                            bestRoom1 = room1;
+                            bestRoom2 = room2;
+                        }
+                    }
+                }
+            }
+
+            if (possibleConnectionFound && !forceAccessibilityFromMainRoom)
+            {
+                CreateConnection(map,bestRoom1, bestRoom2, bestTile1, bestTile2);
+            }
+        }
+
+        if (possibleConnectionFound && forceAccessibilityFromMainRoom)
+        {
+            CreateConnection(map,bestRoom1, bestRoom2, bestTile1, bestTile2);
+            ConnectClosestRooms(map,survivingRooms, true);
+        }
+
+        if (!forceAccessibilityFromMainRoom)
+        {
+            ConnectClosestRooms(map,survivingRooms, true);
+        }
+    }
+
+    private void CreateConnection(float[,] map,Room room1, Room room2, Vector2Int tile1, Vector2Int tile2)
+    {
+        Room.ConnectRooms(room1, room2);
+        List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.x, tile1.y, tile2.x, tile2.y);
+        foreach (Vector2Int coord in line)
+        {
+            DrawBiggerTile(map, coord, connectionSize);
+        }
+    }
+
+    private void DrawBiggerTile(float[,] map, Vector2Int coord, int radius)
+    {
+        for (int x = -radius; x <= radius; x++)
+        {
+            for (int y = -radius; y <= radius; y++)
+            {
+                if (x * x + y * y <= radius * radius)
+                {
+                    int drawX = coord.x + x;
+                    int drawY = coord.y + y;
+                    if (drawX >= 0 && drawX < mapWidth && drawY >= 0 && drawY < mapHeight)
+                    {
+                        map[drawX, drawY] = 0;
+                        tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(drawX, drawY));
+                    }
+                }
+            }
+        }
     }
 }

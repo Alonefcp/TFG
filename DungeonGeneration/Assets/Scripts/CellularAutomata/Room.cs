@@ -39,6 +39,29 @@ public class Room : IComparable<Room>
         }
     }
 
+    public Room(List<Vector2Int> _tiles, float[,] map, int mapWidth, int mapHeight)
+    {
+        tiles = _tiles;
+        roomSize = tiles.Count;
+        connectedRooms = new List<Room>();
+        borderTiles = new List<Vector2Int>();
+
+        foreach (Vector2Int tile in tiles)
+        {
+            Vector2Int[] directions = Directions.GetFourDirectionsArray();
+            foreach (Vector2Int dir in directions)
+            {
+                int neighbourX = tile.x + dir.x;
+                int neighbourY = tile.y + dir.y;
+
+                if (neighbourX >= 0 && neighbourX < mapWidth && neighbourY >= 0 && neighbourY < mapHeight && map[neighbourX, neighbourY] == 1)
+                {
+                    borderTiles.Add(tile);
+                }
+            }
+        }
+    }
+
     public static void ConnectRooms(Room room1, Room room2)
     {
         if(room1.isAccessibleFromMainRoom)
