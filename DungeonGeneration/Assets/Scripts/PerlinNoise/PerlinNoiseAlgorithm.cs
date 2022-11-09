@@ -15,22 +15,26 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     [SerializeField] private float lacunarity = 2.0f;
     [Range(0.0f, 1.0f)]
     [SerializeField] private float threshold = 0.5f;
-    [SerializeField] private int seed;
     [SerializeField] private Vector2 offset;
+    [SerializeField] private bool useRandomSeed = true;
+    [SerializeField] private string seed;
     [SerializeField] private Renderer textureRenderer;
 
+    private System.Random rng = null;
 
     //void Start()
     //{
     //    GenerateDungeon();
     //}
 
-
     public override void GenerateDungeon()
     {
+        if (useRandomSeed) seed = Time.time.ToString();
+        rng = new System.Random(seed.GetHashCode());
+
         tilemapVisualizer.ClearTilemap();
 
-        float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, seed, noiseScale, octaves, persistance, lacunarity, this.offset);
+        float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, noiseScale, octaves, persistance, lacunarity, this.offset);
 
         for (int y = 0; y < mapHeight; y++)
         {
@@ -82,7 +86,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
             //Generate the noise
             for (int x = 0; x <= mapWidth; x += interval)
             {
-                newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, Random.Range(0.0f, 100000.0f) * reduction)) * offset);
+                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(x, rng.Next(0, 100000) * reduction) * offset);
                 noiseY.Add(newPoint);
                 noiseX.Add(x);
             }
@@ -135,7 +139,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
             //Generate the noise
             for (int x = 0; x <= mapWidth; x += interval)
             {
-                newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, Random.Range(0.0f, 100000.0f) * reduction)) * offset);
+                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(x, rng.Next(0, 100000) * reduction) * offset);
                 noiseY.Add(newPoint);
                 noiseX.Add(x);
             }
@@ -188,7 +192,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
             //Generate the noise
             for (int y = 0; y <= mapHeight; y += interval)
             {
-                newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(Random.Range(0.0f, 100000.0f) * reduction, y)) * offset);
+                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(rng.Next(0, 100000) * reduction, y) * offset);
                 noiseY.Add(y);
                 noiseX.Add(newPoint);
             }
@@ -241,7 +245,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
             //Generate the noise
             for (int y = 0; y <= mapHeight; y += interval)
             {
-                newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(Random.Range(0.0f, 100000.0f) * reduction, y)) * offset);
+                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(rng.Next(0, 100000) * reduction, y) * offset);
                 noiseY.Add(y);
                 noiseX.Add(newPoint);
             }
@@ -286,7 +290,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         //bottom
         for (int x = 0; x < mapWidth; x++)
         {
-            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, Random.Range(0.0f, 100000.0f)) - reduction) * offset);
+            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, rng.Next(0, 100000)) - reduction) * offset);
 
             newPoint += (offset / 2);
             for (int y = newPoint; y >= 0; y--)
@@ -299,7 +303,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         //up
         for (int x = 0; x < mapWidth; x++)
         {
-            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, Random.Range(0.0f, 100000.0f)) - reduction) * offset);
+            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(x, rng.Next(0, 100000)) - reduction) * offset);
             newPoint += (offset / 2);
 
             if (newPoint == 0)
@@ -319,7 +323,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         //left
         for (int y = 0; y < mapHeight; y++)
         {
-            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(Random.Range(0.0f, 100000.0f), y) - reduction) * offset);
+            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(rng.Next(0, 100000), y) - reduction) * offset);
 
             newPoint += (offset / 2);
             for (int x = newPoint; x >= 0; x--)
@@ -332,7 +336,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         //right
         for (int y = 0; y < mapHeight; y++)
         {
-            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(Random.Range(0.0f, 100000.0f), y) - reduction) * offset);
+            newPoint = Mathf.FloorToInt((Mathf.PerlinNoise(rng.Next(0, 100000), y) - reduction) * offset);
             newPoint += (offset / 2);
 
             if (newPoint == 0)
@@ -350,11 +354,10 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
     }
 
-    private float[,] GenerateTextureWithPerlinNoise(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
+    private float[,] GenerateTextureWithPerlinNoise(int mapWidth, int mapHeight, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
     {
         float[,] noiseTextue = new float[mapWidth, mapHeight];
-
-        System.Random rng = new System.Random(seed);
+       
         Vector2[] octaveOffsets = new Vector2[octaves];
         for (int i = 0; i < octaves; i++)
         {
