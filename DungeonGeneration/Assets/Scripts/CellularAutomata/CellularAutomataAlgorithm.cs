@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static FloodFillAlgorithm;
 using Random = UnityEngine.Random;
 
 public class CellularAutomataAlgorithm : DungeonGenerator
@@ -9,7 +10,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     enum Neighborhood {Moore, VonNeummann}
     enum MooreRule {Rule3=3, Rule4=4, Rule5=5}
     enum VonNeummannRule {Rule1=1, Rule2=2, Rule3=3}
-    public enum TileType {Wall = 1, Floor = 0}
+    
 
     [Range(30,200)]
     [SerializeField] private int mapWidth = 80, mapHeight = 60;
@@ -188,7 +189,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     private void EraseRegions()
     {
         //Erase wall regions
-        List<List<Vector2Int>> wallRegions = GetRegionsOfType(TileType.Wall);
+        List<List<Vector2Int>> wallRegions = GetRegionsOfType(map,TileType.Wall,mapWidth,mapHeight);
 
         foreach (List<Vector2Int> wallRegion in wallRegions)
         {
@@ -204,7 +205,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
         //Erase floor regions
         List<Room> leftFloorRegions = new List<Room>();
-        List<List<Vector2Int>> floorRegions = GetRegionsOfType(TileType.Floor);
+        List<List<Vector2Int>> floorRegions = GetRegionsOfType(map,TileType.Floor, mapWidth, mapHeight);
 
         foreach (List<Vector2Int> floorRegion in floorRegions)
         {
@@ -344,64 +345,5 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }
     }
 
-    private List<List<Vector2Int>> GetRegionsOfType(TileType tileType)
-    {
-        List<List<Vector2Int>> regions = new List<List<Vector2Int>>();
-        bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
-
-        for (int x = 0; x < mapWidth; x++)
-        {
-            for (int y = 0; y < mapHeight; y++)
-            {
-                if (!visitedTiles[x, y] && map[x, y] == tileType)
-                {
-                    List<Vector2Int> newRegion = GetRegionTiles(x, y);
-                    regions.Add(newRegion);
-
-                    foreach (Vector2Int tile in newRegion)
-                    {
-                        visitedTiles[tile.x, tile.y] = true;
-                    }
-                }
-            }
-        }
-
-        return regions;
-    }
-
-    //Flood fil algorithm
-    private List<Vector2Int> GetRegionTiles(int startX, int startY)
-    {
-        List<Vector2Int> tiles = new List<Vector2Int>();
-        bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
-        TileType tileType = map[startX, startY];
-
-        Queue<Vector2Int> queue = new Queue<Vector2Int>();
-        queue.Enqueue(new Vector2Int(startX, startY));
-        visitedTiles[startX, startY] = true;
-
-        while (queue.Count > 0)
-        {
-            Vector2Int tile = queue.Dequeue();
-            tiles.Add(tile);
-
-            Vector2Int[] fourDirectionsArray = Directions.GetFourDirectionsArray();
-            foreach (Vector2Int dir in fourDirectionsArray)
-            {
-                int neighbourX = tile.x + dir.x;
-                int neighbourY = tile.y + dir.y;
-
-                if (neighbourX >= 0 && neighbourX < mapWidth && neighbourY >= 0 && neighbourY < mapHeight)
-                {
-                    if (!visitedTiles[neighbourX, neighbourY] && map[neighbourX, neighbourY] == tileType)
-                    {
-                        visitedTiles[neighbourX, neighbourY] = true;
-                        queue.Enqueue(new Vector2Int(neighbourX, neighbourY));
-                    }
-                }
-            }
-        }
-
-        return tiles;
-    }
+    
 }

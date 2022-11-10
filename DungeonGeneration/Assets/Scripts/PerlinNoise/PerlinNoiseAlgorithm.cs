@@ -292,7 +292,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     private void EraseRegions(float[,] map)
     {
         //Erase wall regions
-        List<List<Vector2Int>> wallRegions = GetRegionsOfType(map, 1);
+        List<List<Vector2Int>> wallRegions = FloodFillAlgorithm.GetRegionsOfType(map, FloodFillAlgorithm.TileType.Wall, mapWidth,mapHeight);
 
         foreach (List<Vector2Int> wallRegion in wallRegions)
         {
@@ -307,7 +307,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
 
         //Erase floor regions
-        List<List<Vector2Int>> floorRegions = GetRegionsOfType(map, 0);
+        List<List<Vector2Int>> floorRegions = FloodFillAlgorithm.GetRegionsOfType(map, FloodFillAlgorithm.TileType.Floor,mapWidth,mapHeight);
         List<Room> leftFloorRegions = new List<Room>();
 
         foreach (List<Vector2Int> floorRegion in floorRegions)
@@ -334,66 +334,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
             ConnectClosestRooms(map,leftFloorRegions);
         }
     }
-    //Flood fil algorithm
-    private List<Vector2Int> GetRegionTiles(int startX, int startY,float[,] map)
-    {
-        List<Vector2Int> tiles = new List<Vector2Int>();
-        bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
-        float tileType = map[startX, startY];
-
-        Queue<Vector2Int> queue = new Queue<Vector2Int>();
-        queue.Enqueue(new Vector2Int(startX, startY));
-        visitedTiles[startX, startY] = true;
-
-        while (queue.Count > 0)
-        {
-            Vector2Int tile = queue.Dequeue();
-            tiles.Add(tile);
-
-            Vector2Int[] fourDirectionsArray = Directions.GetFourDirectionsArray();
-            foreach (Vector2Int dir in fourDirectionsArray)
-            {
-                int neighbourX = tile.x + dir.x;
-                int neighbourY = tile.y + dir.y;
-
-                if (neighbourX >= 0 && neighbourX < mapWidth && neighbourY >= 0 && neighbourY < mapHeight)
-                {
-                    if (!visitedTiles[neighbourX, neighbourY] && map[neighbourX, neighbourY] == tileType)
-                    {
-                        visitedTiles[neighbourX, neighbourY] = true;
-                        queue.Enqueue(new Vector2Int(neighbourX, neighbourY));
-                    }
-                }
-            }
-        }
-
-        return tiles;
-    }
-
-    private List<List<Vector2Int>> GetRegionsOfType(float[,] map,float tileType)
-    {
-        List<List<Vector2Int>> regions = new List<List<Vector2Int>>();
-        bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
-
-        for (int x = 0; x < mapWidth; x++)
-        {
-            for (int y = 0; y < mapHeight; y++)
-            {
-                if (!visitedTiles[x, y] && map[x, y] == tileType)
-                {
-                    List<Vector2Int> newRegion = GetRegionTiles(x, y,map);
-                    regions.Add(newRegion);
-
-                    foreach (Vector2Int tile in newRegion)
-                    {
-                        visitedTiles[tile.x, tile.y] = true;
-                    }
-                }
-            }
-        }
-
-        return regions;
-    }
+    
 
     private void ConnectClosestRooms(float[,] map,List<Room> survivingRooms, bool forceAccessibilityFromMainRoom = false)
     {
