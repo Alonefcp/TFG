@@ -44,266 +44,17 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         tilemapVisualizer.ClearTilemap();
 
         float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, noiseScale, octaves, persistance, lacunarity, offset);
-
-        for (int y = 0; y < mapHeight; y++)
-        {
-            for (int x = 0; x < mapWidth; x++)
-            {
-                if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1)
-                {
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                    noiseTexture[x, y] = 1;
-                    continue;
-                }
-
-                if (noiseTexture[x, y] < fillPercent)
-                {
-                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
-                    noiseTexture[x, y] = 0;
-                }
-                else
-                {
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                    noiseTexture[x, y] = 1;
-                }
-                //tilemapVisualizer.PaintSingleFloorTileWithColor(new Vector2Int(x, y), Color.Lerp(Color.black, Color.white, noiseTexture[x, y]));
-            }
-        }
+        CreateMap(noiseTexture);   
 
         if(addBiggerBorders)
         {
-            AddBottomBorders(noiseTexture, borderOffset, borderInterval);
-            AddUpBorders(noiseTexture, borderOffset, borderInterval);
-            AddLeftBorders(noiseTexture, borderOffset, borderInterval);
-            AddRightBorders(noiseTexture, borderOffset, borderInterval);
+            AddBottomUpSmoothBorders(noiseTexture, borderOffset, borderInterval);
+            AddLeftRightSmoothBorders(noiseTexture, borderOffset, borderInterval);           
         }
 
         EraseRegions(noiseTexture);
 
-        for (int y = 0; y < mapHeight; y++)
-        {
-            for (int x = 0; x < mapWidth; x++)
-            {
-                if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1)
-                {
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                    noiseTexture[x, y] = 1;
-                }
-            }
-        }
-    }
-
-    private void AddUpBorders(float[,] noiseTexture, float offset, int interval)
-    {
-        //Smooth the noise and store it in the int array
-        if (interval > 1)
-        {
-            int newPoint, points;
-            //Used to reduced the position of the Perlin point
-            float reduction = 0.5f;
-
-            //Used in the smoothing process
-            Vector2Int currentPos, lastPos;
-            //The corresponding points of the smoothing. One list for x and one for y
-            List<int> noiseX = new List<int>();
-            List<int> noiseY = new List<int>();
-
-            //Generate the noise
-            for (int x = 0; x <= mapWidth; x += interval)
-            {
-                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(x, rng.Next(0, 100000) * reduction) * offset);
-                noiseY.Add(newPoint);
-                noiseX.Add(x);
-            }
-
-            points = noiseY.Count;
-            //Start at 1 so we have a previous position already
-            for (int i = 1; i < points; i++)
-            {
-                //Get the current position
-                currentPos = new Vector2Int(noiseX[i], noiseY[i]);
-                //Also get the last position
-                lastPos = new Vector2Int(noiseX[i - 1], noiseY[i - 1]);
-
-                //Find the difference between the two
-                Vector2 diff = currentPos - lastPos;
-
-                //Set up what the height change value will be
-                float heightChange = diff.y / interval;
-                //Determine the current height
-                float currHeight = lastPos.y;
-
-                //Work our way through from the last x to the current x
-                for (int x = lastPos.x; x < currentPos.x; x++)
-                {
-                    for (int y =mapHeight - Mathf.FloorToInt(currHeight); y < mapHeight; y++)
-                    {
-                        noiseTexture[x, y] = 1;
-                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                    }
-                    currHeight += heightChange;
-                }
-            }
-        }
-    }
-    private void AddBottomBorders(float[,] noiseTexture, float offset, int interval)
-    {
-        //Smooth the noise and store it in the int array
-        if (interval > 1)
-        {
-            int newPoint, points;
-            //Used to reduced the position of the Perlin point
-            float reduction = 0.5f;
-
-            //Used in the smoothing process
-            Vector2Int currentPos, lastPos;
-            //The corresponding points of the smoothing. One list for x and one for y
-            List<int> noiseX = new List<int>();
-            List<int> noiseY = new List<int>();
-
-            //Generate the noise
-            for (int x = 0; x <= mapWidth; x += interval)
-            {
-                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(x, rng.Next(0, 100000) * reduction) * offset);
-                noiseY.Add(newPoint);
-                noiseX.Add(x);
-            }
-
-            points = noiseY.Count;
-            //Start at 1 so we have a previous position already
-            for (int i = 1; i < points; i++)
-            {
-                //Get the current position
-                currentPos = new Vector2Int(noiseX[i], noiseY[i]);
-                //Also get the last position
-                lastPos = new Vector2Int(noiseX[i - 1], noiseY[i - 1]);
-
-                //Find the difference between the two
-                Vector2 diff = currentPos - lastPos;
-
-                //Set up what the height change value will be
-                float heightChange = diff.y / interval;
-                //Determine the current height
-                float currHeight = lastPos.y;
-
-                //Work our way through from the last x to the current x
-                for (int x = lastPos.x; x < currentPos.x; x++)
-                {
-                    for (int y = Mathf.FloorToInt(currHeight); y > 0; y--)
-                    {
-                        noiseTexture[x, y] = 1;
-                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                    }
-                    currHeight += heightChange;
-                }
-            }
-        }
-    }
-    private void AddLeftBorders(float[,] noiseTexture, float offset, int interval)
-    {
-        //Smooth the noise and store it in the int array
-        if (interval > 1)
-        {
-            int newPoint, points;
-            //Used to reduced the position of the Perlin point
-            float reduction = 0.5f;
-
-            //Used in the smoothing process
-            Vector2Int currentPos, lastPos;
-            //The corresponding points of the smoothing. One list for x and one for y
-            List<int> noiseX = new List<int>();
-            List<int> noiseY = new List<int>();
-
-            //Generate the noise
-            for (int y = 0; y <= mapHeight; y += interval)
-            {
-                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(rng.Next(0, 100000) * reduction, y) * offset);
-                noiseY.Add(y);
-                noiseX.Add(newPoint);
-            }
-
-            points = noiseY.Count;
-            //Start at 1 so we have a previous position already
-            for (int i = 1; i < points; i++)
-            {
-                //Get the current position
-                currentPos = new Vector2Int(noiseX[i], noiseY[i]);
-                //Also get the last position
-                lastPos = new Vector2Int(noiseX[i - 1], noiseY[i - 1]);
-
-                //Find the difference between the two
-                Vector2 diff = currentPos - lastPos;
-
-                //Set up what the height change value will be
-                float heightChange = diff.x / interval;
-                //Determine the current height
-                float currHeight = lastPos.x;
-
-                //Work our way through from the last x to the current x
-                for (int y = lastPos.y; y < currentPos.y; y++)
-                {
-                    for (int x = Mathf.FloorToInt(currHeight); x > 0; x--)
-                    {
-                        noiseTexture[x, y] = 1;
-                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                    }
-                    currHeight += heightChange;
-                }
-            }
-        }
-    }
-    private void AddRightBorders(float[,] noiseTexture, float offset, int interval)
-    {
-        //Smooth the noise and store it in the int array
-        if (interval > 1)
-        {
-            int newPoint, points;
-            //Used to reduced the position of the Perlin point
-            float reduction = 0.5f;
-
-            //Used in the smoothing process
-            Vector2Int currentPos, lastPos;
-            //The corresponding points of the smoothing. One list for x and one for y
-            List<int> noiseX = new List<int>();
-            List<int> noiseY = new List<int>();
-
-            //Generate the noise
-            for (int y = 0; y <= mapHeight; y += interval)
-            {
-                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(rng.Next(0, 100000) * reduction, y) * offset);
-                noiseY.Add(y);
-                noiseX.Add(newPoint);
-            }
-
-            points = noiseY.Count;
-            //Start at 1 so we have a previous position already
-            for (int i = 1; i < points; i++)
-            {
-                //Get the current position
-                currentPos = new Vector2Int(noiseX[i], noiseY[i]);
-                //Also get the last position
-                lastPos = new Vector2Int(noiseX[i - 1], noiseY[i - 1]);
-
-                //Find the difference between the two
-                Vector2 diff = currentPos - lastPos;
-
-                //Set up what the height change value will be
-                float heightChange = diff.x / interval;
-                //Determine the current height
-                float currHeight = lastPos.x;
-
-                //Work our way through from the last x to the current x
-                for (int y = lastPos.y; y < currentPos.y; y++)
-                {
-                    for (int x = mapWidth - Mathf.FloorToInt(currHeight); x < mapWidth; x++)
-                    {
-                        noiseTexture[x, y] = 1;
-                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                    }
-                    currHeight += heightChange;
-                }
-            }
-        }
+        AddBorders(noiseTexture);
     }
 
     private float[,] GenerateTextureWithPerlinNoise(int mapWidth, int mapHeight, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
@@ -368,6 +119,174 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
 
         return noiseTextue;
+    }
+    private void CreateMap(float[,] map)
+    {
+        for (int y = 0; y < mapHeight; y++)
+        {
+            for (int x = 0; x < mapWidth; x++)
+            {
+                if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1)
+                {
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    map[x, y] = 1;
+                    continue;
+                }
+
+                if (map[x, y] < fillPercent)
+                {
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                    map[x, y] = 0;
+                }
+                else
+                {
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    map[x, y] = 1;
+                }
+                //tilemapVisualizer.PaintSingleFloorTileWithColor(new Vector2Int(x, y), Color.Lerp(Color.black, Color.white, map[x, y]));
+            }
+        }
+    }
+    private void AddBorders(float[,] map)
+    {
+        for (int y = 0; y < mapHeight; y++)
+        {
+            for (int x = 0; x < mapWidth; x++)
+            {
+                if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1)
+                {
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    map[x, y] = 1;
+                }
+            }
+        }
+    }
+
+    private void AddBottomUpSmoothBorders(float[,] noiseTexture, float offset, int interval)
+    {
+        //Smooth the noise and store it in the int array
+        if (interval > 1)
+        {
+            int newPoint, points;
+            //Used to reduced the position of the Perlin point
+            float reduction = 0.5f;
+
+            //Used in the smoothing process
+            Vector2Int currentPos, lastPos;
+            //The corresponding points of the smoothing. One list for x and one for y
+            List<int> noiseX = new List<int>();
+            List<int> noiseY = new List<int>();
+
+            //Generate the noise
+            for (int x = 0; x <= mapWidth; x += interval)
+            {
+                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(x, rng.Next(0, 100000) * reduction) * offset);
+                noiseY.Add(newPoint);
+                noiseX.Add(x);
+            }
+
+            points = noiseY.Count;
+            //Start at 1 so we have a previous position already
+            for (int i = 1; i < points; i++)
+            {
+                //Get the current position
+                currentPos = new Vector2Int(noiseX[i], noiseY[i]);
+                //Also get the last position
+                lastPos = new Vector2Int(noiseX[i - 1], noiseY[i - 1]);
+
+                //Find the difference between the two
+                Vector2 diff = currentPos - lastPos;
+
+                //Set up what the height change value will be
+                float heightChange = diff.y / interval;
+                //Determine the current height
+                float currHeight = lastPos.y;
+
+                //Work our way through from the last x to the current x
+                for (int x = lastPos.x; x < currentPos.x; x++) //Bottom
+                {
+                    for (int y = Mathf.FloorToInt(currHeight); y > 0; y--)
+                    {
+                        noiseTexture[x, y] = 1;
+                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    }
+                    currHeight += heightChange;
+                }
+
+                for (int x = lastPos.x; x < currentPos.x; x++) //up
+                {
+                    for (int y = mapHeight - Mathf.FloorToInt(currHeight); y < mapHeight; y++)
+                    {
+                        noiseTexture[x, y] = 1;
+                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    }
+                    currHeight += heightChange;
+                }
+            }
+        }
+    } 
+    private void AddLeftRightSmoothBorders(float[,] noiseTexture, float offset, int interval)
+    {
+        //Smooth the noise and store it in the int array
+        if (interval > 1)
+        {
+            int newPoint, points;
+            //Used to reduced the position of the Perlin point
+            float reduction = 0.5f;
+
+            //Used in the smoothing process
+            Vector2Int currentPos, lastPos;
+            //The corresponding points of the smoothing. One list for x and one for y
+            List<int> noiseX = new List<int>();
+            List<int> noiseY = new List<int>();
+
+            //Generate the noise
+            for (int y = 0; y <= mapHeight; y += interval)
+            {
+                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(rng.Next(0, 100000) * reduction, y) * offset);
+                noiseY.Add(y);
+                noiseX.Add(newPoint);
+            }
+
+            points = noiseY.Count;
+            //Start at 1 so we have a previous position already
+            for (int i = 1; i < points; i++)
+            {
+                //Get the current position
+                currentPos = new Vector2Int(noiseX[i], noiseY[i]);
+                //Also get the last position
+                lastPos = new Vector2Int(noiseX[i - 1], noiseY[i - 1]);
+
+                //Find the difference between the two
+                Vector2 diff = currentPos - lastPos;
+
+                //Set up what the height change value will be
+                float heightChange = diff.x / interval;
+                //Determine the current height
+                float currHeight = lastPos.x;
+
+                //Work our way through from the last x to the current x
+                for (int y = lastPos.y; y < currentPos.y; y++) //left
+                {
+                    for (int x = Mathf.FloorToInt(currHeight); x > 0; x--)
+                    {
+                        noiseTexture[x, y] = 1;
+                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    }
+                    currHeight += heightChange;
+                }
+
+                for (int y = lastPos.y; y < currentPos.y; y++) //right
+                {
+                    for (int x = mapWidth - Mathf.FloorToInt(currHeight); x < mapWidth; x++)
+                    {
+                        noiseTexture[x, y] = 1;
+                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    }
+                    currHeight += heightChange;
+                }
+            }
+        }
     }
 
     private void EraseRegions(float[,] map)
