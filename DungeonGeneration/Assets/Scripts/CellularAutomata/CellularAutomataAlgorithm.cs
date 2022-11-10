@@ -28,7 +28,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     [Range(0, 100)]
     [SerializeField] private int floorThresholdSize = 50;
 
-    private TileType[,] map;
+    private int[,] map; //1 -> wall , 0 -> floor
 
     //void Start()
     //{
@@ -84,11 +84,11 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }       
     }
 
-    private TileType[,] GenerateNoise()
+    private int[,] GenerateNoise()
     {
         SetFillPercentBasedOnRule();
 
-        TileType[,] map = new TileType[mapWidth, mapHeight];
+        int[,] map = new int[mapWidth, mapHeight];
 
         for (int x = 0; x < mapWidth; x++)
         {
@@ -98,13 +98,13 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                 {
                     tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
 
-                    map[x, y] = TileType.Wall;
+                    map[x, y] = 1;
                 }
                 else
                 {
-                    map[x, y] = (Random.Range(0.0f, 1.0f) < fillPercent) ? TileType.Wall : TileType.Floor;
+                    map[x, y] = (Random.Range(0.0f, 1.0f) < fillPercent) ? 1 : 0;
 
-                    if (map[x, y] == TileType.Wall) tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    if (map[x, y] == 1) tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
                     else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                 }
             }
@@ -117,7 +117,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     {
         for (int i = 0; i < iterations; i++)
         {
-            TileType[,] mapClone = (TileType[,])map.Clone();
+            int[,] mapClone = (int[,])map.Clone();
             for (int x = 0; x < mapWidth; x++)
             {
                 for (int y = 0; y < mapHeight; y++)
@@ -129,37 +129,37 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
                 }
             }
-            map = (TileType[,])mapClone.Clone();
+            map = (int[,])mapClone.Clone();
         }    
     }
 
-    private void MooreAutomata(TileType[,] map, int x, int y,int neighbourWallTiles)
+    private void MooreAutomata(int[,] map, int x, int y,int neighbourWallTiles)
     {
         int ruleNumber = (int)mooreRule;
         
         if (neighbourWallTiles > ruleNumber) 
         {
-            map[x, y] = TileType.Wall;
+            map[x, y] = 1;
             tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
         }
         else if (neighbourWallTiles < ruleNumber)
         {
-            map[x, y] = TileType.Floor;
+            map[x, y] = 0;
             tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
         }
     }
 
-    private void VonNeummannAutomata(TileType[,] map, int x, int y, int neighbourWallTiles)
+    private void VonNeummannAutomata(int[,] map, int x, int y, int neighbourWallTiles)
     {
         int ruleNumber = (int)vonNeummannRule;
         if (neighbourWallTiles > ruleNumber)
         {
-            map[x, y] = TileType.Wall;
+            map[x, y] = 1;
             tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
         }
         else if (neighbourWallTiles < ruleNumber)
         {
-            map[x, y] = TileType.Floor;
+            map[x, y] = 0;
             tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
         }
     }
@@ -189,7 +189,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     private void EraseRegions()
     {
         //Erase wall regions
-        List<List<Vector2Int>> wallRegions = GetRegionsOfType(map,TileType.Wall,mapWidth,mapHeight);
+        List<List<Vector2Int>> wallRegions = GetRegionsOfType(map,1,mapWidth,mapHeight);
 
         foreach (List<Vector2Int> wallRegion in wallRegions)
         {
@@ -197,15 +197,15 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             {
                 foreach (Vector2Int tile in wallRegion)
                 {
-                    map[tile.x, tile.y] = TileType.Floor;                   
+                    map[tile.x, tile.y] = 0;                   
                     tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(tile.x, tile.y));
                 }
             }       
         }
 
         //Erase floor regions
-        List<Room> leftFloorRegions = new List<Room>();
-        List<List<Vector2Int>> floorRegions = GetRegionsOfType(map,TileType.Floor, mapWidth, mapHeight);
+        List<Region> leftFloorRegions = new List<Region>();
+        List<List<Vector2Int>> floorRegions = GetRegionsOfType(map,0, mapWidth, mapHeight);
 
         foreach (List<Vector2Int> floorRegion in floorRegions)
         {
@@ -213,13 +213,13 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             {
                 foreach (Vector2Int tile in floorRegion)
                 {
-                    map[tile.x, tile.y] = TileType.Wall;
+                    map[tile.x, tile.y] = 1;
                     tilemapVisualizer.PaintSingleWallTile(new Vector2Int(tile.x, tile.y));
                 }
             }
             else //we store floor regions which are bigger than the floorThresholdSize, to connect them
             {
-                leftFloorRegions.Add(new Room(floorRegion, map,mapWidth,mapHeight));
+                leftFloorRegions.Add(new Region(floorRegion, map,mapWidth,mapHeight));
             }
         }
 
@@ -232,14 +232,14 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }
     }
 
-    private void ConnectClosestRooms(List<Room> survivingRooms, bool forceAccessibilityFromMainRoom=false)
+    private void ConnectClosestRooms(List<Region> survivingRooms, bool forceAccessibilityFromMainRoom=false)
     {
-        List<Room> roomList1 = new List<Room>();
-        List<Room> roomList2 = new List<Room>();
+        List<Region> roomList1 = new List<Region>();
+        List<Region> roomList2 = new List<Region>();
 
         if(forceAccessibilityFromMainRoom)
         {
-            foreach (Room room in survivingRooms)
+            foreach (Region room in survivingRooms)
             {
                 if(room.isAccessibleFromMainRoom)
                 {
@@ -260,11 +260,11 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         int bestDistance = 0;
         Vector2Int bestTile1 = new Vector2Int();
         Vector2Int bestTile2 = new Vector2Int(); 
-        Room bestRoom1 = new Room();
-        Room bestRoom2 = new Room();
+        Region bestRoom1 = new Region();
+        Region bestRoom2 = new Region();
         bool possibleConnectionFound = false;
 
-        foreach (Room room1 in roomList1)
+        foreach (Region room1 in roomList1)
         {
             if(!forceAccessibilityFromMainRoom)
             {
@@ -272,7 +272,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                 if(room1.connectedRooms.Count > 0) continue;
             }
 
-            foreach (Room room2 in roomList2)
+            foreach (Region room2 in roomList2)
             {
                 if (room1 == room2 || room1.IsConnected(room2)) continue;
 
@@ -315,9 +315,9 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }
     }
 
-    private void CreateConnection(Room room1, Room room2, Vector2Int tile1, Vector2Int tile2) 
+    private void CreateConnection(Region room1, Region room2, Vector2Int tile1, Vector2Int tile2) 
     {
-        Room.ConnectRooms(room1, room2);     
+        Region.ConnectRooms(room1, room2);     
         List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.x, tile1.y, tile2.x, tile2.y);
         foreach (Vector2Int coord in line)
         {
@@ -337,13 +337,11 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                     int drawY = coord.y+y;
                     if (drawX >= 0 && drawX < mapWidth && drawY >= 0 && drawY < mapHeight)
                     {
-                        map[drawX, drawY] = TileType.Floor;
+                        map[drawX, drawY] = 0;
                         tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(drawX, drawY));
                     }
                 }
             }
         }
-    }
-
-    
+    }   
 }

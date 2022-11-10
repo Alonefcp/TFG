@@ -3,24 +3,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Room : IComparable<Room>
+public class Region : IComparable<Region>
 {
     public List<Vector2Int> tiles;
     public List<Vector2Int> borderTiles;
-    public List<Room> connectedRooms;
+    public List<Region> connectedRooms;
     public int roomSize;
     public bool isAccessibleFromMainRoom;
     public bool isMainRoom;
 
-    public Room()
+    public Region()
     {
     }
 
-    public Room(List<Vector2Int> _tiles, FloodFillAlgorithm.TileType[,] map, int mapWidth, int mapHeight)
+    public Region(List<Vector2Int> _tiles, int[,] map, int mapWidth, int mapHeight)
     {
         tiles = _tiles;
         roomSize = tiles.Count;
-        connectedRooms = new List<Room>();
+        connectedRooms = new List<Region>();
         borderTiles = new List<Vector2Int>();
 
         foreach (Vector2Int tile in tiles)
@@ -31,7 +31,7 @@ public class Room : IComparable<Room>
                 int neighbourX = tile.x + dir.x;
                 int neighbourY = tile.y + dir.y;
                 
-                if (neighbourX>=0 && neighbourX<mapWidth && neighbourY>=0 && neighbourY<mapHeight && map[neighbourX, neighbourY] == FloodFillAlgorithm.TileType.Wall)
+                if (neighbourX>=0 && neighbourX<mapWidth && neighbourY>=0 && neighbourY<mapHeight && map[neighbourX, neighbourY] == 1) // 1-> wall
                 {
                     borderTiles.Add(tile);
                 }
@@ -39,11 +39,11 @@ public class Room : IComparable<Room>
         }
     }
 
-    public Room(List<Vector2Int> _tiles, float[,] map, int mapWidth, int mapHeight)
+    public Region(List<Vector2Int> _tiles, float[,] map, int mapWidth, int mapHeight)
     {
         tiles = _tiles;
         roomSize = tiles.Count;
-        connectedRooms = new List<Room>();
+        connectedRooms = new List<Region>();
         borderTiles = new List<Vector2Int>();
 
         foreach (Vector2Int tile in tiles)
@@ -54,7 +54,7 @@ public class Room : IComparable<Room>
                 int neighbourX = tile.x + dir.x;
                 int neighbourY = tile.y + dir.y;
 
-                if (neighbourX >= 0 && neighbourX < mapWidth && neighbourY >= 0 && neighbourY < mapHeight && map[neighbourX, neighbourY] == 1)
+                if (neighbourX >= 0 && neighbourX < mapWidth && neighbourY >= 0 && neighbourY < mapHeight && map[neighbourX, neighbourY] == 1)// 1-> wall
                 {
                     borderTiles.Add(tile);
                 }
@@ -62,7 +62,7 @@ public class Room : IComparable<Room>
         }
     }
 
-    public static void ConnectRooms(Room room1, Room room2)
+    public static void ConnectRooms(Region room1, Region room2)
     {
         if(room1.isAccessibleFromMainRoom)
         {
@@ -82,19 +82,19 @@ public class Room : IComparable<Room>
         if(!isAccessibleFromMainRoom)
         {
             isAccessibleFromMainRoom = true;
-            foreach (Room room in connectedRooms)
+            foreach (Region room in connectedRooms)
             {
                 room.SetAccessFromMainRoom();
             }
         }
     }
 
-    public int CompareTo(Room other)
+    public int CompareTo(Region other)
     {
         return other.roomSize.CompareTo(roomSize);
     }
 
-    public bool IsConnected(Room other)
+    public bool IsConnected(Region other)
     {
         return connectedRooms.Contains(other);
     }

@@ -133,12 +133,12 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                     continue;
                 }
 
-                if (map[x, y] < fillPercent)
+                if (map[x, y] < fillPercent) // cell becomes a floor
                 {
                     tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                     map[x, y] = 0;
                 }
-                else
+                else //cell becomes a wall
                 {
                     tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
                     map[x, y] = 1;
@@ -292,7 +292,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     private void EraseRegions(float[,] map)
     {
         //Erase wall regions
-        List<List<Vector2Int>> wallRegions = FloodFillAlgorithm.GetRegionsOfType(map, FloodFillAlgorithm.TileType.Wall, mapWidth,mapHeight);
+        List<List<Vector2Int>> wallRegions = FloodFillAlgorithm.GetRegionsOfType(map, 1, mapWidth,mapHeight);
 
         foreach (List<Vector2Int> wallRegion in wallRegions)
         {
@@ -307,8 +307,8 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
 
         //Erase floor regions
-        List<List<Vector2Int>> floorRegions = FloodFillAlgorithm.GetRegionsOfType(map, FloodFillAlgorithm.TileType.Floor,mapWidth,mapHeight);
-        List<Room> leftFloorRegions = new List<Room>();
+        List<List<Vector2Int>> floorRegions = FloodFillAlgorithm.GetRegionsOfType(map, 0,mapWidth,mapHeight);
+        List<Region> leftFloorRegions = new List<Region>();
 
         foreach (List<Vector2Int> floorRegion in floorRegions)
         {
@@ -322,7 +322,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
             }
             else //we store floor regions which are bigger than the floorThresholdSize, to connect them
             {
-                leftFloorRegions.Add(new Room(floorRegion, map, mapWidth, mapHeight));
+                leftFloorRegions.Add(new Region(floorRegion, map, mapWidth, mapHeight));
             }
         }
 
@@ -336,14 +336,14 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     }
     
 
-    private void ConnectClosestRooms(float[,] map,List<Room> survivingRooms, bool forceAccessibilityFromMainRoom = false)
+    private void ConnectClosestRooms(float[,] map,List<Region> survivingRooms, bool forceAccessibilityFromMainRoom = false)
     {
-        List<Room> roomList1 = new List<Room>();
-        List<Room> roomList2 = new List<Room>();
+        List<Region> roomList1 = new List<Region>();
+        List<Region> roomList2 = new List<Region>();
 
         if (forceAccessibilityFromMainRoom)
         {
-            foreach (Room room in survivingRooms)
+            foreach (Region room in survivingRooms)
             {
                 if (room.isAccessibleFromMainRoom)
                 {
@@ -364,11 +364,11 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         int bestDistance = 0;
         Vector2Int bestTile1 = new Vector2Int();
         Vector2Int bestTile2 = new Vector2Int();
-        Room bestRoom1 = new Room();
-        Room bestRoom2 = new Room();
+        Region bestRoom1 = new Region();
+        Region bestRoom2 = new Region();
         bool possibleConnectionFound = false;
 
-        foreach (Room room1 in roomList1)
+        foreach (Region room1 in roomList1)
         {
             if (!forceAccessibilityFromMainRoom)
             {
@@ -376,7 +376,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                 if (room1.connectedRooms.Count > 0) continue;
             }
 
-            foreach (Room room2 in roomList2)
+            foreach (Region room2 in roomList2)
             {
                 if (room1 == room2 || room1.IsConnected(room2)) continue;
 
@@ -419,9 +419,9 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
     }
 
-    private void CreateConnection(float[,] map,Room room1, Room room2, Vector2Int tile1, Vector2Int tile2)
+    private void CreateConnection(float[,] map,Region room1, Region room2, Vector2Int tile1, Vector2Int tile2)
     {
-        Room.ConnectRooms(room1, room2);
+        Region.ConnectRooms(room1, room2);
         List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.x, tile1.y, tile2.x, tile2.y);
         foreach (Vector2Int coord in line)
         {
