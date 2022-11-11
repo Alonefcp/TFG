@@ -44,6 +44,9 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         EraseRegions();         
     }
 
+    /// <summary>
+    /// Sets the fillPercent based on the automata's rule 
+    /// </summary>
     private void SetFillPercentBasedOnRule()
     {
         if(neighborhood==Neighborhood.Moore)
@@ -84,6 +87,10 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }       
     }
 
+    /// <summary>
+    /// Place random walls
+    /// </summary>
+    /// <returns></returns>
     private int[,] GenerateNoise()
     {
         SetFillPercentBasedOnRule();
@@ -113,6 +120,9 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         return map;
     }
 
+    /// <summary>
+    /// Runs the cellular automata by changing the map state each iteration
+    /// </summary>
     private void RunCellularAutomata()
     {
         for (int i = 0; i < iterations; i++)
@@ -124,18 +134,23 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                 {
                     int neighbourWallTiles = GetWallNeighbours(x, y);
 
-                    if (neighborhood == Neighborhood.Moore) MooreAutomata(mapClone, x, y, neighbourWallTiles);
-                    else VonNeummannAutomata(mapClone, x, y, neighbourWallTiles);
-
+                    ApplyAutomata(mapClone, x, y, neighbourWallTiles);
                 }
             }
             map = (int[,])mapClone.Clone();
         }    
     }
 
-    private void MooreAutomata(int[,] map, int x, int y,int neighbourWallTiles)
+    /// <summary>
+    /// Applies Moore or VonNeummann automata in a given position
+    /// </summary>
+    /// <param name="map">The map</param>
+    /// <param name="x">Given X position</param>
+    /// <param name="y">Given Y position</param>
+    /// <param name="neighbourWallTiles">Number of walls neighbours</param>
+    private void ApplyAutomata(int[,] map, int x, int y,int neighbourWallTiles)
     {
-        int ruleNumber = (int)mooreRule;
+        int ruleNumber = (neighborhood == Neighborhood.Moore)? (int)mooreRule: (int)vonNeummannRule;
         
         if (neighbourWallTiles > ruleNumber) 
         {
@@ -149,21 +164,12 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }
     }
 
-    private void VonNeummannAutomata(int[,] map, int x, int y, int neighbourWallTiles)
-    {
-        int ruleNumber = (int)vonNeummannRule;
-        if (neighbourWallTiles > ruleNumber)
-        {
-            map[x, y] = 1;
-            tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-        }
-        else if (neighbourWallTiles < ruleNumber)
-        {
-            map[x, y] = 0;
-            tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
-        }
-    }
-
+    /// <summary>
+    /// Returns the number of wall neighbours of a given position. It checks four or eight neighbours
+    /// </summary>
+    /// <param name="x">Given X position</param>
+    /// <param name="y">Given Y position</param>
+    /// <returns></returns>
     private int GetWallNeighbours(int x, int y)
     {
         Vector2Int[] directions = (neighborhood == Neighborhood.Moore) ? Directions.GetEightDiretionsArray() : Directions.GetFourDirectionsArray();

@@ -28,6 +28,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     [Range(5.0f, 10.0f)]
     [SerializeField] float borderOffset = 7.0f;
     [SerializeField] private bool addBiggerBorders = true;
+    [SerializeField] private bool showPerlinNoiseTexture = false;
 
     private System.Random rng = null;
 
@@ -46,17 +47,31 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, noiseScale, octaves, persistance, lacunarity, offset);
         CreateMap(noiseTexture);   
 
-        if(addBiggerBorders)
+        if(addBiggerBorders && !showPerlinNoiseTexture)
         {
             AddBottomUpSmoothBorders(noiseTexture, borderOffset, borderInterval);
             AddLeftRightSmoothBorders(noiseTexture, borderOffset, borderInterval);           
         }
 
-        EraseRegions(noiseTexture);
+        if(!showPerlinNoiseTexture)
+        {
+            EraseRegions(noiseTexture);
 
-        AddBorders(noiseTexture);
+            AddBorders(noiseTexture);
+        }        
     }
 
+    /// <summary>
+    /// Creates a matrix using perlin noise
+    /// </summary>
+    /// <param name="mapWidth">Map width</param>
+    /// <param name="mapHeight">Map height</param>
+    /// <param name="scale">Map scale</param>
+    /// <param name="octaves">Number of layers of detail</param>
+    /// <param name="persistance">Determines how quickly the amplitudes diminish for each successive octave</param>
+    /// <param name="lacunarity">Change in frequency between octaves</param>
+    /// <param name="offset">Map displacement offset</param>
+    /// <returns></returns>
     private float[,] GenerateTextureWithPerlinNoise(int mapWidth, int mapHeight, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
     {
         float[,] noiseTextue = new float[mapWidth, mapHeight];
@@ -106,7 +121,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                     minNoiseHeight = noiseHeight;
                 }
 
-                noiseTextue[x, y] = noiseHeight;
+                noiseTextue[x, y] = noiseHeight;               
             }
         }
 
@@ -120,12 +135,23 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
 
         return noiseTextue;
     }
+
+    /// <summary>
+    /// Creates the map by adding wall tiles or floor tiles
+    /// </summary>
+    /// <param name="map">The map</param>
     private void CreateMap(float[,] map)
     {
         for (int y = 0; y < mapHeight; y++)
         {
             for (int x = 0; x < mapWidth; x++)
             {
+                if(showPerlinNoiseTexture)
+                {
+                    tilemapVisualizer.PaintSingleFloorTileWithColor(new Vector2Int(x, y), Color.Lerp(Color.black, Color.white, map[x, y]));
+                    continue;
+                }
+
                 if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1)
                 {
                     tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
@@ -133,7 +159,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                     continue;
                 }
 
-                if (map[x, y] < fillPercent) // cell becomes a floor
+                if (map[x, y] <= fillPercent) // cell becomes a floor
                 {
                     tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                     map[x, y] = 0;
@@ -142,11 +168,15 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                 {
                     tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
                     map[x, y] = 1;
-                }
-                //tilemapVisualizer.PaintSingleFloorTileWithColor(new Vector2Int(x, y), Color.Lerp(Color.black, Color.white, map[x, y]));
+                }               
             }
         }
     }
+
+    /// <summary>
+    /// Adds walls to the map limits
+    /// </summary>
+    /// <param name="map">The map</param>
     private void AddBorders(float[,] map)
     {
         for (int y = 0; y < mapHeight; y++)
@@ -162,6 +192,12 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
     }
 
+    /// <summary>
+    /// Adds the bottom and up borders to the map using perlin noise
+    /// </summary>
+    /// <param name="noiseTexture">The map</param>
+    /// <param name="offset">Borders max height</param>
+    /// <param name="interval">Borders length</param>
     private void AddBottomUpSmoothBorders(float[,] noiseTexture, float offset, int interval)
     {
         //Smooth the noise and store it in the int array
@@ -224,7 +260,14 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                 }
             }
         }
-    } 
+    }
+
+    /// <summary>
+    /// Adds the left and right borders to the map using perlin noise
+    /// </summary>
+    /// <param name="noiseTexture">The map</param>
+    /// <param name="offset">Borders max height</param>
+    /// <param name="interval">Borders length</param>
     private void AddLeftRightSmoothBorders(float[,] noiseTexture, float offset, int interval)
     {
         //Smooth the noise and store it in the int array
@@ -335,7 +378,6 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
     }
     
-
     private void ConnectClosestRooms(float[,] map,List<Region> survivingRooms, bool forceAccessibilityFromMainRoom = false)
     {
         List<Region> roomList1 = new List<Region>();
