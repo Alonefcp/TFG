@@ -96,7 +96,6 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         {
             for (int x = 0; x < mapWidth; x++)
             {
-
                 float amplitude = 1;
                 float frequency = 1;
                 float noiseHeight = 0;
