@@ -6,13 +6,12 @@ using UnityEngine.Tilemaps;
 
 public class InputReader : IInputReader<TileBase>
 {
-    private Tilemap input;
+    private Tilemap inputTilemp;
 
-    public InputReader(Tilemap _input)
+    public InputReader(Tilemap input)
     {
-        input = _input;
+        inputTilemp = input;
     }
-
 
     public IValue<TileBase>[][] ReadInputToGrid()
     {
@@ -35,12 +34,21 @@ public class InputReader : IInputReader<TileBase>
 
     private TileBase[][] ReadInputTilemap()
     {
-        InputImageParameters imageParameters = new InputImageParameters(input);
+        InputImageParameters imageParameters = new InputImageParameters(inputTilemp);
         return CreateTileBasedGrid(imageParameters);
     }
 
     private TileBase[][] CreateTileBasedGrid(InputImageParameters imageParameters)
     {
-        throw new NotImplementedException();
+        TileBase[][] gridOfInputTiles = MyCollectionExtension.CreateJaggedArray<TileBase[][]>(imageParameters.Height, imageParameters.Width);
+        for (int row = 0; row < imageParameters.Height; row++)
+        {
+            for (int col = 0; col < imageParameters.Width; col++)
+            {
+                gridOfInputTiles[row][col] = imageParameters.StackOfTiles.Dequeue().Tile;
+            }
+        }
+
+        return gridOfInputTiles;
     }
 }

@@ -12,7 +12,7 @@ public class TileBaseValue : IValue<TileBase>
         this.tileBase = tileBase;
     }
 
-    public TileBase value => this.tileBase;
+    public TileBase value => tileBase;
 
     public bool Equals(IValue<TileBase> x, IValue<TileBase> y)
     {
@@ -21,7 +21,7 @@ public class TileBaseValue : IValue<TileBase>
 
     public bool Equals(IValue<TileBase> other)
     {
-        return other.value == this.value;
+        return other.value == value;
     }
 
     public int GetHashCode(IValue<TileBase> obj)
@@ -31,6 +31,6 @@ public class TileBaseValue : IValue<TileBase>
 
     public override int GetHashCode()
     {
-        return this.tileBase.GetHashCode();
+        return tileBase.GetHashCode();
     }
 }
