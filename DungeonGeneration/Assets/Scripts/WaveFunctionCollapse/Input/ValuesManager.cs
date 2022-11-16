@@ -26,6 +26,19 @@ public class ValuesManager<T>
         }
     }
 
+    public Vector2 GetGridSize()
+    {
+        if(grid==null)
+        {
+            return Vector2.zero;
+        }
+        else
+        {
+            return new Vector2(grid[0].Length, grid.Length);
+        }
+
+    }
+
     private void SetIndexToGridPosition(IValue<T>[][] gridOfValues, int row, int col)
     {
         if(valueIndexDictionary.ContainsValue(gridOfValues[row][col]))
