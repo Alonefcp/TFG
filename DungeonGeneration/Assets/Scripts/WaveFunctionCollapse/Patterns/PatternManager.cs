@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 public class PatternManager
@@ -17,7 +18,7 @@ public class PatternManager
 
     public void ProcessGrid<T>(ValuesManager<T> valuesManager, bool equalWeights, string strategyName =null)
     {
-        NeighbourStrategyFactoy strategyFactory = new NeighbourStrategyFactoy();
+        NeighbourStrategyFactory strategyFactory = new NeighbourStrategyFactory();
         strategy = strategyFactory.CreateInstance(strategyName == null ? patternSize + "" : strategyName);
         CreatePatterns(valuesManager, strategy, equalWeights);
     }
@@ -25,6 +26,27 @@ public class PatternManager
     private void CreatePatterns<T>(ValuesManager<T> valuesManager, IFindNeighbourStrategy strategy, bool equalWeights)
     {
         var patternFinderResult = PatternFinder.GetPatternDataFromGrid(valuesManager, patternSize, equalWeights);
+
+        //====================================================== For testing ===================================================================================
+        //List<string> list = new List<string>();
+        //for (int row = 0; row < patternFinderResult.GetGridLenghtY(); row++)
+        //{
+        //    StringBuilder builder = new StringBuilder();
+        //    for (int col = 0; col < patternFinderResult.GetGridLenghtX(); col++)
+        //    {
+        //        builder.Append(patternFinderResult.GetIndexAt(col,row) + " ");
+        //    }
+
+        //    list.Add(builder.ToString());
+        //}
+        //list.Reverse();
+
+        //foreach (var item in list)
+        //{
+        //    Debug.Log(item);
+        //}
+        //=========================================================================================================================================
+
         patternDataIndexDictionary = patternFinderResult.PatternIndexDictionary;
         GetPatternNeighbours(patternFinderResult, strategy);
     }

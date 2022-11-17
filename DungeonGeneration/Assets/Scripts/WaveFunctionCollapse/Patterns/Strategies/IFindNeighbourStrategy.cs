@@ -3,10 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class IFindNeighbourStrategy
+public interface IFindNeighbourStrategy
 {
-    internal Dictionary<int, PatternNeighbours> FindNeighbours(PatternDataResults patternFinderResult)
-    {
-        throw new NotImplementedException();
-    }
+    Dictionary<int, PatternNeighbours> FindNeighbours(PatternDataResults patternFinderResult);
 }
