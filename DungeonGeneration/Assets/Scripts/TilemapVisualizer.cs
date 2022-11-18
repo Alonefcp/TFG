@@ -64,6 +64,12 @@ public class TilemapVisualizer : MonoBehaviour
         floorTilemap.SetTile(tileMapPosition, floorTile);
     }
 
+    public void PaintSingleTile(Tile tile,Vector2Int position)
+    {
+        Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
+        floorTilemap.SetTile(tileMapPosition, tile);
+    }
+
     public void PaintSingleFloorTileWithColor(Vector2Int position, Color color)
     {
         floorTile.color = color;
