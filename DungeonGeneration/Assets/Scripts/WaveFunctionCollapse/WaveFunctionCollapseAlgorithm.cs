@@ -7,7 +7,7 @@ using UnityEngine.Tilemaps;
 
 public class WaveFunctionCollapseAlgorithm : DungeonGenerator 
 {
-    enum Options { BLANK=0,UP=1,RIGHT=2, DOWN=3, LEFT=4}
+    enum Options { BLANK=0,UP=1,RIGHT=2, DOWN=3, LEFT=4/*, CROIX=5*/}
     struct Cell 
     {
         public bool collapsed;
@@ -40,16 +40,18 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     private Dictionary<Options, List<List<Options>>> rules;
     private System.Random rng = null;
 
-    //private void Start()
-    //{
-    //    tilemapVisualizer.ClearTilemap();
-    //    SetUp();
-    //    for (int i = 0; i < width*height; i++)
-    //    {           
-    //        RunWFC();
-    //    }
+    private void Start()
+    {
+        if (useRandomSeed) seed = Time.time.ToString();
+        rng = new System.Random(seed.GetHashCode());
+        tilemapVisualizer.ClearTilemap();
+        SetUp();
+        for (int i = 0; i < width * height; i++)
+        {
+            RunWFC(out bool restart);
+        }
 
-    //}
+    }
 
     public override void GenerateDungeon()
     {
@@ -61,22 +63,37 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         SetUp();
         for (int i = 0; i < width * height; i++)
         {
-            Debug.Log(i);
-            if(i==96)
+            RunWFC(out bool restart);
+            if (restart) { tilemapVisualizer.ClearTilemap(); i = 0; }
+        }
+
+        foreach (Cell cell in grid.Where(c => c.collapsed == false).ToArray())
+        {
+            Cell newCell = new Cell(true, cell.options, cell.index);
+            grid[newCell.index] = newCell;
+        } 
+   
+        for (int row = 0; row < height; row++)
+        {
+            for (int col = 0; col < width; col++)
             {
-                int y = 0;
+                Cell cell = grid[col + row * width];
+                if (cell.collapsed)
+                {
+                    int index = (int)cell.options[0];
+                    tilemapVisualizer.PaintSingleTile(tiles[index], new Vector2Int(col, row));
+                }
             }
-            RunWFC();
         }
     }
 
-    //private void Update()
-    //{
-    //    if (Input.GetMouseButtonDown(0))
-    //    {
-    //        RunWFC();
-    //    }
-    //}
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            RunWFC(out bool restart);
+        }
+    }
 
     private void SetUp()
     {
@@ -124,13 +141,18 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         leftOptions.Add(new List<Options>() { Options.UP, Options.DOWN, Options.RIGHT });
         rules.Add(Options.LEFT, leftOptions); //LEFT
 
+        //List<List<Options>> croixOptions = new List<List<Options>>();
+        //croixOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT, Options.DOWN, Options.BLANK });
+        //croixOptions.Add(new List<Options>() { Options.DOWN, Options.LEFT, Options.BLANK });
+        //croixOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT, Options.UP, Options.BLANK });
+        //croixOptions.Add(new List<Options>() { Options.UP, Options.DOWN, Options.RIGHT, Options.BLANK });
+        //rules.Add(Options.CROIX, croixOptions); //CROIX
+
         for (int row = 0; row < height; row++)
         {
             for (int col = 0; col < width; col++)
-            {
-               
-                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(col, row));
-                
+            {              
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(col, row));               
             }
         }
     }
@@ -140,14 +162,14 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         return x + (y * width);
     }
 
-    private void RunWFC()
+    private void RunWFC(out bool restart)
     {
+        restart = false;
         List<Cell> gridCopy = new List<Cell>(grid);
 
         gridCopy.RemoveAll(c => c.collapsed);
 
-        
-        if (gridCopy.Count == 0) return;
+        if (gridCopy.Count == 0) { restart = false; return; }
 
         gridCopy.Sort((s1, s2) => s1.options.Length.CompareTo(s2.options.Length));
 
@@ -172,14 +194,28 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         }
 
         Cell randomCell = gridCopy[0];
+        if(randomCell.options.Length<=0)
+        {
+            Debug.Log("Restart");
+            grid = new List<Cell>();
+
+            for (int i = 0; i < width * height; i++)
+            {
+                grid.Add(new Cell(false, new Options[] { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT }, i));
+            }
+            restart = true;
+            return;
+        }
+
         randomCell.collapsed = true;
         Options randomCellOp = randomCell.options[rng.Next(0,randomCell.options.Length)/*UnityEngine.Random.Range(0, randomCell.options.Length)*/];
+
         randomCell.SetOptions(new Options[] { randomCellOp });
 
         grid[randomCell.index] = randomCell;
 
         for (int row = 0; row < height; row++)
-            {
+        {
                 for (int col = 0; col < width; col++)
                 {
                     Cell cell = grid[col + row * width];
@@ -193,12 +229,12 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                     //    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(col, row));
                     //}
                 }
-            }
+        }
 
         List<Cell> nextGrid = new List<Cell>();
         for (int i = 0; i < width * height; i++)
         {
-            nextGrid.Add(new Cell(false, new Options[] { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT }, i));
+            nextGrid.Add(new Cell(false, new Options[] { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT}, i));
         }
 
  
@@ -207,83 +243,75 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             for (int j = 0; j < width; j++) 
             {                   
                 int index = MapXYtoIndex(j, i);
-                if(index==60)
-                {
-                    int h = 0;
-                }
+
                 if (grid[index].collapsed)
                 {
                     nextGrid[index] = grid[index];
                 }
                 else
+                {
+                    List<Options> o = new List<Options> { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT};
+
+                    //Look up
+                    if (i + 1 < height)
                     {
-                        List<Options> o = new List<Options> { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT };
-
-                        //Look up
-                        if (i + 1 < height)
+                        int a = MapXYtoIndex(j, i + 1);
+                        Cell up = grid[a];
+                        HashSet<Options> validOptions = new HashSet<Options>();
+                        foreach (var option in up.options)
                         {
-                            int a = MapXYtoIndex(j, i + 1);
-                            Cell up = grid[a];
-                            HashSet<Options> validOptions = new HashSet<Options>();
-                            foreach (var option in up.options)
-                            {
-                                List<Options> valid = rules[option][2];
-                                validOptions = validOptions.Concat(valid).ToHashSet();
-                            }
-
-                            checkValid(o, validOptions);
+                            List<Options> valid = rules[option][2];
+                            validOptions = validOptions.Concat(valid).ToHashSet();
                         }
+
+                        checkValid(o, validOptions);
+                    }
 
                     //Look right
                     if (j + 1 < width)
+                    {
+                        int a = MapXYtoIndex(j + 1, i);
+                        Cell right = grid[a];
+                        HashSet<Options> validOptions = new HashSet<Options>();
+                        foreach (var option in right.options)
                         {
-                            int a = MapXYtoIndex(j + 1, i);
-                            Cell right = grid[a];
-                            HashSet<Options> validOptions = new HashSet<Options>();
-                            foreach (var option in right.options)
-                            {
-                                List<Options> valid = rules[option][3];
-                                validOptions = validOptions.Concat(valid).ToHashSet();
-                            }
-                            checkValid(o, validOptions);
+                            List<Options> valid = rules[option][3];
+                            validOptions = validOptions.Concat(valid).ToHashSet();
                         }
+                        checkValid(o, validOptions);
+                    }
 
                     //Look down
                     if (i - 1 >= 0)
+                    {
+                        int a = MapXYtoIndex(j, i - 1);
+                        Cell down = grid[a];
+                        HashSet<Options> validOptions = new HashSet<Options>();
+                        foreach (var option in down.options)
                         {
-                            int a = MapXYtoIndex(j, i - 1);
-                            Cell down = grid[a];
-                            HashSet<Options> validOptions = new HashSet<Options>();
-                            foreach (var option in down.options)
-                            {
-                                List<Options> valid = rules[option][0];
-                                validOptions = validOptions.Concat(valid).ToHashSet();
-                            }
-                            checkValid(o, validOptions);
+                            List<Options> valid = rules[option][0];
+                            validOptions = validOptions.Concat(valid).ToHashSet();
                         }
+                        checkValid(o, validOptions);
+                    }
 
                     //Look left
                     if (j - 1 >= 0)
-                        {
-                            int a = MapXYtoIndex(j - 1, i);
-                            Cell left = grid[a];
-                            HashSet<Options> validOptions = new HashSet<Options>();
-                            foreach (var option in left.options)
-                            {
-                                List<Options> valid = rules[option][1];
-                                validOptions = validOptions.Concat(valid).ToHashSet();
-                            }
-                            checkValid(o, validOptions);
-                        }
-
-                    if(o.Count==0)
                     {
-                        int u = 0;
+                        int a = MapXYtoIndex(j - 1, i);
+                        Cell left = grid[a];
+                        HashSet<Options> validOptions = new HashSet<Options>();
+                        foreach (var option in left.options)
+                        {
+                            List<Options> valid = rules[option][1];
+                            validOptions = validOptions.Concat(valid).ToHashSet();
+                        }
+                        checkValid(o, validOptions);
                     }
 
-                        Cell nextCell = new Cell(false, o.ToArray(), index);
-                        nextGrid[index] = nextCell;
-                    }
+                    Cell nextCell = new Cell(false, o.ToArray(), index);
+                    nextGrid[index] = nextCell;
+                }
             }
         }
 
@@ -299,15 +327,5 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 o.RemoveAt(i);
             }
         }
-    }
-
-    private List<Cell> Splice(List<Cell> source, int start, int size)
-    {
-        var items = source.Skip(start).Take(size).ToList<Cell>();
-        if (source.Count >= size)
-            source.RemoveRange(start, size);
-        else
-            source.Clear();
-        return items;
     }
 }
