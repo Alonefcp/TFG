@@ -34,31 +34,49 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
     [SerializeField] private Tile[] tiles;
     [SerializeField] private int width = 5, height = 5;
+    [SerializeField] private bool useRandomSeed = true;
+    [SerializeField] private string seed;
     private List<Cell> grid;
     private Dictionary<Options, List<List<Options>>> rules;
+    private System.Random rng = null;
 
-    private void Start()
-    {
-        tilemapVisualizer.ClearTilemap();
+    //private void Start()
+    //{
+    //    tilemapVisualizer.ClearTilemap();
+    //    SetUp();
+    //    for (int i = 0; i < width*height; i++)
+    //    {           
+    //        RunWFC();
+    //    }
 
-        SetUp();
-    }
+    //}
 
     public override void GenerateDungeon()
     {
-        //tilemapVisualizer.ClearTilemap();
+        if (useRandomSeed) seed = Time.time.ToString();
+        rng = new System.Random(seed.GetHashCode());
 
-        //SetUp();
-        //RunWFC();
-    }
+        tilemapVisualizer.ClearTilemap();
 
-    private void Update()
-    {
-        if(Input.GetMouseButtonDown(0))
+        SetUp();
+        for (int i = 0; i < width * height; i++)
         {
+            Debug.Log(i);
+            if(i==96)
+            {
+                int y = 0;
+            }
             RunWFC();
         }
     }
+
+    //private void Update()
+    //{
+    //    if (Input.GetMouseButtonDown(0))
+    //    {
+    //        RunWFC();
+    //    }
+    //}
 
     private void SetUp()
     {
@@ -103,7 +121,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         leftOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT,Options.DOWN });
         leftOptions.Add(new List<Options>() { Options.BLANK, Options.RIGHT});
         leftOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT, Options.UP });
-        leftOptions.Add(new List<Options>() { Options.UP, Options.DOWN, Options.LEFT });
+        leftOptions.Add(new List<Options>() { Options.UP, Options.DOWN, Options.RIGHT });
         rules.Add(Options.LEFT, leftOptions); //LEFT
 
         for (int row = 0; row < height; row++)
@@ -127,6 +145,8 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         List<Cell> gridCopy = new List<Cell>(grid);
 
         gridCopy.RemoveAll(c => c.collapsed);
+
+        
         if (gridCopy.Count == 0) return;
 
         gridCopy.Sort((s1, s2) => s1.options.Length.CompareTo(s2.options.Length));
@@ -135,137 +155,139 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         int stopIndex = 0;
         for (int i = 1; i < gridCopy.Count; i++)
         {
-            if(gridCopy[i].options.Length >len)
+            if (gridCopy[i].options.Length > len)
             {
                 stopIndex = i;
                 break;
             }
         }
-        if(stopIndex>0)
+        if (stopIndex > 0)
         {
             for (int i = stopIndex; i < gridCopy.Count; i++)
             {
-                
+
                 gridCopy.Remove(gridCopy[i]);
-                
+
             }
         }
 
         Cell randomCell = gridCopy[0];
         randomCell.collapsed = true;
-        Options randomCellOp = randomCell.options[UnityEngine.Random.Range(0, randomCell.options.Length)];
+        Options randomCellOp = randomCell.options[rng.Next(0,randomCell.options.Length)/*UnityEngine.Random.Range(0, randomCell.options.Length)*/];
         randomCell.SetOptions(new Options[] { randomCellOp });
 
         grid[randomCell.index] = randomCell;
 
         for (int row = 0; row < height; row++)
-        {
-            for (int col = 0; col < width; col++)
             {
-                Cell cell = grid[col + row * width];
-                if(cell.collapsed)
+                for (int col = 0; col < width; col++)
                 {
-                    int index = (int)cell.options[0];
-                    tilemapVisualizer.PaintSingleTile(tiles[index], new Vector2Int(col, row));
+                    Cell cell = grid[col + row * width];
+                    if (cell.collapsed)
+                    {
+                        int index = (int)cell.options[0];
+                        tilemapVisualizer.PaintSingleTile(tiles[index], new Vector2Int(col, row));
+                    }
+                    //else
+                    //{
+                    //    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(col, row));
+                    //}
                 }
-                //else
-                //{
-                //    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(col, row));
-                //}
             }
-        }
 
         List<Cell> nextGrid = new List<Cell>();
         for (int i = 0; i < width * height; i++)
         {
-            nextGrid.Add(new Cell(false, new Options[] { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT },i));
+            nextGrid.Add(new Cell(false, new Options[] { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT }, i));
         }
 
-
-        for (int i = 0; i < height; i++) //i
+ 
+        for (int i = 0; i < height; i++) 
         {
-            for (int j = 0; j < width; j++) //j
-            {
-                int index = MapXYtoIndex(j, i);//j + i * width;
-
+            for (int j = 0; j < width; j++) 
+            {                   
+                int index = MapXYtoIndex(j, i);
+                if(index==60)
+                {
+                    int h = 0;
+                }
                 if (grid[index].collapsed)
                 {
                     nextGrid[index] = grid[index];
                 }
                 else
-                {
-                    List<Options> o = new List<Options> { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT };
-
-                    //Look up
-                    if (i+1 < height)
                     {
-                        int a = MapXYtoIndex(j, i + 1);
-                        Cell up = grid[a];
-                        HashSet<Options> validOptions = new HashSet<Options>();
-                        foreach (var option in up.options)
-                        {
-                            List<Options> valid = rules[option][2];
-                            validOptions = validOptions.Concat(valid).ToHashSet();
-                        }
+                        List<Options> o = new List<Options> { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT };
 
-                        checkValid(o, validOptions);
-                    }
+                        //Look up
+                        if (i + 1 < height)
+                        {
+                            int a = MapXYtoIndex(j, i + 1);
+                            Cell up = grid[a];
+                            HashSet<Options> validOptions = new HashSet<Options>();
+                            foreach (var option in up.options)
+                            {
+                                List<Options> valid = rules[option][2];
+                                validOptions = validOptions.Concat(valid).ToHashSet();
+                            }
+
+                            checkValid(o, validOptions);
+                        }
 
                     //Look right
-                    if (j+1 < width)
-                    {
-                        int a = MapXYtoIndex(j+1, i);
-                        Cell right = grid[a];
-                        HashSet<Options> validOptions = new HashSet<Options>();
-                        foreach (var option in right.options)
+                    if (j + 1 < width)
                         {
-                            List<Options> valid = rules[option][3];
-                            validOptions = validOptions.Concat(valid).ToHashSet();
+                            int a = MapXYtoIndex(j + 1, i);
+                            Cell right = grid[a];
+                            HashSet<Options> validOptions = new HashSet<Options>();
+                            foreach (var option in right.options)
+                            {
+                                List<Options> valid = rules[option][3];
+                                validOptions = validOptions.Concat(valid).ToHashSet();
+                            }
+                            checkValid(o, validOptions);
                         }
-                        checkValid(o, validOptions);
-                    }
 
                     //Look down
-                    if (i -1>=0)
-                    {
-                        int a = MapXYtoIndex(j, i-1);
-                        Cell down = grid[a];
-                        HashSet<Options> validOptions = new HashSet<Options>();
-                        foreach (var option in down.options)
+                    if (i - 1 >= 0)
                         {
-                            List<Options> valid = rules[option][0];
-                            validOptions = validOptions.Concat(valid).ToHashSet();
+                            int a = MapXYtoIndex(j, i - 1);
+                            Cell down = grid[a];
+                            HashSet<Options> validOptions = new HashSet<Options>();
+                            foreach (var option in down.options)
+                            {
+                                List<Options> valid = rules[option][0];
+                                validOptions = validOptions.Concat(valid).ToHashSet();
+                            }
+                            checkValid(o, validOptions);
                         }
-                        checkValid(o, validOptions);
-                    }
 
                     //Look left
-                    if (j - 1>= 0)
-                    {
-                        int a = MapXYtoIndex(j - 1, i);
-                        Cell left = grid[a];
-                        HashSet<Options> validOptions = new HashSet<Options>();
-                        foreach (var option in left.options)
+                    if (j - 1 >= 0)
                         {
-                            List<Options> valid = rules[option][1];
-                            validOptions = validOptions.Concat(valid).ToHashSet();
+                            int a = MapXYtoIndex(j - 1, i);
+                            Cell left = grid[a];
+                            HashSet<Options> validOptions = new HashSet<Options>();
+                            foreach (var option in left.options)
+                            {
+                                List<Options> valid = rules[option][1];
+                                validOptions = validOptions.Concat(valid).ToHashSet();
+                            }
+                            checkValid(o, validOptions);
                         }
-                        checkValid(o, validOptions);
-                    }
 
                     if(o.Count==0)
                     {
-                        Debug.Log("cac");
+                        int u = 0;
                     }
 
-                    Cell nextCell = new Cell(false,o.ToArray(),index);
-                    nextGrid[index] = nextCell;
-                }
+                        Cell nextCell = new Cell(false, o.ToArray(), index);
+                        nextGrid[index] = nextCell;
+                    }
             }
         }
 
         grid = nextGrid;
-
     }
 
     private void checkValid(List<Options> o, HashSet<Options> valid)
