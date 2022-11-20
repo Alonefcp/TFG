@@ -7,21 +7,24 @@ using UnityEngine.Tilemaps;
 
 public class WaveFunctionCollapseAlgorithm : DungeonGenerator 
 {
-    enum Options { BLANK=0,UP=1,RIGHT=2, DOWN=3, LEFT=4/*, CROIX=5*/}
     struct Cell 
     {
         public bool collapsed;
-        public Options[] options;
+        public int[] options;
         public int index;
 
-        public Cell(bool _collapsed, Options[] op, int _index)
+        public Cell(bool _collapsed, int _index,int num)
         {
             collapsed = _collapsed;
-            options = op;
             index = _index;
+            options = new int[num];
+            for (int i = 0; i < num; i++)
+            {
+                options[i] = i;
+            }
         }
 
-        public void SetOptions(Options[] op)
+        public void SetOptions(int[] op)
         {
             options = op;
         }
@@ -32,26 +35,26 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         }
     }
 
-    [SerializeField] private Tile[] tiles;
+    [SerializeField] private Tile[] tileImages;
     [SerializeField] private int width = 5, height = 5;
     [SerializeField] private bool useRandomSeed = true;
     [SerializeField] private string seed;
     private List<Cell> grid;
-    private Dictionary<Options, List<List<Options>>> rules;
     private System.Random rng = null;
+    private List<WFCTile> tiles;
 
-    private void Start()
-    {
-        if (useRandomSeed) seed = Time.time.ToString();
-        rng = new System.Random(seed.GetHashCode());
-        tilemapVisualizer.ClearTilemap();
-        SetUp();
-        for (int i = 0; i < width * height; i++)
-        {
-            RunWFC(out bool restart);
-        }
+    //private void Start()
+    //{
+    //    if (useRandomSeed) seed = Time.time.ToString();
+    //    rng = new System.Random(seed.GetHashCode());
+    //    tilemapVisualizer.ClearTilemap();
+    //    SetUp();
+    //    for (int i = 0; i < width * height; i++)
+    //    {
+    //        RunWFC(out bool restart);
+    //    }
 
-    }
+    //}
 
     public override void GenerateDungeon()
     {
@@ -69,7 +72,8 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
         foreach (Cell cell in grid.Where(c => c.collapsed == false).ToArray())
         {
-            Cell newCell = new Cell(true, cell.options, cell.index);
+            Cell newCell = new Cell(true,cell.index,tiles.Count);
+            newCell.SetOptions(cell.options);
             grid[newCell.index] = newCell;
         } 
    
@@ -81,72 +85,39 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 if (cell.collapsed)
                 {
                     int index = (int)cell.options[0];
-                    tilemapVisualizer.PaintSingleTile(tiles[index], new Vector2Int(col, row));
+                    tilemapVisualizer.PaintSingleTile(tiles[index].image, new Vector2Int(col, row));
                 }
             }
         }
     }
 
-    private void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            RunWFC(out bool restart);
-        }
-    }
+    //private void Update()
+    //{
+    //    if (Input.GetMouseButtonDown(0))
+    //    {
+    //        RunWFC(out bool restart);
+    //    }
+    //}
 
     private void SetUp()
     {
-        grid = new List<Cell>();
-
-        for (int i = 0; i < width*height; i++)
+        tiles = new List<WFCTile>();
+        tiles.Add(new WFCTile(tileImages[0], new List<int> { 0, 0, 0, 0 }));
+        tiles.Add(new WFCTile(tileImages[1], new List<int> { 1, 1, 0, 1 }));
+        tiles.Add(new WFCTile(tileImages[2], new List<int> { 1, 1, 1, 0 }));
+        tiles.Add(new WFCTile(tileImages[3], new List<int> { 0, 1, 1, 1 }));
+        tiles.Add(new WFCTile(tileImages[4], new List<int> { 1, 0, 1, 1 }));
+    
+        for (int i = 0; i < tiles.Count; i++)
         {
-            grid.Add(new Cell(false, new Options[] { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT },i));
+            tiles[i].Analyze(tiles);
         }
 
-        rules = new Dictionary<Options, List<List<Options>>>();
-
-        List<List<Options>> blankOptions = new List<List<Options>>();
-        blankOptions.Add(new List<Options>() { Options.BLANK, Options.UP });        //Up  0
-        blankOptions.Add(new List<Options>() { Options.BLANK, Options.RIGHT });     //Right  1
-        blankOptions.Add(new List<Options>() { Options.BLANK, Options.DOWN});       //Down  2
-        blankOptions.Add(new List<Options>() { Options.BLANK, Options.LEFT });      //Left  3
-        rules.Add(Options.BLANK, blankOptions);//BLANK
-
-        List<List<Options>> upOptions = new List<List<Options>>();
-        upOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT,Options.DOWN });
-        upOptions.Add(new List<Options>() { Options.LEFT, Options.UP,Options.DOWN });
-        upOptions.Add(new List<Options>() { Options.BLANK, Options.DOWN});
-        upOptions.Add(new List<Options>() { Options.RIGHT, Options.UP,Options.DOWN });
-        rules.Add(Options.UP,upOptions); //UP
-
-        List<List<Options>> rightOptions = new List<List<Options>>();
-        rightOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT, Options.DOWN });
-        rightOptions.Add(new List<Options>() { Options.LEFT, Options.UP, Options.DOWN });
-        rightOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT, Options.UP });
-        rightOptions.Add(new List<Options>() { Options.BLANK, Options.LEFT });
-        rules.Add(Options.RIGHT, rightOptions); //RIGHT
-
-        List<List<Options>> downOptions = new List<List<Options>>();
-        downOptions.Add(new List<Options>() { Options.BLANK, Options.UP });
-        downOptions.Add(new List<Options>() { Options.LEFT, Options.UP, Options.DOWN });
-        downOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT, Options.UP });
-        downOptions.Add(new List<Options>() { Options.RIGHT, Options.UP, Options.DOWN });
-        rules.Add(Options.DOWN, downOptions); //DOWN
-
-        List<List<Options>> leftOptions = new List<List<Options>>();
-        leftOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT,Options.DOWN });
-        leftOptions.Add(new List<Options>() { Options.BLANK, Options.RIGHT});
-        leftOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT, Options.UP });
-        leftOptions.Add(new List<Options>() { Options.UP, Options.DOWN, Options.RIGHT });
-        rules.Add(Options.LEFT, leftOptions); //LEFT
-
-        //List<List<Options>> croixOptions = new List<List<Options>>();
-        //croixOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT, Options.DOWN, Options.BLANK });
-        //croixOptions.Add(new List<Options>() { Options.DOWN, Options.LEFT, Options.BLANK });
-        //croixOptions.Add(new List<Options>() { Options.RIGHT, Options.LEFT, Options.UP, Options.BLANK });
-        //croixOptions.Add(new List<Options>() { Options.UP, Options.DOWN, Options.RIGHT, Options.BLANK });
-        //rules.Add(Options.CROIX, croixOptions); //CROIX
+        grid = new List<Cell>();
+        for (int i = 0; i < width*height; i++)
+        {
+            grid.Add(new Cell(false,i,tiles.Count));
+        }
 
         for (int row = 0; row < height; row++)
         {
@@ -155,11 +126,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(col, row));               
             }
         }
-    }
-
-    private int MapXYtoIndex(int x, int y)
-    {
-        return x + (y * width);
     }
 
     private void RunWFC(out bool restart)
@@ -187,9 +153,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         {
             for (int i = stopIndex; i < gridCopy.Count; i++)
             {
-
                 gridCopy.Remove(gridCopy[i]);
-
             }
         }
 
@@ -201,43 +165,36 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
             for (int i = 0; i < width * height; i++)
             {
-                grid.Add(new Cell(false, new Options[] { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT }, i));
+                grid.Add(new Cell(false,i,tiles.Count));
             }
             restart = true;
             return;
         }
 
         randomCell.collapsed = true;
-        Options randomCellOp = randomCell.options[rng.Next(0,randomCell.options.Length)/*UnityEngine.Random.Range(0, randomCell.options.Length)*/];
-
-        randomCell.SetOptions(new Options[] { randomCellOp });
-
+        int randomCellOp = randomCell.options[rng.Next(0,randomCell.options.Length)];
+        randomCell.SetOptions(new int[] { randomCellOp });
         grid[randomCell.index] = randomCell;
 
         for (int row = 0; row < height; row++)
         {
-                for (int col = 0; col < width; col++)
+            for (int col = 0; col < width; col++)
+            {
+                Cell cell = grid[col + row * width];
+                if (cell.collapsed)
                 {
-                    Cell cell = grid[col + row * width];
-                    if (cell.collapsed)
-                    {
-                        int index = (int)cell.options[0];
-                        tilemapVisualizer.PaintSingleTile(tiles[index], new Vector2Int(col, row));
-                    }
-                    //else
-                    //{
-                    //    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(col, row));
-                    //}
+                    int index = (int)cell.options[0];
+                    tilemapVisualizer.PaintSingleTile(tiles[index].image, new Vector2Int(col, row));
                 }
+            }
         }
 
         List<Cell> nextGrid = new List<Cell>();
         for (int i = 0; i < width * height; i++)
         {
-            nextGrid.Add(new Cell(false, new Options[] { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT}, i));
+            nextGrid.Add(new Cell(false,i,tiles.Count));
         }
 
- 
         for (int i = 0; i < height; i++) 
         {
             for (int j = 0; j < width; j++) 
@@ -250,66 +207,63 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 }
                 else
                 {
-                    List<Options> o = new List<Options> { Options.BLANK, Options.UP, Options.RIGHT, Options.DOWN, Options.LEFT};
+                    List<int> options = new List<int> { 0, 1, 2, 3, 4};
 
                     //Look up
                     if (i + 1 < height)
                     {
-                        int a = MapXYtoIndex(j, i + 1);
-                        Cell up = grid[a];
-                        HashSet<Options> validOptions = new HashSet<Options>();
+                        Cell up = grid[MapXYtoIndex(j, i + 1)];
+                        HashSet<int> validOptions = new HashSet<int>();
                         foreach (var option in up.options)
                         {
-                            List<Options> valid = rules[option][2];
+                            List<int> valid = tiles[option].down;
                             validOptions = validOptions.Concat(valid).ToHashSet();
                         }
 
-                        checkValid(o, validOptions);
+                        CheckValid(options, validOptions);
                     }
 
                     //Look right
                     if (j + 1 < width)
-                    {
-                        int a = MapXYtoIndex(j + 1, i);
-                        Cell right = grid[a];
-                        HashSet<Options> validOptions = new HashSet<Options>();
+                    {   
+                        Cell right = grid[MapXYtoIndex(j + 1, i)];
+                        HashSet<int> validOptions = new HashSet<int>();
                         foreach (var option in right.options)
                         {
-                            List<Options> valid = rules[option][3];
+                            List<int> valid = tiles[option].left;
                             validOptions = validOptions.Concat(valid).ToHashSet();
                         }
-                        checkValid(o, validOptions);
+                        CheckValid(options, validOptions);
                     }
 
                     //Look down
                     if (i - 1 >= 0)
                     {
-                        int a = MapXYtoIndex(j, i - 1);
-                        Cell down = grid[a];
-                        HashSet<Options> validOptions = new HashSet<Options>();
+                        Cell down = grid[MapXYtoIndex(j, i - 1)];
+                        HashSet<int> validOptions = new HashSet<int>();
                         foreach (var option in down.options)
                         {
-                            List<Options> valid = rules[option][0];
+                            List<int> valid = tiles[option].up;
                             validOptions = validOptions.Concat(valid).ToHashSet();
                         }
-                        checkValid(o, validOptions);
+                        CheckValid(options, validOptions);
                     }
 
                     //Look left
                     if (j - 1 >= 0)
                     {
-                        int a = MapXYtoIndex(j - 1, i);
-                        Cell left = grid[a];
-                        HashSet<Options> validOptions = new HashSet<Options>();
+                        Cell left = grid[MapXYtoIndex(j - 1, i)];
+                        HashSet<int> validOptions = new HashSet<int>();
                         foreach (var option in left.options)
                         {
-                            List<Options> valid = rules[option][1];
+                            List<int> valid = tiles[option].right;
                             validOptions = validOptions.Concat(valid).ToHashSet();
                         }
-                        checkValid(o, validOptions);
+                        CheckValid(options, validOptions);
                     }
 
-                    Cell nextCell = new Cell(false, o.ToArray(), index);
+                    Cell nextCell = new Cell(false, index,tiles.Count);
+                    nextCell.SetOptions(options.ToArray());
                     nextGrid[index] = nextCell;
                 }
             }
@@ -318,13 +272,18 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         grid = nextGrid;
     }
 
-    private void checkValid(List<Options> o, HashSet<Options> valid)
+    private int MapXYtoIndex(int x, int y)
     {
-        for (int i = o.Count-1; i >= 0; i--)
+        return x + (y * width);
+    }
+
+    private void CheckValid(List<int> options, HashSet<int> valid)
+    {
+        for (int i = options.Count-1; i >= 0; i--)
         {
-            if(!valid.Contains(o[i]))
+            if(!valid.Contains(options[i]))
             {
-                o.RemoveAt(i);
+                options.RemoveAt(i);
             }
         }
     }
