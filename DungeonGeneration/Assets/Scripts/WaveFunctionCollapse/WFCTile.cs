@@ -23,7 +23,7 @@ public class WFCTile
         right = new List<int>();
     }
 
-    public void Analyze(List<WFCTile> tiles)
+    public void SetNeighbours(List<WFCTile> tiles)
     {
         for (int i = 0; i < tiles.Count; i++)
         {

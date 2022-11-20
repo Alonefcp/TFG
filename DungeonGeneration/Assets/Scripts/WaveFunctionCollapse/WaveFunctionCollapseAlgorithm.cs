@@ -35,11 +35,12 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         }
     }
 
-    [SerializeField] private Tile[] tileImages;
+    [SerializeField] private Sprite[] sprites;
     [SerializeField] private int width = 5, height = 5;
     [SerializeField] private bool useRandomSeed = true;
     [SerializeField] private string seed;
     private List<Cell> grid;
+    private Tile[] tileImages;
     private System.Random rng = null;
     private List<WFCTile> tiles;
 
@@ -101,6 +102,13 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
     private void SetUp()
     {
+        tileImages = new Tile[sprites.Length];
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            tileImages[i] = ScriptableObject.CreateInstance<Tile>();
+            tileImages[i].sprite = sprites[i];
+        }
+
         tiles = new List<WFCTile>();
         tiles.Add(new WFCTile(tileImages[0], new List<int> { 0, 0, 0, 0 }));
         tiles.Add(new WFCTile(tileImages[1], new List<int> { 1, 1, 0, 1 }));
@@ -110,7 +118,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     
         for (int i = 0; i < tiles.Count; i++)
         {
-            tiles[i].Analyze(tiles);
+            tiles[i].SetNeighbours(tiles);
         }
 
         grid = new List<Cell>();
