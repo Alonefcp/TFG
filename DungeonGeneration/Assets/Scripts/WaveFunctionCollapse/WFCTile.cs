@@ -6,14 +6,14 @@ using UnityEngine.Tilemaps;
 
 public class WFCTile
 {
-    public Tile image;      // 0    1     2     3
-    public List<int> edges; //{up, right, down, left}
+    public Tile image;          
+    public List<string> edges; //{up(0), right(1), down(2), left(3)}
     public List<int> up; 
     public List<int> down; 
     public List<int> left; 
     public List<int> right; 
 
-    public WFCTile(Texture2D img, List<int> edges)
+    public WFCTile(Texture2D img, List<string> edges)
     {
         Sprite sprite = Sprite.Create(img, new Rect(0, 0, img.width, img.height), new Vector2(0.5f, 0.5f), img.width);
         Tile tile = ScriptableObject.CreateInstance<Tile>();
@@ -34,22 +34,26 @@ public class WFCTile
         {
             WFCTile tile = tiles[i];
 
-            if(tile.edges[2] == edges[0])
+            //UP
+            if(CompareEdges(tile.edges[2],edges[0]))
             {
                 up.Add(i);
             }
 
-            if (tile.edges[3] == edges[1])
+            //RIGHT
+            if (CompareEdges(tile.edges[3],edges[1]))
             {
                 right.Add(i);
             }
 
-            if (tile.edges[0] == edges[2])
+            //DOWN
+            if (CompareEdges(tile.edges[0], edges[2]))
             {
                 down.Add(i);
             }
 
-            if (tile.edges[1] == edges[3])
+            //LEFT
+            if (CompareEdges(tile.edges[1], edges[3]))
             {
                 left.Add(i);
             }
@@ -60,7 +64,7 @@ public class WFCTile
     {
         Texture2D newTexture = RotateTexture(texture);
         
-        List<int> newEdges = new List<int>();
+        List<string> newEdges = new List<string>();
 
         int len = edges.Count;
 
@@ -70,6 +74,18 @@ public class WFCTile
         }
 
         return new WFCTile(newTexture, newEdges);
+    }
+
+    private bool CompareEdges(string a, string b)
+    {
+        return a == Reverse(b);
+    }
+
+    private string Reverse(string s)
+    {
+        char[] charArray = s.ToCharArray();
+        Array.Reverse(charArray);
+        return new string(charArray);
     }
 
     private Texture2D RotateTexture(Texture2D originalTexture, bool clockwise = true)

@@ -11,39 +11,48 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     struct Cell 
     {
         public bool collapsed;
-        public int[] options;
+        public List<int> options;
         public int index;
 
         public Cell(bool _collapsed, int _index,int num)
         {
             collapsed = _collapsed;
             index = _index;
-            options = new int[num];
+            options = new List<int>();
             for (int i = 0; i < num; i++)
             {
-                options[i] = i;
+                options.Add(i);
             }
         }
 
-        public void SetOptions(int[] op)
+        public void SetOptions(List<int> newOptions)
         {
-            options = op;
+            options = newOptions;
         }
 
-        public void SetCollapsed(bool b)
+        public void SetCollapsed(bool isCollapsed)
         {
-            collapsed = b;
+            collapsed = isCollapsed;
         }
+    }
+
+    [Serializable]
+    struct TileInfo
+    {
+        public int nRotations;
+        public List<string> edges;
     }
 
     [SerializeField] private string path;
     [SerializeField] private int width = 5, height = 5;
     [SerializeField] private bool useRandomSeed = true;
     [SerializeField] private string seed;
+    [SerializeField] private TileInfo[] tileInfos;
     private List<Cell> grid;
     private Texture2D[] images;
     private System.Random rng = null;
     private List<WFCTile> tiles;
+    private List<int> options;
 
     //private void Start()
     //{
@@ -85,15 +94,13 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         for (int i = 0; i < width * height; i++)
         {
             RunWFC(out bool restart);
-            if (restart) { tilemapVisualizer.ClearTilemap(); i = 0; }
+            if (restart) 
+            { 
+                tilemapVisualizer.ClearTilemap(); 
+                i = -1; 
+            }
         }
 
-        foreach (Cell cell in grid.Where(c => c.collapsed == false).ToArray())
-        {
-            Cell newCell = new Cell(true, cell.index, tiles.Count);
-            newCell.SetOptions(cell.options);
-            grid[newCell.index] = newCell;
-        }
         for (int row = 0; row < height; row++)
         {
             for (int col = 0; col < width; col++)
@@ -133,49 +140,36 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
     private void SetUp()
     {       
-        CreateTilesFromPath();
+        CreateTilesFromPath();      
 
         tiles = new List<WFCTile>();
-        #region Room tiles
-        //Room tiles
-        //tiles.Add(new WFCTile(images[0], new List<int> { 0, 0, 0, 0 }));
-        //tiles.Add(new WFCTile(images[1], new List<int> { 1, 1, 1, 1 }));
-        ////tiles.Add(new WFCTile(images[2], new List<int> { 2, 2, 0, 0 }));
-        //tiles.Add(new WFCTile(images[3], new List<int> { 0, 1, 0, 1 }));
-        ////tiles.Add(new WFCTile(images[4], new List<int> { 0, 2, 2, 2 }));
-        ////tiles.Add(new WFCTile(images[5], new List<int> { 1, 0, 0, 0 }));
-        //tiles.Add(new WFCTile(images[6], new List<int> { 1, 0, 0, 0 }));
-        ////tiles.Add(new WFCTile(images[7], new List<int> { 2, 2, 1, 1 }));
 
-        //for (int j = 2; j < 11; j++)
-        //{
-        //    Texture2D baseTexture = tiles[j].image.sprite.texture;
-        //    for (int i = 1; i < 4; i++)
-        //    {
-        //        WFCTile wFCTile = tiles[j].RotateTile(baseTexture, i);
-        //        tiles.Add(wFCTile);
-
-        //        baseTexture = wFCTile.image.sprite.texture;
-        //    }
-        //}
-        #endregion
-        //circuit tiles
-        tiles.Add(new WFCTile(images[0], new List<int> { 0, 0, 0, 0 }));
-        tiles.Add(new WFCTile(images[1], new List<int> { 1, 1, 1, 1 }));
-        tiles.Add(new WFCTile(images[2], new List<int> { 1, 2, 1, 1 }));
-        tiles.Add(new WFCTile(images[3], new List<int> { 1, 3, 1, 3 }));
-        tiles.Add(new WFCTile(images[4], new List<int> { 1, 2, 1, 2 }));
-        tiles.Add(new WFCTile(images[5], new List<int> { 3, 2, 3, 2 }));
-        tiles.Add(new WFCTile(images[6], new List<int> { 3, 1, 2, 1 }));
-        tiles.Add(new WFCTile(images[7], new List<int> { 2, 2, 1, 2 }));
-        tiles.Add(new WFCTile(images[8], new List<int> { 2, 2, 2, 2 }));
-        tiles.Add(new WFCTile(images[9], new List<int> { 2, 2, 1, 1 }));
-        tiles.Add(new WFCTile(images[10], new List<int> { 1, 2, 1, 2 }));
-
-        for (int j = 2; j < 11; j++)
+        for (int i = 0; i < images.Length; i++)
         {
+            tiles.Add(new WFCTile(images[i], tileInfos[i].edges));
+        }
+        //circuit tiles
+        //tiles.Add(new WFCTile(images[0], new List<string> { "AAA", "AAA", "AAA", "AAA" }));
+        //tiles.Add(new WFCTile(images[1], new List<string> { "BBB", "BBB", "BBB", "BBB" }));
+        //tiles.Add(new WFCTile(images[2], new List<string> { "BBB", "BCB", "BBB", "BBB" }));
+        //tiles.Add(new WFCTile(images[3], new List<string> { "BBB", "BDB", "BBB", "BDB" }));
+        //tiles.Add(new WFCTile(images[4], new List<string> { "ABB", "BCB", "BBA", "AAA" }));
+        //tiles.Add(new WFCTile(images[5], new List<string> { "ABB", "BBB", "BBB", "BBA" }));
+        //tiles.Add(new WFCTile(images[6], new List<string> { "BBB", "BCB", "BBB", "BCB" }));
+        //tiles.Add(new WFCTile(images[7], new List<string> { "BDB", "BCB", "BDB", "BCB" }));
+        //tiles.Add(new WFCTile(images[8], new List<string> { "BDB", "BBB", "BCB", "BBB" }));
+        //tiles.Add(new WFCTile(images[9], new List<string> { "BCB", "BCB", "BBB", "BCB" }));
+        //tiles.Add(new WFCTile(images[10], new List<string> { "BCB", "BCB", "BCB", "BCB" }));
+        //tiles.Add(new WFCTile(images[11], new List<string> { "BCB", "BCB", "BBB", "BBB" }));
+        //tiles.Add(new WFCTile(images[12], new List<string> { "BBB", "BCB", "BBB", "BCB" }));
+
+        //Create rotations
+        for (int j = 0; j < images.Length; j++)
+        {
+            if (tileInfos[j].nRotations <= 0) continue;
+
             Texture2D baseTexture = tiles[j].image.sprite.texture;
-            for (int i = 1; i < 4; i++)
+            for (int i = 1; i <= tileInfos[j].nRotations; i++)
             {
                 WFCTile wFCTile = tiles[j].RotateTile(baseTexture, i);
                 tiles.Add(wFCTile);
@@ -184,25 +178,16 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             }
         }
 
+        options = new List<int>();
+        for (int k = 0; k < tiles.Count; k++) options.Add(k);
+
         //int pos = 0;
         //foreach (WFCTile tile in tiles)
         //{
         //    tilemapVisualizer.PaintSingleTile(tile.image, new Vector2Int(pos, 0));
         //    pos++;
         //}
-        #region Example tiles
-        //example tiles
-        //tiles.Add(new WFCTile(images[0], new List<int> { 0, 0, 0, 0 }));
-        //tiles.Add(new WFCTile(images[1], new List<int> { 1, 1, 0, 1 }));
-        //Texture2D baseTexture = tiles[1].image.sprite.texture;
-        //for (int i = 1; i < 4; i++)
-        //{
-        //    WFCTile wFCTile = tiles[1].RotateTile(baseTexture, i);
-        //    tiles.Add(wFCTile);
-
-        //    baseTexture = wFCTile.image.sprite.texture;
-        //}
-        #endregion
+ 
 
         for (int i = 0; i < tiles.Count; i++)
         {
@@ -214,14 +199,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         {
             grid.Add(new Cell(false,i,tiles.Count));
         }
-
-        //for (int row = 0; row < height; row++)
-        //{
-        //    for (int col = 0; col < width; col++)
-        //    {              
-        //        tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(col, row));               
-        //    }
-        //}
     }
 
     private void RunWFC(out bool restart)
@@ -231,15 +208,18 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
         gridCopy.RemoveAll(c => c.collapsed);
 
-        if (gridCopy.Count == 0) { restart = false; return; }
+        if (gridCopy.Count == 0) 
+        {
+            restart = false; return; 
+        }
 
-        gridCopy.Sort((s1, s2) => s1.options.Length.CompareTo(s2.options.Length));
+        gridCopy.Sort((s1, s2) => s1.options.Count.CompareTo(s2.options.Count));
 
-        int len = gridCopy[0].options.Length;
+        int len = gridCopy[0].options.Count;
         int stopIndex = 0;
         for (int i = 1; i < gridCopy.Count; i++)
         {
-            if (gridCopy[i].options.Length > len)
+            if (gridCopy[i].options.Count > len)
             {
                 stopIndex = i;
                 break;
@@ -254,7 +234,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         }
 
         Cell randomCell = gridCopy[0]/*gridCopy[rng.Next(0, gridCopy.Count)]*/;
-        if(randomCell.options.Length<=0)
+        if (randomCell.options.Count<=0)
         {
             Debug.Log("Restart");
             grid = new List<Cell>();
@@ -268,22 +248,22 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         }
 
         randomCell.collapsed = true;
-        int randomCellOp = randomCell.options[rng.Next(0,randomCell.options.Length)];
-        randomCell.SetOptions(new int[] { randomCellOp });
+        int randomCellOp = randomCell.options[rng.Next(0,randomCell.options.Count)];
+        randomCell.SetOptions(new List<int>() { randomCellOp });
         grid[randomCell.index] = randomCell;
 
-        for (int row = 0; row < height; row++)
-        {
-            for (int col = 0; col < width; col++)
-            {
-                Cell cell = grid[col + row * width];
-                if (cell.collapsed)
-                {
-                    int index = cell.options[0];
-                    tilemapVisualizer.PaintSingleTile(tiles[index].image, new Vector2Int(col, row));
-                }
-            }
-        }
+        //for (int row = 0; row < height; row++)
+        //{
+        //    for (int col = 0; col < width; col++)
+        //    {
+        //        Cell cell = grid[col + row * width];
+        //        if (cell.collapsed)
+        //        {
+        //            int index = cell.options[0];
+        //            tilemapVisualizer.PaintSingleTile(tiles[index].image, new Vector2Int(col, row));
+        //        }
+        //    }
+        //}
 
         List<Cell> nextGrid = new List<Cell>();
         for (int i = 0; i < width * height; i++)
@@ -303,10 +283,8 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 }
                 else
                 {
-                    List<int> options = new List<int>();
-                    for (int k = 0; k < tiles.Count; k++)options.Add(k);
-
-
+                    List<int> availableOptions = new List<int>(options); 
+                    
                     //Look up
                     if (i + 1 < height)
                     {
@@ -318,7 +296,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                             validOptions = validOptions.Concat(valid).ToHashSet();
                         }
 
-                        CheckValid(options, validOptions);
+                        CheckValid(availableOptions, validOptions);
                     }
 
                     //Look right
@@ -331,7 +309,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                             List<int> valid = tiles[option].left;
                             validOptions = validOptions.Concat(valid).ToHashSet();
                         }
-                        CheckValid(options, validOptions);
+                        CheckValid(availableOptions, validOptions);
                     }
 
                     //Look down
@@ -344,7 +322,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                             List<int> valid = tiles[option].up;
                             validOptions = validOptions.Concat(valid).ToHashSet();
                         }
-                        CheckValid(options, validOptions);
+                        CheckValid(availableOptions, validOptions);
                     }
 
                     //Look left
@@ -357,11 +335,11 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                             List<int> valid = tiles[option].right;
                             validOptions = validOptions.Concat(valid).ToHashSet();
                         }
-                        CheckValid(options, validOptions);
+                        CheckValid(availableOptions, validOptions);
                     }
 
                     Cell nextCell = new Cell(false, index,tiles.Count);
-                    nextCell.SetOptions(options.ToArray());
+                    nextCell.SetOptions(availableOptions);
                     nextGrid[index] = nextCell;
                 }
             }
