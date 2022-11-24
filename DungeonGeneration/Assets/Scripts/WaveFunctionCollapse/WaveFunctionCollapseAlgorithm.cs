@@ -144,27 +144,14 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
         tiles = new List<WFCTile>();
 
-        for (int i = 0; i < images.Length; i++)
+        //Create tiles
+        for (int i = 0; i < tileInfos.Length; i++)
         {
             tiles.Add(new WFCTile(images[i], tileInfos[i].edges));
         }
-        //circuit tiles
-        //tiles.Add(new WFCTile(images[0], new List<string> { "AAA", "AAA", "AAA", "AAA" }));
-        //tiles.Add(new WFCTile(images[1], new List<string> { "BBB", "BBB", "BBB", "BBB" }));
-        //tiles.Add(new WFCTile(images[2], new List<string> { "BBB", "BCB", "BBB", "BBB" }));
-        //tiles.Add(new WFCTile(images[3], new List<string> { "BBB", "BDB", "BBB", "BDB" }));
-        //tiles.Add(new WFCTile(images[4], new List<string> { "ABB", "BCB", "BBA", "AAA" }));
-        //tiles.Add(new WFCTile(images[5], new List<string> { "ABB", "BBB", "BBB", "BBA" }));
-        //tiles.Add(new WFCTile(images[6], new List<string> { "BBB", "BCB", "BBB", "BCB" }));
-        //tiles.Add(new WFCTile(images[7], new List<string> { "BDB", "BCB", "BDB", "BCB" }));
-        //tiles.Add(new WFCTile(images[8], new List<string> { "BDB", "BBB", "BCB", "BBB" }));
-        //tiles.Add(new WFCTile(images[9], new List<string> { "BCB", "BCB", "BBB", "BCB" }));
-        //tiles.Add(new WFCTile(images[10], new List<string> { "BCB", "BCB", "BCB", "BCB" }));
-        //tiles.Add(new WFCTile(images[11], new List<string> { "BCB", "BCB", "BBB", "BBB" }));
-        //tiles.Add(new WFCTile(images[12], new List<string> { "BBB", "BCB", "BBB", "BCB" }));
 
         //Create rotations
-        for (int j = 0; j < images.Length; j++)
+        for (int j = 0; j < tileInfos.Length; j++)
         {
             if (tileInfos[j].nRotations <= 0) continue;
 
@@ -178,8 +165,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             }
         }
 
-        options = new List<int>();
-        for (int k = 0; k < tiles.Count; k++) options.Add(k);
 
         //int pos = 0;
         //foreach (WFCTile tile in tiles)
@@ -189,8 +174,10 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         //}
  
 
+        options = new List<int>();
         for (int i = 0; i < tiles.Count; i++)
-        {
+        { 
+            options.Add(i);
             tiles[i].SetNeighbours(tiles);
         }
 
