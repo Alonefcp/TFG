@@ -19,8 +19,7 @@ public class WFCTile
         Tile tile = ScriptableObject.CreateInstance<Tile>();
         tile.sprite = sprite;
         image = tile;
-
-       
+      
         this.edges = edges;
         up = new List<int>();
         down = new List<int>();

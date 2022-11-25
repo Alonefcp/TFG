@@ -4,38 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 public class WaveFunctionCollapseAlgorithm : DungeonGenerator 
 {
-    struct Cell 
-    {
-        public bool collapsed;
-        public List<int> options;
-        public int index;
-
-        public Cell(bool _collapsed, int _index,int num)
-        {
-            collapsed = _collapsed;
-            index = _index;
-            options = new List<int>();
-            for (int i = 0; i < num; i++)
-            {
-                options.Add(i);
-            }
-        }
-
-        public void SetOptions(List<int> newOptions)
-        {
-            options = newOptions;
-        }
-
-        public void SetCollapsed(bool isCollapsed)
-        {
-            collapsed = isCollapsed;
-        }
-    }
-
     [Serializable]
     struct TileInfo
     {
@@ -48,12 +19,12 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     [SerializeField] private bool useRandomSeed = true;
     [SerializeField] private string seed;
     [SerializeField] private TileInfo[] tileInfos;
-    private List<Cell> grid;
+    private List<WFCCell> grid;
     private Texture2D[] images;
     private System.Random rng = null;
     private List<WFCTile> tiles;
     private List<int> options;
-
+    private bool firstTime = true;
     //private void Start()
     //{
     //    if (useRandomSeed) seed = Time.time.ToString();
@@ -105,7 +76,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         {
             for (int col = 0; col < width; col++)
             {
-                Cell cell = grid[col + row * width];
+                WFCCell cell = grid[col + row * width];
                 if (cell.collapsed)
                 {
                     int index = cell.options[0];
@@ -173,7 +144,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         //    pos++;
         //}
  
-
         options = new List<int>();
         for (int i = 0; i < tiles.Count; i++)
         { 
@@ -181,19 +151,19 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             tiles[i].SetNeighbours(tiles);
         }
 
-        grid = new List<Cell>();
+        grid = new List<WFCCell>();
         for (int i = 0; i < width*height; i++)
         {
-            grid.Add(new Cell(false,i,tiles.Count));
+            grid.Add(new WFCCell(false,i,tiles.Count));
         }
     }
 
     private void RunWFC(out bool restart)
     {
         restart = false;
-        List<Cell> gridCopy = new List<Cell>(grid);
+        List<WFCCell> gridCopy = new List<WFCCell>(grid);
 
-        gridCopy.RemoveAll(c => c.collapsed);
+        gridCopy.RemoveAll(cell => cell.collapsed);
 
         if (gridCopy.Count == 0) 
         {
@@ -202,33 +172,28 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
         gridCopy.Sort((s1, s2) => s1.options.Count.CompareTo(s2.options.Count));
 
-        int len = gridCopy[0].options.Count;
-        int stopIndex = 0;
-        for (int i = 1; i < gridCopy.Count; i++)
-        {
-            if (gridCopy[i].options.Count > len)
-            {
-                stopIndex = i;
-                break;
-            }
-        }
-        if (stopIndex > 0)
-        {
-            for (int i = stopIndex; i < gridCopy.Count; i++)
-            {
-                gridCopy.Remove(gridCopy[i]);
-            }
-        }
+        //int minimunEntropy = gridCopy[0].options.Count;
+        //gridCopy.RemoveAll(cell => cell.options.Count > minimunEntropy);
 
-        Cell randomCell = gridCopy[0]/*gridCopy[rng.Next(0, gridCopy.Count)]*/;
+        WFCCell randomCell = gridCopy[0];
+        //if (firstTime)
+        //{
+        //   randomCell = gridCopy[0];
+        //   firstTime = false;
+        //}
+        //else
+        //{
+        //    randomCell = gridCopy[rng.Next(0, gridCopy.Count)];
+        //}
+      
         if (randomCell.options.Count<=0)
         {
             Debug.Log("Restart");
-            grid = new List<Cell>();
+            grid = new List<WFCCell>();
 
             for (int i = 0; i < width * height; i++)
             {
-                grid.Add(new Cell(false,i,tiles.Count));
+                grid.Add(new WFCCell(false,i,tiles.Count));
             }
             restart = true;
             return;
@@ -239,43 +204,81 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         randomCell.SetOptions(new List<int>() { randomCellOp });
         grid[randomCell.index] = randomCell;
 
-        //for (int row = 0; row < height; row++)
-        //{
-        //    for (int col = 0; col < width; col++)
-        //    {
-        //        Cell cell = grid[col + row * width];
-        //        if (cell.collapsed)
-        //        {
-        //            int index = cell.options[0];
-        //            tilemapVisualizer.PaintSingleTile(tiles[index].image, new Vector2Int(col, row));
-        //        }
-        //    }
-        //}
 
-        List<Cell> nextGrid = new List<Cell>();
+        List<WFCCell> nextGrid = new List<WFCCell>();
         for (int i = 0; i < width * height; i++)
         {
-            nextGrid.Add(new Cell(false,i,tiles.Count));
+            nextGrid.Add(new WFCCell(false,i,tiles.Count));
         }
 
-        for (int i = 0; i < height; i++) 
+        List<WFCCell> collapsedCells = grid.Where(cell => cell.collapsed).ToList();
+        List<WFCCell> collapsedCellsNeighbours = new List<WFCCell>();
+
+        for (int i = 0; i < collapsedCells.Count; i++)
         {
-            for (int j = 0; j < width; j++) 
-            {                   
+            int x = i % width;
+            int y = i / width;
+                
+            //Up
+            if(y + 1 < height)
+            {
+                int index = MapXYtoIndex(x, y+1);
+                if (!grid[index].collapsed /*&& !collapsedCells.Contains(grid[index])*/)
+                {
+                    collapsedCellsNeighbours.Add(grid[index]);
+                }              
+            }
+
+            //Right
+            if(x+1<width)
+            {
+                int index = MapXYtoIndex(x+1, y);
+                if (!grid[index].collapsed /*&& !collapsedCells.Contains(grid[index])*/)
+                {
+                    collapsedCellsNeighbours.Add(grid[index]);
+                }
+            }
+
+            //Down
+            if(y-1>=0)
+            {
+                int index = MapXYtoIndex(x, y-1);
+                if (!grid[index].collapsed /*&& !collapsedCells.Contains(grid[index])*/)
+                {
+                    collapsedCellsNeighbours.Add(grid[index]);
+                }
+            }
+
+            //Left
+            if(i-1>=0)
+            {
+                int index = MapXYtoIndex(x-1, y);
+                if (!grid[index].collapsed /*&& !collapsedCells.Contains(grid[index])*/)
+                {
+                    collapsedCellsNeighbours.Add(grid[index]);
+                }
+            }
+
+        }
+
+        for (int i = 0; i < height; i++)
+        {
+            for (int j = 0; j < width; j++)
+            {
                 int index = MapXYtoIndex(j, i);
 
-                if (grid[index].collapsed)
+                if(grid[index].collapsed || !collapsedCellsNeighbours.Contains(grid[index]))
                 {
                     nextGrid[index] = grid[index];
                 }
                 else
                 {
-                    List<int> availableOptions = new List<int>(options); 
-                    
+                    List<int> availableOptions = new List<int>(options);
+
                     //Look up
                     if (i + 1 < height)
                     {
-                        Cell up = grid[MapXYtoIndex(j, i + 1)];
+                        WFCCell up = grid[MapXYtoIndex(j, i + 1)];
                         HashSet<int> validOptions = new HashSet<int>();
                         foreach (int option in up.options)
                         {
@@ -288,8 +291,8 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
                     //Look right
                     if (j + 1 < width)
-                    {   
-                        Cell right = grid[MapXYtoIndex(j + 1, i)];
+                    {
+                        WFCCell right = grid[MapXYtoIndex(j + 1, i)];
                         HashSet<int> validOptions = new HashSet<int>();
                         foreach (int option in right.options)
                         {
@@ -302,7 +305,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                     //Look down
                     if (i - 1 >= 0)
                     {
-                        Cell down = grid[MapXYtoIndex(j, i - 1)];
+                        WFCCell down = grid[MapXYtoIndex(j, i - 1)];
                         HashSet<int> validOptions = new HashSet<int>();
                         foreach (int option in down.options)
                         {
@@ -315,7 +318,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                     //Look left
                     if (j - 1 >= 0)
                     {
-                        Cell left = grid[MapXYtoIndex(j - 1, i)];
+                        WFCCell left = grid[MapXYtoIndex(j - 1, i)];
                         HashSet<int> validOptions = new HashSet<int>();
                         foreach (int option in left.options)
                         {
@@ -325,7 +328,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                         CheckValid(availableOptions, validOptions);
                     }
 
-                    Cell nextCell = new Cell(false, index,tiles.Count);
+                    WFCCell nextCell = new WFCCell(false, index, tiles.Count);
                     nextCell.SetOptions(availableOptions);
                     nextGrid[index] = nextCell;
                 }
