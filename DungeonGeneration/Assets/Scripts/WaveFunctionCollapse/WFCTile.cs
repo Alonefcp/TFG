@@ -6,20 +6,16 @@ using UnityEngine.Tilemaps;
 
 public class WFCTile
 {
-    public Tile image;          
+    public Tile tile;          
     public List<string> edges; //{up(0), right(1), down(2), left(3)}
     public List<int> up; 
     public List<int> down; 
     public List<int> left; 
     public List<int> right; 
 
-    public WFCTile(Texture2D img, List<string> edges)
+    public WFCTile(Tile tile, List<string> edges)
     {
-        Sprite sprite = Sprite.Create(img, new Rect(0, 0, img.width, img.height), new Vector2(0.5f, 0.5f), img.width);
-        Tile tile = ScriptableObject.CreateInstance<Tile>();
-        tile.sprite = sprite;
-        image = tile;
-      
+        this.tile = tile;    
         this.edges = edges;
         up = new List<int>();
         down = new List<int>();
@@ -72,7 +68,11 @@ public class WFCTile
             newEdges.Add(edges[(i - num + len) % len]);
         }
 
-        return new WFCTile(newTexture, newEdges);
+        Sprite sprite = Sprite.Create(newTexture, new Rect(0, 0, newTexture.width, newTexture.height), new Vector2(0.5f, 0.5f), newTexture.width);
+        Tile tile = ScriptableObject.CreateInstance<Tile>();
+        tile.sprite = sprite;
+
+        return new WFCTile(tile, newEdges);
     }
 
     private bool CompareEdges(string a, string b)

@@ -6,12 +6,12 @@ public class WFCCell
 {
     public bool collapsed;
     public List<int> options;
-    public int index;
+    public int gridIndex;
 
-    public WFCCell(bool _collapsed, int _index, int num)
+    public WFCCell(bool collapsed, int index, int num)
     {
-        collapsed = _collapsed;
-        index = _index;
+        this.collapsed = collapsed;
+        gridIndex = index;
         options = new List<int>();
         for (int i = 0; i < num; i++)
         {
