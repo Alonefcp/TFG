@@ -19,6 +19,13 @@ public class WFCCell
         }
     }
 
+    public WFCCell(bool collapsed, int index)
+    {
+        this.collapsed = collapsed;
+        gridIndex = index;
+        options = new List<int>();
+    }
+
     public void SetOptions(List<int> newOptions)
     {
         options = newOptions;

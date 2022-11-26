@@ -63,14 +63,10 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
         SetUp();
 
-        for (int i = 0; i < width * height; i++)
+        bool finishsed = false;
+        while (!finishsed)
         {
-            RunWFC(out bool restart);
-            if (restart)
-            {
-                tilemapVisualizer.ClearTilemap();
-                i = -1;
-            }
+            finishsed = RunWFC();
         }
 
         DrawMap();
@@ -191,7 +187,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             WFCCell cell = new WFCCell(true, grid[MapXYtoIndex(pos.x, pos.y)].gridIndex, tiles.Count);
             cell.SetOptions(new List<int> { 1 });
 
-            int index = MapXYtoIndex(pos.x, pos.y);
             grid[MapXYtoIndex(pos.x, pos.y)] = cell;
         }
     }
@@ -323,16 +318,15 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         return collapsedCell;
     }
 
-    private void RunWFC(out bool restart)
+    private bool RunWFC()
     {
-        restart = false;
         List<WFCCell> gridCopy = new List<WFCCell>(grid);
 
         gridCopy.RemoveAll(cell => cell.collapsed);
 
         if (gridCopy.Count == 0)
         {
-            restart = false; return;
+            return true;
         }
 
         gridCopy.Sort((s1, s2) => s1.options.Count.CompareTo(s2.options.Count));
@@ -344,11 +338,10 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         if(collapsedCell==null)
         {
             Debug.Log("Restart");
-            //grid = CreateGrid();
+            tilemapVisualizer.ClearTilemap();
             if (forceMoreWalkableZones) grid = CreateGridWithMoreWalkableZones();
             else grid = CreateGrid();
-            restart = true;
-            return;
+            return false;
         }
         grid[collapsedCell.gridIndex] = collapsedCell;
 
@@ -403,7 +396,9 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             }
         }
 
-        grid = nextGrid;
+        grid = new List<WFCCell>(nextGrid);
+
+        return false;
     }
 
     private int MapXYtoIndex(int x, int y)
