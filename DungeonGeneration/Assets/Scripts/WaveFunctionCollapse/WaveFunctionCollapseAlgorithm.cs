@@ -15,17 +15,23 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         public int nRotations;
         public List<string> edges;
     }
-
+    [Range(5,50)]
     [SerializeField] private int width = 5, height = 5;
     [SerializeField] private bool useRandomSeed = true;
     [SerializeField] private string seed;
     [SerializeField] private bool addBorder=false;
+    [SerializeField] private bool forceMoreWalkableZones=false;
+    [Range(1, 15)]
+    [SerializeField] private int nWalkableZones = 3;
+    [Range(1, 15)]
+    [SerializeField] private int maxWalkableZoneSize = 3;
     [SerializeField] private TileInfo[] tilesInfo;
     private List<WFCCell> grid;
     private List<WFCTile> tiles;
     private List<int> options;
     private System.Random rng = null;
     //private bool firstTime = true;
+    private HashSet<Vector2Int> positions;
 
     //private void Start()
     //{
@@ -46,14 +52,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     //    RunWFC(out bool restart);
     //    if (restart) { tilemapVisualizer.ClearTilemap(); }
     //}
-    //private void Update()
-    //{
-    //    if (Input.GetMouseButtonDown(0))
-    //    {
-    //        RunWFC(out bool restart);
-    //        if (restart) tilemapVisualizer.ClearTilemap();
-    //    }
-    //}
 
 
     public override void GenerateDungeon()
@@ -68,24 +66,49 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         for (int i = 0; i < width * height; i++)
         {
             RunWFC(out bool restart);
-            if (restart) 
-            { 
-                tilemapVisualizer.ClearTilemap(); 
-                i = -1; 
+            if (restart)
+            {
+                tilemapVisualizer.ClearTilemap();
+                i = -1;
             }
         }
 
+        DrawMap();
+        if (addBorder) DrawBorders();
+        //foreach (Vector2Int pos in positions)
+        //{
+        //    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(pos.x, pos.y));
+        //}
+    }
+    
+    private void DrawBorders()
+    {        
         for (int row = -1; row < height + 1; row++)
         {
-            for (int col = -1; col < width + 1; col++)
-            {
-                if (addBorder && (row == -1 || col == -1 || row == height || col == width))
-                {
-                    tilemapVisualizer.PaintSingleTile(tiles[0].tile, new Vector2Int(col, row));
-                    continue;
-                }
-                else if (!addBorder && (row == -1 || col == -1 || row == height || col == width)) continue;
+            tilemapVisualizer.PaintSingleTile(tiles[0].tile, new Vector2Int(-1, row));
+        }
+        for (int row = 0; row < height + 1; row++)
+        {
+            tilemapVisualizer.PaintSingleTile(tiles[0].tile, new Vector2Int(width, row));
+        }
 
+        for (int col = -1; col < width + 1; col++)
+        {
+            tilemapVisualizer.PaintSingleTile(tiles[0].tile, new Vector2Int(col, -1));
+        }
+
+        for (int col = 0; col < width + 1; col++)
+        {
+            tilemapVisualizer.PaintSingleTile(tiles[0].tile, new Vector2Int(col, height));
+        }
+    }
+
+    private void DrawMap()
+    {
+        for (int row = 0; row < height; row++)
+        {
+            for (int col = 0; col < width; col++)
+            {                
                 WFCCell cell = grid[col + row * width];
                 if (cell.collapsed)
                 {
@@ -95,7 +118,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             }
         }
     }
-    
+
     private void SetUp()
     {          
         tiles = new List<WFCTile>();
@@ -123,7 +146,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             }
         }
 
-
         //int pos = 0;
         //foreach (WFCTile tile in tiles)
         //{
@@ -138,8 +160,40 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             tiles[i].SetNeighbours(tiles);
         }
 
-        grid = CreateGrid();
-        
+        if (forceMoreWalkableZones) grid = CreateGridWithMoreWalkableZones();
+        else grid = CreateGrid();                
+    }
+
+    private void ForceMoreWalkableZones(List<WFCCell> grid)
+    {
+        positions = new HashSet<Vector2Int>();
+        for (int i = 0; i < nWalkableZones; i++)
+        {
+            int x = rng.Next(0, width);
+            int y = rng.Next(0, height);
+
+            HashSet<Vector2Int> auxPos = new HashSet<Vector2Int>();
+            while (auxPos.Count < maxWalkableZoneSize)
+            {
+                if(!positions.Contains(new Vector2Int(x, y)))auxPos.Add(new Vector2Int(x, y));
+                Vector2Int randomDirection = Directions.GetRandomFourDirection(rng);
+                x += randomDirection.x;
+                y += randomDirection.y;
+                x = Mathf.Clamp(x, 0, width - 1);
+                y = Mathf.Clamp(y, 0, height - 1);
+            }
+
+            positions.UnionWith(auxPos);
+        }
+
+        foreach (Vector2Int pos in positions)
+        {
+            WFCCell cell = new WFCCell(true, grid[MapXYtoIndex(pos.x, pos.y)].gridIndex, tiles.Count);
+            cell.SetOptions(new List<int> { 1 });
+
+            int index = MapXYtoIndex(pos.x, pos.y);
+            grid[MapXYtoIndex(pos.x, pos.y)] = cell;
+        }
     }
 
     private List<WFCCell> CreateGrid()
@@ -150,6 +204,13 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             grid.Add(new WFCCell(false, i, tiles.Count));
         }
 
+        return grid;
+    }
+
+    private List<WFCCell> CreateGridWithMoreWalkableZones()
+    {
+        List<WFCCell> grid = CreateGrid();
+        ForceMoreWalkableZones(grid);
         return grid;
     }
 
@@ -235,7 +296,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 validOptions = validOptions.Concat(valid).ToHashSet();
             }          
         }
-        CheckValid(availableOptions, validOptions);
+        CheckValidOptions(availableOptions, validOptions);
     }
 
     private WFCCell GetCollapsedCell(List<WFCCell> gridCopy)
@@ -252,10 +313,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         //}
 
         if (collapsedCell.options.Count <= 0)
-        {
-            Debug.Log("Restart");
-            grid = CreateGrid();
-
+        {           
             return null;
         }
 
@@ -272,9 +330,9 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
         gridCopy.RemoveAll(cell => cell.collapsed);
 
-        if (gridCopy.Count == 0) 
+        if (gridCopy.Count == 0)
         {
-            restart = false; return; 
+            restart = false; return;
         }
 
         gridCopy.Sort((s1, s2) => s1.options.Count.CompareTo(s2.options.Count));
@@ -285,6 +343,10 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         WFCCell collapsedCell = GetCollapsedCell(gridCopy);
         if(collapsedCell==null)
         {
+            Debug.Log("Restart");
+            //grid = CreateGrid();
+            if (forceMoreWalkableZones) grid = CreateGridWithMoreWalkableZones();
+            else grid = CreateGrid();
             restart = true;
             return;
         }
@@ -303,7 +365,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 //if (grid[index].collapsed)
                 //{
                 //    int img = grid[index].options[0];
-                //    tilemapVisualizer.PaintSingleTile(tiles[img].image, new Vector2Int(j, i));
+                //    tilemapVisualizer.PaintSingleTile(tiles[img].tile, new Vector2Int(j, i));
                 //}
 
                 if (grid[index].collapsed || !adjacentCellsToTheCollapsedCells.Contains(grid[index]))
@@ -349,7 +411,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         return x + (y * width);
     }
 
-    private void CheckValid(List<int> availableOptions, HashSet<int> validOptions)
+    private void CheckValidOptions(List<int> availableOptions, HashSet<int> validOptions)
     {
         for (int i = availableOptions.Count-1; i >= 0; i--)
         {
