@@ -68,7 +68,7 @@ public class WFCTile
             newEdges.Add(edges[(i - num + len) % len]);
         }
 
-        Sprite sprite = Sprite.Create(newTexture, new Rect(0, 0, newTexture.width, newTexture.height), new Vector2(0.5f, 0.5f), newTexture.width);
+        Sprite sprite = Sprite.Create(newTexture, new Rect(0, 0, newTexture.width, newTexture.height), new Vector2(0.5f, 0.5f), this.tile.sprite.pixelsPerUnit);
         Tile tile = ScriptableObject.CreateInstance<Tile>();
         tile.sprite = sprite;
 
