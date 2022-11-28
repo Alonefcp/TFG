@@ -12,7 +12,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     private struct TileInfo
     {
         public Sprite sprite;
-        public int nRotations;
         public List<string> edges;
     }
     [Range(5,50)]
@@ -41,7 +40,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         SetUp();
 
         InvokeRepeating("Run", 0.5f, 0.05f);
-        DrawBorders();
+        if(addBorder) DrawBorders();
     }
     private void Run()
     {
@@ -65,6 +64,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
         DrawMap();
         if (addBorder) DrawBorders();
+
         //foreach (Vector2Int pos in walkablePositions) //For seeing all forced walkable poisitions
         //{
         //    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(pos.x, pos.y));
@@ -116,7 +116,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     {          
         tiles = new List<WFCTile>();
 
-        //Create tiles
+        //Add tiles
         for (int i = 0; i < tilesInfo.Length; i++)
         {           
             Tile tile = ScriptableObject.CreateInstance<Tile>();
@@ -125,27 +125,44 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         }
 
         //Create rotations
+        List<WFCTile> rotatedTiles = new List<WFCTile>();
+
         for (int j = 0; j < tilesInfo.Length; j++)
         {
-            if (tilesInfo[j].nRotations <= 0) continue;
-
             Texture2D baseTexture = tiles[j].tile.sprite.texture;
-            for (int i = 1; i <= tilesInfo[j].nRotations; i++)
+            for (int i = 0; i < 4; i++)
             {
                 WFCTile wFCTile = tiles[j].RotateTile(baseTexture, i);
-                tiles.Add(wFCTile);
+                rotatedTiles.Add(wFCTile);
 
                 baseTexture = wFCTile.tile.sprite.texture;
             }
         }
 
+        //We eliminate repeated tiles after rotating them
+        Dictionary<string, WFCTile> uniqueTilesMap = new Dictionary<string, WFCTile>();
+        foreach (WFCTile tile in rotatedTiles)
+        {
+            string key = string.Join(',', tile.edges);
+            uniqueTilesMap[key] = tile;
+        }
+
+        //All tiles which we are going to use
+        tiles = new List<WFCTile>(uniqueTilesMap.Values.ToList());
+
         //int pos = 0;
         //foreach (WFCTile tile in tiles) //For seeing all the tiles
         //{
-        //    tilemapVisualizer.PaintSingleTile(tile.image, new Vector2Int(pos, 0));
+        //    tilemapVisualizer.PaintSingleTile(tile.tile, new Vector2Int(pos, 0));
+        //    foreach (string op in tile.edges)
+        //    {
+        //        Debug.Log(op);
+        //    }
+        //    Debug.Log("\n");
         //    pos++;
         //}
- 
+
+        //Set tiles neighbours
         options = new List<int>();
         for (int i = 0; i < tiles.Count; i++)
         { 
@@ -153,6 +170,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             tiles[i].SetNeighbours(tiles);
         }
 
+        //Create map grid
         if (forceMoreWalkableZones) grid = CreateGridWithMoreWalkableZones();
         else grid = CreateGrid();                
     }
