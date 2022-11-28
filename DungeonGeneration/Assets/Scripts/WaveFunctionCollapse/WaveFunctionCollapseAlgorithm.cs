@@ -109,6 +109,9 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         }
     }
 
+    /// <summary>
+    /// Creates all images and the map grid.
+    /// </summary>
     private void SetUp()
     {          
         tiles = new List<WFCTile>();
@@ -154,6 +157,10 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         else grid = CreateGrid();                
     }
 
+    /// <summary>
+    /// Creates walkables zones on the map.
+    /// </summary>
+    /// <param name="grid">Grid map</param>
     private void ForceMoreWalkableZones(List<WFCCell> grid)
     {
         walkablePositions = new HashSet<Vector2Int>();
@@ -178,13 +185,20 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
         foreach (Vector2Int pos in walkablePositions)
         {
-            WFCCell cell = new WFCCell(true, grid[MapXYtoIndex(pos.x, pos.y)].gridIndex, tiles.Count);
-            cell.SetOptions(new List<int> { 1 });
+            //WFCCell cell = new WFCCell(true, grid[MapXYtoIndex(pos.x, pos.y)].gridIndex, tiles.Count);
+            //cell.SetOptions(new List<int> { 1 });
 
-            grid[MapXYtoIndex(pos.x, pos.y)] = cell;
+            //grid[MapXYtoIndex(pos.x, pos.y)] = cell;
+
+            grid[MapXYtoIndex(pos.x, pos.y)].SetCollapsed(true);
+            grid[MapXYtoIndex(pos.x, pos.y)].SetOptions(new List<int> { 1 });
         }
     }
 
+    /// <summary>
+    /// Creates a grid with all cells uncollapsed with all available options.
+    /// </summary>
+    /// <returns></returns>
     private List<WFCCell> CreateGrid()
     {
         List<WFCCell> grid = new List<WFCCell>();
@@ -196,6 +210,11 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         return grid;
     }
 
+    /// <summary>
+    /// Creates a grid with all cells uncollapsed with all available options. Also it forces 
+    /// walkable zones.
+    /// </summary>
+    /// <returns></returns>
     private List<WFCCell> CreateGridWithMoreWalkableZones()
     {
         List<WFCCell> grid = CreateGrid();
@@ -203,6 +222,10 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         return grid;
     }
 
+    /// <summary>
+    /// Returns all the adjacent cells to the collapsed cells.
+    /// </summary>
+    /// <returns></returns>
     private List<WFCCell> GetAdjacentCellsToCollapsedCells()
     {
         List<WFCCell> collapsedCells = grid.Where(cell => cell.collapsed).ToList();
@@ -258,6 +281,13 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         return adjacentCellsToCollapsedCells;
     }
 
+    /// <summary>
+    /// Sets all valid options if the current cell by checking its neighbours (up,right,down,left)
+    /// </summary>
+    /// <param name="x">Neighbour cell x position</param>
+    /// <param name="y">Neighbour cell y position</param>
+    /// <param name="availableOptions">All available options of the cell</param>
+    /// <param name="direction">0:up options, 1:right options, 2:down options, 3:left options</param>
     private void CheckNeighbourd(int x, int y, List<int> availableOptions, int direction)
     {
         WFCCell cell = grid[MapXYtoIndex(x, y)];
@@ -288,6 +318,12 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         CheckValidOptions(availableOptions, validOptions);
     }
 
+    /// <summary>
+    /// Sets and returns a collapsed cell. If the the collapsed cell doesn't have
+    /// any options it returns null.
+    /// </summary>
+    /// <param name="gridCopy">Grid copy map</param>
+    /// <returns></returns>
     private WFCCell GetCollapsedCell(List<WFCCell> gridCopy)
     {
         WFCCell collapsedCell = gridCopy[0];
@@ -314,22 +350,22 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
     private bool RunWFC()
     {
+        //We sort the uncollapsed cells by its entropy
         List<WFCCell> gridCopy = new List<WFCCell>(grid);
-
         gridCopy.RemoveAll(cell => cell.collapsed);
 
-        if (gridCopy.Count == 0)
+        if (gridCopy.Count == 0) // All cells are collapse, we finish
         {
             return true;
         }
-
         gridCopy.Sort((s1, s2) => s1.options.Count.CompareTo(s2.options.Count));
 
         //int minimunEntropy = gridCopy[0].options.Count;
         //gridCopy.RemoveAll(cell => cell.options.Count > minimunEntropy);
 
+        //We get a collapsed cell with the least entropy
         WFCCell collapsedCell = GetCollapsedCell(gridCopy);
-        if(collapsedCell==null)
+        if(collapsedCell==null) //It the collapsed cell is null, we start over
         {
             Debug.Log("Restart");
             tilemapVisualizer.ClearTilemap();
@@ -337,50 +373,56 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             else grid = CreateGrid();
             return false;
         }
+
+        //We assign the collapsed cell to the grid map
         grid[collapsedCell.gridIndex] = collapsedCell;
 
+        //We create a grid map for storing the next iteration
         List<WFCCell> nextGrid = CreateGrid();
 
+        //We get all the adjacent cells to the collapsed cells
         List<WFCCell> adjacentCellsToTheCollapsedCells = GetAdjacentCellsToCollapsedCells();
 
-        for (int i = 0; i < height; i++)
+        //We iterate through the grid map
+        for (int y = 0; y < height; y++)
         {
-            for (int j = 0; j < width; j++)
+            for (int x = 0; x < width; x++)
             {
-                int index = MapXYtoIndex(j, i);
+                int index = MapXYtoIndex(x, y);
 
                 if (grid[index].collapsed) //For seeing the algorithm step by step
                 {
                     int img = grid[index].options[0];
-                    tilemapVisualizer.PaintSingleTile(tiles[img].tile, new Vector2Int(j, i));
+                    tilemapVisualizer.PaintSingleTile(tiles[img].tile, new Vector2Int(x, y));
                 }
 
+                //If the cell is not a neighbour of a collapsed cell
                 if (grid[index].collapsed || !adjacentCellsToTheCollapsedCells.Contains(grid[index]))
                 {
                     nextGrid[index] = grid[index];
                 }
-                else
+                else //If the cell is a neighbour of a collapsed cell
                 {
                     List<int> availableOptions = new List<int>(options);
                     
-                    if (i + 1 < height) //Look up
+                    if (y + 1 < height) //Look up
                     {
-                        CheckNeighbourd(j, i + 1, availableOptions, 2);
+                        CheckNeighbourd(x, y + 1, availableOptions, 2);
                     }
                   
-                    if (j + 1 < width) //Look right
+                    if (x + 1 < width) //Look right
                     {
-                        CheckNeighbourd(j+1, i, availableOptions, 3);
+                        CheckNeighbourd(x+1, y, availableOptions, 3);
                     }
                     
-                    if (i - 1 >= 0) //Look down
+                    if (y - 1 >= 0) //Look down
                     {
-                        CheckNeighbourd(j, i - 1, availableOptions, 0);
+                        CheckNeighbourd(x, y - 1, availableOptions, 0);
                     }
                    
-                    if (j - 1 >= 0) //Look left
+                    if (x - 1 >= 0) //Look left
                     {
-                        CheckNeighbourd(j-1, i, availableOptions, 1);
+                        CheckNeighbourd(x-1, y, availableOptions, 1);
                     }
 
                     WFCCell nextCell = new WFCCell(false, index, tiles.Count);
@@ -395,11 +437,22 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         return false;
     }
 
+    /// <summary>
+    /// Converts a map position to an index.
+    /// </summary>
+    /// <param name="x">X map position</param>
+    /// <param name="y">Y map position</param>
+    /// <returns></returns>
     private int MapXYtoIndex(int x, int y)
     {
         return x + (y * width);
     }
 
+    /// <summary>
+    /// Checks which available options are valid.
+    /// </summary>
+    /// <param name="availableOptions">All available options of the cell</param>
+    /// <param name="validOptions">All valid options of the cell</param>
     private void CheckValidOptions(List<int> availableOptions, HashSet<int> validOptions)
     {
         for (int i = availableOptions.Count-1; i >= 0; i--)

@@ -447,7 +447,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Conerts a map position to an index.
+    /// Converts a map position to an index.
     /// </summary>
     /// <param name="x">X map position</param>
     /// <param name="y">Y map position</param>
