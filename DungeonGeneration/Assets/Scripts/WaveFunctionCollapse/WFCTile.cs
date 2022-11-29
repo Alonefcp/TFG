@@ -55,10 +55,8 @@ public class WFCTile
         }
     }
 
-    public WFCTile RotateTile(Texture2D texture, int nRotations)
+    public WFCTile RotateTile(Texture2D texture, int num)
     {
-        if (nRotations == 0) return this;
-
         Texture2D newTexture = RotateTexture(texture);
         
         List<string> newEdges = new List<string>();
@@ -67,7 +65,7 @@ public class WFCTile
 
         for (int i = 0; i < len; i++)
         {
-            newEdges.Add(edges[(i - nRotations + len) % len]);
+            newEdges.Add(edges[(i - num + len) % len]);
         }
 
         Sprite sprite = Sprite.Create(newTexture, new Rect(0, 0, newTexture.width, newTexture.height), new Vector2(0.5f, 0.5f), this.tile.sprite.pixelsPerUnit);
