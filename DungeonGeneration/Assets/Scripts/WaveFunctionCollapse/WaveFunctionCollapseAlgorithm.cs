@@ -13,7 +13,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     {
         public Sprite sprite;
         public int nRotations;
-        public List<string> edges;
+        public List<string> edges; 
     }
     [Range(5,50)]
     [SerializeField] private int width = 5, height = 5;
@@ -29,6 +29,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     private List<WFCCell> grid;
     private List<WFCTile> tiles;
     private List<int> options;
+    private TileEdges tileEdges;
     private System.Random rng = null;
     //private bool firstTime = true;
     private HashSet<Vector2Int> walkablePositions;
@@ -41,7 +42,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         SetUp();
 
         InvokeRepeating("Run", 0.5f, 0.05f);
-        DrawBorders();
+        if (addBorder) DrawBorders();
     }
     private void Run()
     {
@@ -65,12 +66,16 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
         DrawMap();
         if (addBorder) DrawBorders();
+
         //foreach (Vector2Int pos in walkablePositions) //For seeing all forced walkable poisitions
         //{
         //    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(pos.x, pos.y));
         //}
     }
     
+    /// <summary>
+    /// Draws the map's borders by using the tilemap visualizer.
+    /// </summary>
     private void DrawBorders()
     {        
         for (int row = -1; row < height + 1; row++)
@@ -93,6 +98,9 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         }
     }
 
+    /// <summary>
+    /// Draws the map by using the tilemap visualizer.
+    /// </summary>
     private void DrawMap()
     {
         for (int row = 0; row < height; row++)
@@ -113,15 +121,20 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     /// Creates all images and the map grid.
     /// </summary>
     private void SetUp()
-    {          
+    {
         tiles = new List<WFCTile>();
+        tileEdges = new TileEdges();
 
         //Create tiles
         for (int i = 0; i < tilesInfo.Length; i++)
         {           
             Tile tile = ScriptableObject.CreateInstance<Tile>();
             tile.sprite = tilesInfo[i].sprite;
-            tiles.Add(new WFCTile(tile, tilesInfo[i].edges));
+
+            List<string> edges = tileEdges.CreateTileEdges(tile.sprite.texture);
+            tiles.Add(new WFCTile(tile, edges));
+
+            //tiles.Add(new WFCTile(tile, tilesInfo[i].edges));
         }
 
         //Create rotations
@@ -142,10 +155,18 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         //int pos = 0;
         //foreach (WFCTile tile in tiles) //For seeing all the tiles
         //{
-        //    tilemapVisualizer.PaintSingleTile(tile.image, new Vector2Int(pos, 0));
+        //    tilemapVisualizer.PaintSingleTile(tile.tile, new Vector2Int(pos, 0));
+
+        //    foreach (string edge in tile.edges)
+        //    {
+        //        Debug.Log(edge);
+        //    }
+
+        //    Debug.Log("\n");
+
         //    pos++;
         //}
- 
+
         options = new List<int>();
         for (int i = 0; i < tiles.Count; i++)
         { 
