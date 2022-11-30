@@ -80,24 +80,7 @@ public class TileEdges
         int x = 0;
         while (x < texture.width)
         {
-            //currentColor = texture.GetPixel(x, texture.height - 1);
-            //if (initialColor != currentColor)
-            //{
-            //    if(!uniqueColors.ContainsKey(initialColor))
-            //    {
-            //        colorCount++;
-            //        uniqueColors.Add(initialColor, colorCount);
-            //        edge += uniqueColors[initialColor].ToString();
-            //    }
-            //    else
-            //    {
-            //        edge += uniqueColors[initialColor].ToString();
-            //    }
-            //    initialColor = currentColor;
-            //}
-
             CheckPixelColorEdge(texture, ref initialColor, ref currentColor, ref edge, x, texture.height - 1);
-
             x++;
         }
 
@@ -113,21 +96,6 @@ public class TileEdges
 
         while (y >= 0)
         {
-            //currentColor = texture.GetPixel(texture.width - 1, y);
-            //if (initialColor != currentColor)
-            //{
-            //    if (!uniqueColors.ContainsKey(initialColor))
-            //    {
-            //        colorCount++;
-            //        uniqueColors.Add(initialColor, colorCount);
-            //        edge += uniqueColors[initialColor].ToString();
-            //    }
-            //    else
-            //    {
-            //        edge += uniqueColors[initialColor].ToString();
-            //    }
-            //    initialColor = currentColor;
-            //}
             CheckPixelColorEdge(texture, ref initialColor, ref currentColor, ref edge, texture.width - 1, y);
             y--;
         }
@@ -143,22 +111,6 @@ public class TileEdges
         x = texture.width - 1;
         while (x >= 0)
         {
-            //currentColor = texture.GetPixel(x, 0);
-            //if (initialColor != currentColor)
-            //{
-            //    if (!uniqueColors.ContainsKey(initialColor))
-            //    {
-            //        colorCount++;
-            //        uniqueColors.Add(initialColor, colorCount);
-            //        edge += uniqueColors[initialColor].ToString();
-            //    }
-            //    else
-            //    {
-            //        edge += uniqueColors[initialColor].ToString();
-            //    }
-            //    initialColor = currentColor;
-            //}
-
             CheckPixelColorEdge(texture, ref initialColor, ref currentColor, ref edge, x, 0);
             x--;
         }
@@ -175,22 +127,6 @@ public class TileEdges
 
         while (y < texture.height)
         {
-            //currentColor = texture.GetPixel(0, y);
-            //if (initialColor != currentColor)
-            //{
-            //    if (!uniqueColors.ContainsKey(initialColor))
-            //    {
-            //        colorCount++;
-            //        uniqueColors.Add(initialColor, colorCount);
-            //        edge += uniqueColors[initialColor].ToString();
-            //    }
-            //    else
-            //    {
-            //        edge += uniqueColors[initialColor].ToString();
-            //    }
-            //    initialColor = currentColor;
-            //}
-
             CheckPixelColorEdge(texture, ref initialColor, ref currentColor, ref edge, 0, y);
             y++;
         }

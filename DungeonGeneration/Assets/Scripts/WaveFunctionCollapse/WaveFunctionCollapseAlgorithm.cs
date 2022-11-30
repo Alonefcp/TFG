@@ -41,12 +41,12 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         tilemapVisualizer.ClearTilemap();
         SetUp();
 
-        InvokeRepeating("Run", 0.5f, 0.05f);
+        InvokeRepeating("Run", 0.5f, 0.03f);
         if (addBorder) DrawBorders();
     }
     private void Run()
     {
-        RunWFC();       
+        RunWaveFunctionCollapsed();
     }
 
     public override void GenerateDungeon()
@@ -61,13 +61,13 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         bool finishsed = false;
         while (!finishsed)
         {
-            finishsed = RunWFC();
+            finishsed = RunWaveFunctionCollapsed();
         }
 
         DrawMap();
         if (addBorder) DrawBorders();
 
-        //foreach (Vector2Int pos in walkablePositions) //For seeing all forced walkable poisitions
+        //foreach (Vector2Int pos in walkablePositions) //DEBUG:For seeing all forced walkable poisitions
         //{
         //    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(pos.x, pos.y));
         //}
@@ -80,21 +80,21 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     {        
         for (int row = -1; row < height + 1; row++)
         {
-            tilemapVisualizer.PaintSingleTile(tiles[0].tile, new Vector2Int(-1, row));
+            tilemapVisualizer.PaintSingleTile(tiles[0].Tile, new Vector2Int(-1, row));
         }
         for (int row = 0; row < height + 1; row++)
         {
-            tilemapVisualizer.PaintSingleTile(tiles[0].tile, new Vector2Int(width, row));
+            tilemapVisualizer.PaintSingleTile(tiles[0].Tile, new Vector2Int(width, row));
         }
 
         for (int col = -1; col < width + 1; col++)
         {
-            tilemapVisualizer.PaintSingleTile(tiles[0].tile, new Vector2Int(col, -1));
+            tilemapVisualizer.PaintSingleTile(tiles[0].Tile, new Vector2Int(col, -1));
         }
 
         for (int col = 0; col < width + 1; col++)
         {
-            tilemapVisualizer.PaintSingleTile(tiles[0].tile, new Vector2Int(col, height));
+            tilemapVisualizer.PaintSingleTile(tiles[0].Tile, new Vector2Int(col, height));
         }
     }
 
@@ -108,10 +108,10 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             for (int col = 0; col < width; col++)
             {                
                 WFCCell cell = grid[col + row * width];
-                if (cell.collapsed)
+                if (cell.Collapsed)
                 {
-                    int index = cell.options[0];
-                    tilemapVisualizer.PaintSingleTile(tiles[index].tile, new Vector2Int(col, row));
+                    int index = cell.Options[0];
+                    tilemapVisualizer.PaintSingleTile(tiles[index].Tile, new Vector2Int(col, row));
                 }
             }
         }
@@ -142,18 +142,18 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         {
             if (tilesInfo[j].nRotations <= 0) continue;
 
-            Texture2D baseTexture = tiles[j].tile.sprite.texture;
+            Texture2D baseTexture = tiles[j].Tile.sprite.texture;
             for (int i = 1; i <= tilesInfo[j].nRotations; i++)
             {
                 WFCTile wFCTile = tiles[j].RotateTile(baseTexture, i);
                 tiles.Add(wFCTile);
 
-                baseTexture = wFCTile.tile.sprite.texture;
+                baseTexture = wFCTile.Tile.sprite.texture;
             }
         }
 
         //int pos = 0;
-        //foreach (WFCTile tile in tiles) //For seeing all the tiles
+        //foreach (WFCTile tile in tiles) //DEBUG: For seeing all the tiles
         //{
         //    tilemapVisualizer.PaintSingleTile(tile.tile, new Vector2Int(pos, 0));
 
@@ -211,8 +211,8 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
             //grid[MapXYtoIndex(pos.x, pos.y)] = cell;
 
-            grid[MapXYtoIndex(pos.x, pos.y)].SetCollapsed(true);
-            grid[MapXYtoIndex(pos.x, pos.y)].SetOptions(new List<int> { 1 });
+            grid[MapXYtoIndex(pos.x, pos.y)].Collapsed = true;
+            grid[MapXYtoIndex(pos.x, pos.y)].Options = new List<int> { 1 };
         }
     }
 
@@ -249,7 +249,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     /// <returns></returns>
     private List<WFCCell> GetAdjacentCellsToCollapsedCells()
     {
-        List<WFCCell> collapsedCells = grid.Where(cell => cell.collapsed).ToList();
+        List<WFCCell> collapsedCells = grid.Where(cell => cell.Collapsed).ToList();
         List<WFCCell> adjacentCellsToCollapsedCells = new List<WFCCell>();
 
         for (int i = 0; i < collapsedCells.Count; i++)
@@ -261,7 +261,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             if (y + 1 < height)
             {
                 int index = MapXYtoIndex(x, y + 1);
-                if (!grid[index].collapsed && !adjacentCellsToCollapsedCells.Contains(grid[index]))
+                if (!grid[index].Collapsed && !adjacentCellsToCollapsedCells.Contains(grid[index]))
                 {
                     adjacentCellsToCollapsedCells.Add(grid[index]);
                 }
@@ -271,7 +271,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             if (x + 1 < width)
             {
                 int index = MapXYtoIndex(x + 1, y);
-                if (!grid[index].collapsed && !adjacentCellsToCollapsedCells.Contains(grid[index]))
+                if (!grid[index].Collapsed && !adjacentCellsToCollapsedCells.Contains(grid[index]))
                 {
                     adjacentCellsToCollapsedCells.Add(grid[index]);
                 }
@@ -281,7 +281,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             if (y - 1 >= 0)
             {
                 int index = MapXYtoIndex(x, y - 1);
-                if (!grid[index].collapsed && !adjacentCellsToCollapsedCells.Contains(grid[index]))
+                if (!grid[index].Collapsed && !adjacentCellsToCollapsedCells.Contains(grid[index]))
                 {
                     adjacentCellsToCollapsedCells.Add(grid[index]);
                 }
@@ -291,7 +291,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             if (i - 1 >= 0)
             {
                 int index = MapXYtoIndex(x - 1, y);
-                if (!grid[index].collapsed && !adjacentCellsToCollapsedCells.Contains(grid[index]))
+                if (!grid[index].Collapsed && !adjacentCellsToCollapsedCells.Contains(grid[index]))
                 {
                     adjacentCellsToCollapsedCells.Add(grid[index]);
                 }
@@ -313,26 +313,26 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     {
         WFCCell cell = grid[MapXYtoIndex(x, y)];
         HashSet<int> validOptions = new HashSet<int>();
-        foreach (int option in cell.options)
+        foreach (int option in cell.Options)
         {
             if(direction==0)
             {
-                List<int> valid = tiles[option].up;
+                List<int> valid = tiles[option].Up;
                 validOptions = validOptions.Concat(valid).ToHashSet();
             }
             else if(direction==1)
             {
-                List<int> valid = tiles[option].right;
+                List<int> valid = tiles[option].Right;
                 validOptions = validOptions.Concat(valid).ToHashSet();
             }
             else if(direction==2)
             {
-                List<int> valid = tiles[option].down;
+                List<int> valid = tiles[option].Down;
                 validOptions = validOptions.Concat(valid).ToHashSet();
             }
             else if(direction==3)
             {
-                List<int> valid = tiles[option].left;
+                List<int> valid = tiles[option].Left;
                 validOptions = validOptions.Concat(valid).ToHashSet();
             }          
         }
@@ -358,28 +358,33 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         //    randomCell = gridCopy[rng.Next(0, gridCopy.Count)];
         //}
 
-        if (collapsedCell.options.Count <= 0)
+        if (collapsedCell.Options.Count <= 0)
         {           
             return null;
         }
 
-        collapsedCell.collapsed = true;
-        int randomCellOp = collapsedCell.options[rng.Next(0, collapsedCell.options.Count)];
-        collapsedCell.SetOptions(new List<int>() { randomCellOp });
+        collapsedCell.Collapsed = true;
+        int randomCellOp = collapsedCell.Options[rng.Next(0, collapsedCell.Options.Count)];
+        collapsedCell.Options = new List<int>() { randomCellOp };
         return collapsedCell;
     }
 
-    private bool RunWFC()
+    /// <summary>
+    /// Performs the wave function collapse algorithm. It return true if a map is generated
+    /// otherwise it returns false.
+    /// </summary>
+    /// <returns></returns>
+    private bool RunWaveFunctionCollapsed()
     {
         //We sort the uncollapsed cells by its entropy
         List<WFCCell> gridCopy = new List<WFCCell>(grid);
-        gridCopy.RemoveAll(cell => cell.collapsed);
+        gridCopy.RemoveAll(cell => cell.Collapsed);
 
-        if (gridCopy.Count == 0) // All cells are collapse, we finish
+        if (gridCopy.Count == 0) //All cells are collapse, we finish
         {
             return true;
         }
-        gridCopy.Sort((s1, s2) => s1.options.Count.CompareTo(s2.options.Count));
+        gridCopy.Sort((s1, s2) => s1.Options.Count.CompareTo(s2.Options.Count));
 
         //int minimunEntropy = gridCopy[0].options.Count;
         //gridCopy.RemoveAll(cell => cell.options.Count > minimunEntropy);
@@ -396,7 +401,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         }
 
         //We assign the collapsed cell to the grid map
-        grid[collapsedCell.gridIndex] = collapsedCell;
+        grid[collapsedCell.GridIndex] = collapsedCell;
 
         //We create a grid map for storing the next iteration
         List<WFCCell> nextGrid = CreateGrid();
@@ -411,14 +416,14 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             {
                 int index = MapXYtoIndex(x, y);
 
-                if (grid[index].collapsed) //For seeing the algorithm step by step
+                if (grid[index].Collapsed) //DEBUG: For seeing the algorithm step by step
                 {
-                    int img = grid[index].options[0];
-                    tilemapVisualizer.PaintSingleTile(tiles[img].tile, new Vector2Int(x, y));
+                    int img = grid[index].Options[0];
+                    tilemapVisualizer.PaintSingleTile(tiles[img].Tile, new Vector2Int(x, y));
                 }
 
                 //If the cell is not a neighbour of a collapsed cell
-                if (grid[index].collapsed || !adjacentCellsToTheCollapsedCells.Contains(grid[index]))
+                if (grid[index].Collapsed || !adjacentCellsToTheCollapsedCells.Contains(grid[index]))
                 {
                     nextGrid[index] = grid[index];
                 }
@@ -447,7 +452,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                     }
 
                     WFCCell nextCell = new WFCCell(false, index, tiles.Count);
-                    nextCell.SetOptions(availableOptions);
+                    nextCell.Options = availableOptions;
                     nextGrid[index] = nextCell;
                 }
             }
