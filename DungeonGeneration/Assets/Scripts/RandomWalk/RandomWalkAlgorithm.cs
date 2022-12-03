@@ -32,6 +32,7 @@ public class RandomWalkAlgorithm : DungeonGenerator
     [SerializeField] float levyFlightChance = 0.02f;
     [SerializeField] int minStepLength = 3;
     [SerializeField] int maxStepLength = 7;
+    [SerializeField] bool showGizmos = false;
 
     //void Start()
     //{
@@ -50,6 +51,18 @@ public class RandomWalkAlgorithm : DungeonGenerator
         if (eliminateSingleWalls)
         {
             tilemapVisualizer.EliminateSingleSpaces();
+        }
+    }
+
+    //For debugging
+    private void OnDrawGizmos()
+    {
+        if (showGizmos)
+        {
+            Gizmos.color = Color.red;
+
+            //We show the start position
+            Gizmos.DrawWireSphere(new Vector3(startPosition.x+0.5f, startPosition.y+0.5f, 0.0f), 0.5f);
         }
     }
 
@@ -91,6 +104,8 @@ public class RandomWalkAlgorithm : DungeonGenerator
 
         return positions;
     }
+
+
 
     /// <summary>
     /// Makes a path of nSteps
