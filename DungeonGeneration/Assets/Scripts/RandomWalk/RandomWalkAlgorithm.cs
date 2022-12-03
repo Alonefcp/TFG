@@ -3,35 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-//Walker representation
-public struct Walker
-{
-    public Walker(Vector2Int _pos, Vector2Int _dir)
-    {
-        pos = _pos;
-        dir = _dir;
-    }
-
-    public Vector2Int pos;
-    public Vector2Int dir;
-}
-
 //Drunkard’s walk or Random Walk algorithm
 public class RandomWalkAlgorithm : DungeonGenerator
 {
+    //Walker representation
+    struct Walker
+    {
+        public Walker(Vector2Int pos, Vector2Int dir)
+        {
+            this.pos = pos;
+            this.dir = dir;
+        }
+
+        public Vector2Int pos;
+        public Vector2Int dir;
+    }
+
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
     [SerializeField] private bool startRandomlyEachIteration = true;
-    [SerializeField] private int maxFloorPositions = 50;
+    [SerializeField] private int numberOfFloorPositions = 50;
     [SerializeField] private int minSteps = 10, maxSteps = 20;
     [Range(0.0f, 1.0f)]
     [SerializeField] float chanceToChangeDirection = 1.0f;
     [SerializeField] bool eliminateSingleWalls = false;
     [SerializeField] bool useEightDirections = false;
     [SerializeField] bool levyFlight = false;
+    [Range(0.0f, 1.0f)]
     [SerializeField] float levyFlightChance = 0.02f;
     [SerializeField] int minStepLength = 3;
     [SerializeField] int maxStepLength = 7;
-
 
     //void Start()
     //{
@@ -43,8 +43,8 @@ public class RandomWalkAlgorithm : DungeonGenerator
     /// </summary>
     public override void GenerateDungeon()
     {
-        HashSet<Vector2Int> floorPositions = RandomWalk();
-
+        HashSet<Vector2Int> floorPositions = RunRandomWalk();
+        Debug.Log(floorPositions.Count);//QUITAR!!
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
         if (eliminateSingleWalls)
@@ -57,31 +57,35 @@ public class RandomWalkAlgorithm : DungeonGenerator
     /// Performs the Random Walk or Drunkard's Walk algorithm
     /// </summary>
     /// <returns>Returns a HashSet with all floor positions</returns>
-    private HashSet<Vector2Int> RandomWalk()
+    private HashSet<Vector2Int> RunRandomWalk()
     {
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
 
-        //pick a map cell as the starting point
-        Walker walker = new Walker(startPosition, Directions.GetRandomFourDirection());
+        //Pick a map cell as the starting point
+        Walker walker = new Walker(startPosition, useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection());
 
-        //turn the selected map cell into floor
+        //Turn the selected map cell into floor
         positions.Add(startPosition);
 
-        //while insufficient cells have been turned into floor
-        while (positions.Count < maxFloorPositions)
+        //While insufficient cells have been turned into floor
+        while (positions.Count < numberOfFloorPositions)
         {
-            //take X steps 
-            int nSteps = Random.Range(minSteps, maxSteps);
-            HashSet<Vector2Int> path = SimpleRandomWalk(walker, nSteps);
+            //Take X steps (path length) 
+            int numberOfSteps = Random.Range(minSteps, maxSteps);
+
+            //Path positions
+            HashSet<Vector2Int> path = SimpleRandomWalk(walker, numberOfSteps);
             positions.UnionWith(path);
 
-            walker.dir = Directions.GetRandomFourDirection();
+            //We set a new walker`s direction
+            walker.dir = useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection();
 
+            //We change walker's position
             if (startRandomlyEachIteration)
             {
-                Vector2Int randomPos = positions.ElementAt(Random.Range(0, positions.Count));
-                Walker wal = new Walker(randomPos, walker.dir);
-                walker = wal;
+                Vector2Int randomPosition = positions.ElementAt(Random.Range(0, positions.Count));
+                Walker newWalker = new Walker(randomPosition, walker.dir);
+                walker = newWalker;
             }
         }
 
@@ -92,58 +96,61 @@ public class RandomWalkAlgorithm : DungeonGenerator
     /// Makes a path of nSteps
     /// </summary>
     /// <param name="walker">The walker who makes the path</param>
-    /// <param name="nSteps">Path lenght</param>
+    /// <param name="numberOfSteps">Path lenght</param>
     /// <returns>Returns a HashSet with all path positions</returns>
-    private HashSet<Vector2Int> SimpleRandomWalk(Walker walker, int nSteps)
+    private HashSet<Vector2Int> SimpleRandomWalk(Walker walker, int numberOfSteps)
     {              
-        HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
-        positions.Add(walker.pos);
+        HashSet<Vector2Int> pathPositions = new HashSet<Vector2Int>();
+        pathPositions.Add(walker.pos);
 
-        for (int j = 0; j < nSteps; j++)
+        for (int j = 0; j < numberOfSteps; j++)
         {
-            //take one step in a random direction
+            //Take one step in a random direction
             Vector2Int newPos = walker.pos + walker.dir;
 
+            //1.-For the levy fligh we calculate the positions between the walker's position and the new position,
+            //and we add them to the path positions
+            //2.- If the walker moves diagonally
             if (walker.dir.magnitude > 1)
             {
-                CalculatePositions(walker, newPos, positions);
+                CalculatePositions(walker, newPos, pathPositions);
             }
-            else
+            else //Otherwise we simply add the position to the path positions
             {
-                positions.Add(newPos);
+                pathPositions.Add(newPos);
             }
 
+            //We set a new walker`s position
             walker.pos = newPos;
 
-            if (Random.value <= chanceToChangeDirection)
+            if (Random.value <= chanceToChangeDirection) //There is a chance to change or not the walker's direction
             {
-                if (levyFlight && Random.value <= levyFlightChance)
+                if (levyFlight && Random.value <= levyFlightChance) //There is a chance to apply or not the levy flight
                 {
-                    walker.dir = Directions.GetRandomEightDirection() * Random.Range(minStepLength, maxStepLength);
+                    int stepLength = Random.Range(minStepLength, maxStepLength);
+                    walker.dir = (useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection()) * stepLength;
                 }
-                else
+                else //Otherwise we set a new walker`s direction
                 {
                     walker.dir = useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection();
                 }
             }
         }
 
-        return positions;
-    }
-
-    
+        return pathPositions;
+    }  
 
     /// <summary>
-    /// Calculate the positions between the walker positions and his new position
+    /// Calculate the positions between the walker's position and his new position. This method is used 
+    /// for diagonal positions.
     /// </summary>
     /// <param name="walker">Walker struct which contains his position and direction</param>
-    /// <param name="newPos">New walker positions</param>
-    /// <param name="positions">Structure to hold the positions</param>
-    private void CalculatePositions(Walker walker, Vector2Int newPos, HashSet<Vector2Int> positions)
+    /// <param name="newPosition">New walker position</param>
+    /// <param name="pathPositions">Structure to hold the path positions</param>
+    private void CalculatePositions(Walker walker, Vector2Int newPosition, HashSet<Vector2Int> pathPositions)
     {
-        Vector2Int initialWalkerPos = walker.pos;
-
-        while (walker.pos.x != newPos.x || walker.pos.y != newPos.y)
+        //We add to the path the positions between the walker's position his new position
+        while (walker.pos.x != newPosition.x || walker.pos.y != newPosition.y)
         {
             bool moveDiagonally = true;
 
@@ -178,60 +185,37 @@ public class RandomWalkAlgorithm : DungeonGenerator
                 moveDiagonally = false;
             }
 
-            positions.Add(walker.pos);
+            pathPositions.Add(walker.pos);
 
+            //If we are moving diagonally, we add more positions around the walker's position,
+            //so this positions are walkable. If we don`t do this diagonal positions are not walkable.
             if (moveDiagonally)
             {
-                AddDiagonalPositions(initialWalkerPos, walker.pos, positions, positveX, negativeX, positiveY, negativeY);
+                AddMorePositions(walker.pos, 1, pathPositions);             
             }
         }
     }
 
     /// <summary>
-    /// Adds extra positions if the walker moves diagonally
+    /// Adds more positions around the walker's position
     /// </summary>
-    /// <param name="initialWalkerPos">Initial walker position</param>
-    /// <param name="currentWalkerPosition"></param>
-    /// <param name="positions">Structure to hold the positions</param>
-    /// <param name="positveX">If the walker goes in the positive X axis</param>
-    /// <param name="negativeX">If the walker goes in the negative X axis</param>
-    /// <param name="positiveY">If the walker goes in the positve Y axis</param>
-    /// <param name="negativeY">If the walker goes in the negative Y axis</param>
-    private void AddDiagonalPositions(Vector2Int initialWalkerPos, Vector2Int currentWalkerPosition, HashSet<Vector2Int> positions, bool positveX,  bool negativeX, bool positiveY, bool negativeY)
+    /// <param name="pos">Walker's position</param>
+    /// <param name="radius">Indicates how many positions we want to add around</param>
+    /// <param name="pathPositions">Structure to hold the path positions</param>
+    private void AddMorePositions(Vector2Int pos, int radius, HashSet<Vector2Int> pathPositions)
     {
-        if (positveX && positiveY)
+        for (int x = -radius; x <= radius; x++)
         {
-            positions.Add(currentWalkerPosition + new Vector2Int(1, 0));
-            positions.Add(currentWalkerPosition + new Vector2Int(0, 1));
+            for (int y = -radius; y <= radius; y++)
+            {
+                if (x * x + y * y <= radius * radius)
+                {
+                    int drawX = pos.x + x;
+                    int drawY = pos.y + y;
 
-            positions.Add(initialWalkerPos + new Vector2Int(1, 0));
-            positions.Add(initialWalkerPos + new Vector2Int(0, 1));
-        }
-        else if (negativeX && negativeY)
-        {
-            positions.Add(currentWalkerPosition + new Vector2Int(-1, 0));
-            positions.Add(currentWalkerPosition + new Vector2Int(0, -1));
-
-            positions.Add(initialWalkerPos + new Vector2Int(-1, 0));
-            positions.Add(initialWalkerPos + new Vector2Int(0, -1));
-        }
-        else if (positveX && negativeY)
-        {
-            positions.Add(currentWalkerPosition + new Vector2Int(1, 0));
-            positions.Add(currentWalkerPosition + new Vector2Int(0, -1));
-
-            positions.Add(initialWalkerPos + new Vector2Int(1, 0));
-            positions.Add(initialWalkerPos + new Vector2Int(0, -1));
-        }
-        else if (negativeX && positiveY)
-        {
-            positions.Add(currentWalkerPosition + new Vector2Int(-1, 0));
-            positions.Add(currentWalkerPosition + new Vector2Int(0, 1));
-
-            positions.Add(initialWalkerPos + new Vector2Int(-1, 0));
-            positions.Add(initialWalkerPos + new Vector2Int(0, 1));
+                    pathPositions.Add(new Vector2Int(drawX, drawY));                                      
+                }
+            }
         }
     }
-
-    
 }
