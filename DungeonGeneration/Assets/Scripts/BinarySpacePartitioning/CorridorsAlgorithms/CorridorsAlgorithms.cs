@@ -6,24 +6,35 @@ public static class CorridorsAlgorithms
 {
     //================================================== Delaunay, Prim and A* ====================================================================
 
-    public static List<HashSet<Vector2Int>> ConnectRooms(List<Vertex> roomCentersForDelaunay, Grid2D grid, bool widerCorridors, bool addSomeRemainingEdges=false)
+    /// <summary>
+    /// Connects two rooms by using the Delaunay Triangulation, Prim algorithm and A*. It makes corridors between two rooms
+    /// </summary>
+    /// <param name="roomCenters">Rooms positions which are the rooms centers</param>
+    /// <param name="grid">Map grid for A*</param>
+    /// <param name="widerCorridors">If we want wider corridors</param>
+    /// <param name="corridorSize">Corridor size</param>
+    /// <param name="mapWidth">MapWidth</param>
+    /// <param name="mapHeight">MapHeight</param>
+    /// <param name="addSomeRemainingEdges">If we want to add the remaining edges of Prim algortihm</param>
+    /// <returns></returns>
+    public static List<HashSet<Vector2Int>> ConnectRooms(List<Vertex> roomCenters, Grid2D grid, bool widerCorridors, int corridorSize, int mapWidth, int mapHeight,bool addSomeRemainingEdges=false)
     {
         //Delaunay triangulation
-        List<Edge> delaunayEdges = DelaunayTriangulation.Triangulate(roomCentersForDelaunay);
+        List<Edge> delaunayEdges = DelaunayTriangulation.Triangulate(roomCenters);
 
         //Prim algorithm
         HashSet<Edge> edges = PrimAlgorithm.RunMinimumSpanningTree(delaunayEdges, addSomeRemainingEdges);
 
         List<HashSet<Vector2Int>> paths = new List<HashSet<Vector2Int>>();
        
-        foreach (var edge in edges)
+        foreach (Edge edge in edges)
         {
             //A* algorithm
             HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.position, edge.V.position);
 
             if(widerCorridors)
             {
-                MakeWiderCorridors(path);
+                MakeWiderCorridors(path,corridorSize, mapWidth, mapHeight);
             }
 
             paths.Add(path);
@@ -32,9 +43,19 @@ public static class CorridorsAlgorithms
         return paths;
     }
 
-    
+
     //================================================== Tunneling Algorithm ======================================================================
-    public static HashSet<Vector2Int> ConnectRooms(List<Vertex> roomCenters, bool widerCorridors)
+
+    /// <summary>
+    /// Connects two rooms by using a tunneling algortihm. It makes corridors between two rooms
+    /// </summary>
+    /// <param name="roomCenters">Rooms positions which are the rooms centers</param>
+    /// <param name="widerCorridors">If we want wider corridors</param>
+    /// <param name="corridorSize">Corridor size</param>
+    /// <param name="mapWidth">MapWidth</param>
+    /// <param name="mapHeight">MapHeight</param>
+    /// <returns>Returns a hashset with all corridors positions</returns>
+    public static HashSet<Vector2Int> ConnectRooms(List<Vertex> roomCenters, bool widerCorridors, int corridorSize, int mapWidth, int mapHeight)
     {
         List<Vertex> roomVertex = new List<Vertex>(roomCenters);
         HashSet<Vector2Int> corridors = new HashSet<Vector2Int>();
@@ -49,7 +70,7 @@ public static class CorridorsAlgorithms
             Vector2Int closest = closestVertex.position;
             roomVertex.Remove(closestVertex);          
 
-            HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest, widerCorridors);
+            HashSet<Vector2Int> newCorridor = CreateCorridor(currentRoomCenter, closest, widerCorridors,corridorSize, mapWidth, mapHeight);
 
             currentVertex = closestVertex;
             currentRoomCenter = closest;
@@ -60,7 +81,17 @@ public static class CorridorsAlgorithms
         return corridors;
     }
 
-    private static HashSet<Vector2Int> CreateCorridor(Vector2Int currentRoomCenter, Vector2Int destination, bool widerCorridors)
+    /// <summary>
+    /// Creates a corridor between two rooms
+    /// </summary>
+    /// <param name="currentRoomCenter">Current room position</param>
+    /// <param name="destination">Destination room position</param>
+    /// <param name="widerCorridors">If we want wider corridors</param>
+    /// <param name="corridorSize">Corridor size</param>
+    /// <param name="mapWidth">MapWidth</param>
+    /// <param name="mapHeight">MapHeight</param>
+    /// <returns>Returns a hashset with all corridor positions</returns>
+    private static HashSet<Vector2Int> CreateCorridor(Vector2Int currentRoomCenter, Vector2Int destination, bool widerCorridors,int corridorSize, int mapWidth, int mapHeight)
     {
         HashSet<Vector2Int> corridor = new HashSet<Vector2Int>();
 
@@ -98,14 +129,19 @@ public static class CorridorsAlgorithms
 
         if (widerCorridors)
         {
-            MakeWiderCorridors(corridor);
+            MakeWiderCorridors(corridor,corridorSize, mapWidth, mapHeight);
         }
 
         return corridor;
     }
 
 
-
+    /// <summary>
+    /// Finds the closest room to the current room position
+    /// </summary>
+    /// <param name="currentRoomCenter">Current room position</param>
+    /// <param name="roomCenters">Rooms positions which are the rooms centers</param>
+    /// <returns></returns>
     private static Vertex FindClosestVertexTo(Vector2Int currentRoomCenter, List<Vertex> roomCenters)
     {
         Vertex closest = null;
@@ -126,24 +162,51 @@ public static class CorridorsAlgorithms
     }
 
 
-//===================================================== Auxiliar methods =================================================
-
-    private static void MakeWiderCorridors(HashSet<Vector2Int> corridor)
+    //===================================================== Auxiliar methods =================================================
+    /// <summary>
+    /// Makes wider corridors
+    /// </summary>
+    /// <param name="corridor">Corridor positions</param>
+    /// <param name="corridorSize">Corridor size</param>
+    /// <param name="mapWidth">MapWidth</param>
+    /// <param name="mapHeight">MapHeight</param>
+    private static void MakeWiderCorridors(HashSet<Vector2Int> corridor,int corridorSize,int mapWidth, int mapHeight)
     {
         HashSet<Vector2Int> corridorSides = new HashSet<Vector2Int>();
 
         //widdening corridor
         foreach (Vector2Int pos in corridor)
-        {
-            foreach (Vector2Int dir in Directions.GetEightDiretionsArray())
-            {
-                if (!corridor.Contains(pos + dir))
-                {
-                    corridorSides.Add(pos + dir);
-                }
-            }
+        {         
+            DrawBiggerTile(pos, corridorSize,corridorSides, mapWidth, mapHeight);
         }
 
         corridor.UnionWith(corridorSides);
+    }
+
+    /// <summary>
+    /// Adds extra positions around a given position
+    /// </summary>
+    /// <param name="pos">Given position</param>
+    /// <param name="size">Corridor size</param>
+    /// <param name="corridorSides">Corridor extra positions</param>
+    /// <param name="mapWidth">MapWidth</param>
+    /// <param name="mapHeight">MapHeight</param>
+    private static void DrawBiggerTile(Vector2Int pos, int size, HashSet<Vector2Int> corridorSides,int mapWidth,int mapHeight)
+    {
+        for (int x = -size; x <= size; x++)
+        {
+            for (int y = -size; y <= size; y++)
+            {
+                if (x * x + y * y <= size * size)
+                {
+                    int drawX = pos.x + x;
+                    int drawY = pos.y + y;
+                    if (drawX >= 0 && drawX < mapWidth && drawY >= 0 && drawY < mapHeight)
+                    {
+                        corridorSides.Add(new Vector2Int(drawX, drawY));
+                    }
+                }
+            }
+        }
     }
 }

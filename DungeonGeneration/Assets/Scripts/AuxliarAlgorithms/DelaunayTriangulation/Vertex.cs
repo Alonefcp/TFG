@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-
+//Class for representing a vertex
 public class Vertex : IEquatable<Vertex>
 {
     public Vector2Int position { get; private set; }

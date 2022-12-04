@@ -9,6 +9,11 @@ public static class DelaunayTriangulation
     private static List<Edge> edges;
     private static List<Triangle> triangles;
 
+    /// <summary>
+    /// Creates a delaunay triangulation grahp
+    /// </summary>
+    /// <param name="vertices">Vextex list</param>
+    /// <returns>Returs a hashset with all graph edges</returns>
    public static List<Edge> Triangulate(List<Vertex> vertices)
    {
         edges = new List<Edge>();

@@ -8,23 +8,26 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     [Range(40,150)]
     [SerializeField] private int spaceWidth = 20,  spaceHeight = 20;
-    [Range(4,10)]
-    [SerializeField] private int minRoomWidth = 4, maxRoomWidth = 4,  minRoomHeight = 4, maxRoomHeight = 4;
+    [Range(8, 20)]
+    [SerializeField] private int minRoomWidth = 4, /*maxRoomWidth = 4,*/  minRoomHeight = 4; /*maxRoomHeight = 4*/
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
 
-    [Range(1,10)]
+    [Range(1,2)]
     [SerializeField] private int roomOffset = 1;
+    [Range(0.1f, 0.5f)]
+    [SerializeField] private float minSplitPercent = 0.1f;
+    [Range(0.5f, 1.0f)]
+    [SerializeField] private float maxSplitPercent = 0.9f;
 
     [SerializeField] private CorridorsAlgorithm corridorsAlgorithm = CorridorsAlgorithm.TunnelingAlgorithm;
     [SerializeField] private bool addSomeRemainingEdges = true;
     [SerializeField] private bool widerCorridors = false;
-
-    [SerializeField] private bool verticalGridStructure = false;
-    [SerializeField] private bool horizontalGridStructure = false;
+    [Range(1, 4)]
+    [SerializeField] private int corridorSize = 1;
 
     [SerializeField] private bool setSpecialRooms = false;
 
-    //[SerializeField] private bool showGizmos = false;
+    [SerializeField] private bool showGizmos = false;
 
     private Grid2D grid;
     private List<BoundsInt> roomList;
@@ -36,15 +39,16 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
-        //Create and paint rooms
+        //Create and draw rooms
         BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
-        roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, maxRoomWidth, minRoomHeight, maxRoomHeight);
+        roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, minRoomHeight);
 
-        HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
         grid = new Grid2D(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
+        HashSet<Vector2Int> floorPositions = CreateRooms(roomList, grid);
+        tilemapVisualizer.ClearTilemap();
+        tilemapVisualizer.PaintFloorTiles(floorPositions);
 
-        floorPositions = CreateRooms(roomList, grid);
-
+        //Create connections between rooms
         List<Vertex> roomCenters = new List<Vertex>();
 
         foreach (BoundsInt room in roomList)
@@ -53,59 +57,56 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             roomCenters.Add(new Vertex(center));
         }
 
-        tilemapVisualizer.ClearTilemap();
-        tilemapVisualizer.PaintFloorTiles(floorPositions);
-
-        //Create and paint corridors
-        if(corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
+        if (corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
         {
-            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, widerCorridors);
+            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, widerCorridors,corridorSize,spaceWidth,spaceHeight);
             tilemapVisualizer.PaintFloorTiles(corridors);
         }
         else
         {
-            List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCenters, grid, widerCorridors, addSomeRemainingEdges);
-            foreach (var path in paths)
+            List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCenters, grid, widerCorridors, corridorSize,spaceWidth, spaceHeight, addSomeRemainingEdges);
+            foreach (HashSet<Vector2Int> path in paths)
             {
                 tilemapVisualizer.PaintFloorTiles(path);
             }
         }
 
-       if(setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters);
+        //Set special rooms
+        if (setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters);
     }
 
-    //private void OnDrawGizmos()
-    //{
-    //    if(showGizmos)
-    //    {
-    //        Gizmos.color = Color.red;
-    //        Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
+    private void OnDrawGizmos()
+    {
+        if (showGizmos)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
 
-    //        //Gizmos.color = Color.green;
-    //        //if (delaunayTriangulation != null)
-    //        //{
-    //        //    foreach (var edge in edges)
-    //        //    {
-    //        //        Gizmos.DrawLine(edge.U.Position, edge.V.Position);
-    //        //    }
-    //        //}
+            //Gizmos.color = Color.green;
+            //if (delaunayTriangulation != null)
+            //{
+            //    foreach (var edge in edges)
+            //    {
+            //        Gizmos.DrawLine(edge.U.Position, edge.V.Position);
+            //    }
+            //}
 
-    //        //if(paths!=null)
-    //        //{
-    //        //    foreach (var path in paths)
-    //        //    {
-    //        //        foreach (var node in path)
-    //        //        {
-    //        //            Gizmos.DrawWireSphere(node.worldPosition, 1.0f);
-    //        //        }
-    //        //    }
-    //        //}
+            //if(paths!=null)
+            //{
+            //    foreach (var path in paths)
+            //    {
+            //        foreach (var node in path)
+            //        {
+            //            Gizmos.DrawWireSphere(node.worldPosition, 1.0f);
+            //        }
+            //    }
+            //}
 
-    //    }      
-    //}
+        }
+    }
 
     /// <summary>
-    /// Returns all the positions that are walkable and are part of the rooms generated by BSP.
+    /// Returns all the positions that are walkable and are part of the rooms generated by BSP
     /// </summary>
     /// <param name="roomsList">All the rooms generated by the BSP</param>
     /// <param name="grid">Map representation</param>
@@ -113,7 +114,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     private HashSet<Vector2Int> CreateRooms(List<BoundsInt> roomsList, Grid2D grid)
     {
         HashSet<Vector2Int> floor = new HashSet<Vector2Int>();
-        foreach (var room in roomsList)
+        foreach (BoundsInt room in roomsList)
         {
             for (int col = roomOffset; col < room.size.x - roomOffset; col++)
             {
@@ -129,7 +130,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Performs the binary space partitioning by splitting a given space into smaller rooms. 
+    /// Performs the binary space partitioning by splitting a given space into smaller rooms 
     /// </summary>
     /// <param name="spaceToSplit">Space which is going to be splitted</param>
     /// <param name="minWidth">Minimun rooms widht</param>
@@ -137,7 +138,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     /// <param name="minHeight">Minimun rooms height</param>
     /// <param name="maxHeight">Maxximun rooms height</param>
     /// <returns></returns>
-    private List<BoundsInt> BinarySpacePartitioning(BoundsInt spaceToSplit, int minWidth, int maxWidth, int minHeight, int maxHeight)
+    private List<BoundsInt> BinarySpacePartitioning(BoundsInt spaceToSplit, int minWidth, int minHeight)
     {
         Queue<BoundsInt> roomsQueue = new Queue<BoundsInt>();
         List<BoundsInt> roomsList = new List<BoundsInt>();
@@ -149,15 +150,16 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
             if (room.size.y >= minHeight && room.size.x >= minWidth)
             {
+                float roomMultiplier = Random.Range(1.25f, 3.0f);
                 if (Random.value < 0.5f)
                 {
-                    if (room.size.y >= Random.Range(minHeight, maxHeight+1) * Random.Range(1.25f, 3.0f))
+                    if (room.size.y >= minHeight * roomMultiplier)
                     {
-                        HorizontalSplit(minHeight, roomsQueue, room);
+                        HorizontalSplit(roomsQueue, room);
                     }
-                    else if (room.size.x >= Random.Range(minWidth, maxWidth+1) * Random.Range(1.25f, 3.0f))
+                    else if (room.size.x >= minWidth * roomMultiplier)
                     {
-                        VerticalSplit(minWidth, roomsQueue, room);
+                        VerticalSplit(roomsQueue, room);
                     }
                     else 
                     {
@@ -166,13 +168,13 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
                 }
                 else
                 {
-                    if (room.size.x >= Random.Range(minWidth, minWidth+1) * Random.Range(1.25f, 3.0f))
+                    if (room.size.x >= minWidth * roomMultiplier)
                     {
-                        VerticalSplit(minWidth, roomsQueue, room);
+                        VerticalSplit(roomsQueue, room);
                     }
-                    else if (room.size.y >= Random.Range(minHeight, maxHeight+1) * Random.Range(1.25f, 3.0f))
+                    else if (room.size.y >= minHeight * roomMultiplier)
                     {
-                        HorizontalSplit(minHeight, roomsQueue, room);
+                        HorizontalSplit(roomsQueue, room);
                     }
                     else 
                     {
@@ -180,20 +182,20 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
                     }
                 }
             }
+
         }
 
         return roomsList;
     }
 
     /// <summary>
-    /// Splits a given space vertically.
+    /// Splits a given space vertically
     /// </summary>
-    /// <param name="minWidth">Minimun rooms widht</param>
     /// <param name="roomsQueue">Rooms which are going to be splitted again, if it is possible</param>
     /// <param name="room">Space which is going to be splitted vertically</param>
-    private void VerticalSplit(int minWidth, Queue<BoundsInt> roomsQueue, BoundsInt room)
+    private void VerticalSplit(Queue<BoundsInt> roomsQueue, BoundsInt room)
     {
-        int xSplit = verticalGridStructure ? Random.Range(minWidth, room.size.x - minWidth) : Random.Range(1, room.size.x);
+        int xSplit = (int)Random.Range(minSplitPercent*room.size.x, maxSplitPercent*room.size.x);
        
         BoundsInt firstRoom = new BoundsInt(room.min, new Vector3Int(xSplit, room.size.y, room.size.z));
         BoundsInt secondRoom = new BoundsInt(new Vector3Int(room.min.x + xSplit,room.min.y, room.min.z), new Vector3Int(room.size.x - xSplit, room.size.y, room.size.z));
@@ -203,14 +205,13 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Splits a given space horizontally.
+    /// Splits a given space horizontally
     /// </summary>
-    /// <param name="minHeight">Minimun rooms height</param>
     /// <param name="roomsQueue">Rooms which are going to be splitted again, if it is possible</param>
     /// <param name="room">Space which is going to be splitted horizontally</param>
-    private void HorizontalSplit(int minHeight, Queue<BoundsInt> roomsQueue, BoundsInt room)
+    private void HorizontalSplit(Queue<BoundsInt> roomsQueue, BoundsInt room)
     {
-        int ySplit = horizontalGridStructure ? Random.Range(minHeight, room.size.y - minHeight) : Random.Range(1, room.size.y);
+        int ySplit = (int)Random.Range(minSplitPercent * room.size.y, maxSplitPercent*room.size.y);
 
         BoundsInt firstRoom = new BoundsInt(room.min, new Vector3Int(room.size.x, ySplit, room.size.z));
         BoundsInt secondRoom = new BoundsInt(new Vector3Int(room.min.x, room.min.y + ySplit, room.min.z), new Vector3Int(room.size.x, room.size.y-ySplit, room.size.z));

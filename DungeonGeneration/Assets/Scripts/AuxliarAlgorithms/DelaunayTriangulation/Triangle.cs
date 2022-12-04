@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
+//Class for representing a triangle
 public class Triangle : IEquatable<Triangle>
 {
     public Vertex A { get; set; }

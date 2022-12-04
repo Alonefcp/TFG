@@ -5,26 +5,25 @@ using Random = UnityEngine.Random;
 //Prim Algorithm for Minimum Spanning Tree
 public static class PrimAlgorithm
 {
+    /// <summary>
+    /// Creates a minimum spanning tree and returns its edges
+    /// </summary>
+    /// <param name="delaunayEdges">Delaunay edges</param>
+    /// <param name="addSomeRemainingEdges">If we want to add the remainig edges of the minimum spanning tree</param>
+    /// <returns>Returns a hashset the minimum spanning tree edges</returns>
     public static HashSet<Edge> RunMinimumSpanningTree(List<Edge> delaunayEdges, bool addSomeRemainingEdges)
     {
-        List<Edge> edges = new List<Edge>();
+        //Minimum spanning tree edges
+        List<Edge> mst = MinimumSpanningTree(delaunayEdges, delaunayEdges[0].U);
+        HashSet<Edge> selectedEdges = new HashSet<Edge>(mst);
 
-        HashSet<Edge> selectedEdges = new HashSet<Edge>();
-
-        foreach (var edge in delaunayEdges)
-        {
-            edges.Add(new Edge(edge.U, edge.V));
-        }
-
-        List<Edge> mst = MinimumSpanningTree(edges, edges[0].U);
-
-        selectedEdges = new HashSet<Edge>(mst);
-        var remainingEdges = new HashSet<Edge>(edges);
+        //Remaining edges
+        HashSet<Edge> remainingEdges = new HashSet<Edge>(delaunayEdges);
         remainingEdges.ExceptWith(selectedEdges);
 
         if(addSomeRemainingEdges)
         {
-            foreach (var edge in remainingEdges)
+            foreach (Edge edge in remainingEdges)
             {
                 if (Random.value < 0.125)
                 {
@@ -36,12 +35,18 @@ public static class PrimAlgorithm
         return selectedEdges;
     }
 
+    /// <summary>
+    /// Returns the minimum spanning tree edges.
+    /// </summary>
+    /// <param name="edges">Edges list</param>
+    /// <param name="start">Start edge</param>
+    /// <returns>Returns a hashset the minimum spanning tree edges</returns>
     private static List<Edge> MinimumSpanningTree(List<Edge> edges, Vertex start)
     {
         HashSet<Vertex> openSet = new HashSet<Vertex>();
         HashSet<Vertex> closedSet = new HashSet<Vertex>();
 
-        foreach (var edge in edges)
+        foreach (Edge edge in edges)
         {
             openSet.Add(edge.U);
             openSet.Add(edge.V);
@@ -57,7 +62,7 @@ public static class PrimAlgorithm
             Edge chosenEdge = null;
             float minWeight = float.PositiveInfinity;
 
-            foreach (var edge in edges)
+            foreach (Edge edge in edges)
             {
                 int closedVertices = 0;
                 if (!closedSet.Contains(edge.U)) closedVertices++;

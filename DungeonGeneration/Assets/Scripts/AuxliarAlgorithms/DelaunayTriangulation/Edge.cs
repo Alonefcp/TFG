@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+//Class for representing a edge
 public class Edge : IEquatable<Edge>
 {
     public Vertex U { get; set; }
