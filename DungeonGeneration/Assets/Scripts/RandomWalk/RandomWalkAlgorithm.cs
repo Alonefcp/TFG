@@ -25,7 +25,7 @@ public class RandomWalkAlgorithm : DungeonGenerator
     [SerializeField] private int minSteps = 10, maxSteps = 20;
     [Range(0.0f, 1.0f)]
     [SerializeField] float chanceToChangeDirection = 1.0f;
-    [SerializeField] bool eliminateSingleWalls = false;
+    [SerializeField] bool eliminateSingleWallsCells = false;
     [SerializeField] bool useEightDirections = false;
     [SerializeField] bool levyFlight = false;
     [Range(0.0f, 1.0f)]
@@ -48,9 +48,10 @@ public class RandomWalkAlgorithm : DungeonGenerator
         Debug.Log(floorPositions.Count);//QUITAR!!
         tilemapVisualizer.ClearTilemap();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
-        if (eliminateSingleWalls)
+        if (eliminateSingleWallsCells)
         {
-            tilemapVisualizer.EliminateSingleSpaces();
+            tilemapVisualizer.EliminateSingleSpaces(out HashSet<Vector2Int> positions);
+            floorPositions.UnionWith(positions); //we add the positions which have become walkables
         }
     }
 

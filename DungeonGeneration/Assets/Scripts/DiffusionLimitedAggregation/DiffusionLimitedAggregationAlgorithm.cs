@@ -18,14 +18,13 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
     [Range(1, 10)]
     [SerializeField] private int seedSize = 1;
     [SerializeField] private bool useCentralAttractor = false;
-    [SerializeField] bool eliminateSingleWalls = false;
+    [SerializeField] bool eliminateSingleWallsCells = false;
     [SerializeField] bool showGizmos = false;
 
     private Vector2Int startPosition;
     private int maxFloorPositions;
     private List<bool> map;
     private HashSet<Vector2Int> floorPositions;
-    private HashSet<Vector2Int> extraPositions;
 
     //void Start()
     //{
@@ -52,10 +51,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
             floorPositions = RunDiffusionLimitedAggregation();
         }
 
-        //Extra positions stores new positions which appear when we draw 
-        //the map with a brush size of 2 or more
-        extraPositions = new HashSet<Vector2Int>();
-
+        //We paint the map
         if (symmetryType == Symmetry.Horizontal)
         {
             ApplyHorizontalSymmetry();
@@ -70,20 +66,24 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
         }
         else if (symmetryType == Symmetry.None)
         {
-            foreach (Vector2Int pos in floorPositions)
+            int initialSize = floorPositions.Count;
+            for (int i = 0; i < initialSize; i++)
             {
-                DrawWithBrush(pos);
+                DrawWithBrush(floorPositions.ElementAt(i));
             }
         }
-
-        //We add to the floor positions hashset all the extra positions
-        floorPositions.UnionWith(extraPositions);
-        //int h = map.Where(cell => cell == true).ToList().Count;
-        
-        if (eliminateSingleWalls)
+       
+        if (eliminateSingleWallsCells)
         {
-            tilemapVisualizer.EliminateSingleSpaces();
-        }
+            tilemapVisualizer.EliminateSingleSpaces(out HashSet<Vector2Int> extraPositions);
+
+            //we add the positions which have become walkables
+            foreach (Vector2Int pos in extraPositions)
+            {
+                map[MapXYtoIndex(pos.x, pos.y)] = true;
+            }
+            floorPositions.UnionWith(extraPositions);
+        }      
     }
 
     //For debugging
@@ -100,7 +100,8 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Draws bigger floor positions and the extra positions are stored in a hashset
+    /// Draws bigger floor positions and the extra positions are stored 
+    /// the floor positions hashset
     /// </summary>
     /// <param name="floorPosition">Floor position</param>
     private void DrawWithBrush(Vector2Int floorPosition)
@@ -108,6 +109,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
         if(brushSize==1)
         {
             tilemapVisualizer.PaintSingleFloorTile(floorPosition);
+            floorPositions.Add(floorPosition);
         }
         else
         {          
@@ -120,7 +122,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
                     if (x >= 0 && x < mapWidth && y >= 0 && y < mapHeight)
                     {
                         map[MapXYtoIndex(x, y)] = true;
-                        extraPositions.Add(new Vector2Int(x, y));
+                        floorPositions.Add(new Vector2Int(x, y));
                         tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x,y));
                     }
                 }
@@ -270,18 +272,18 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
     private void ApplyHorizontalSymmetry()
     {
         int centerX = mapWidth / 2;
-
-        foreach (Vector2Int pos in floorPositions)
+        int initialSize = floorPositions.Count;
+        for (int i = 0; i < initialSize; i++)
         {
-            if (pos.x == centerX)
+            if (floorPositions.ElementAt(i).x == centerX)
             {
-                DrawWithBrush(pos);
+                DrawWithBrush(floorPositions.ElementAt(i));
             }
             else
             {
-                int distX = Mathf.Abs(centerX - pos.x);
-                DrawWithBrush(new Vector2Int(centerX + distX, pos.y));
-                DrawWithBrush(new Vector2Int(centerX - distX, pos.y));
+                int distX = Mathf.Abs(centerX - floorPositions.ElementAt(i).x);
+                DrawWithBrush(new Vector2Int(centerX + distX, floorPositions.ElementAt(i).y));
+                DrawWithBrush(new Vector2Int(centerX - distX, floorPositions.ElementAt(i).y));
             }
         }    
     }
@@ -293,17 +295,18 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
     {
         int centerY = mapHeight / 2;
 
-        foreach (Vector2Int pos in floorPositions)
+        int initialSize = floorPositions.Count;
+        for (int i = 0; i < initialSize; i++)
         {
-            if (pos.y == centerY)
+            if (floorPositions.ElementAt(i).y == centerY)
             {
-                DrawWithBrush(pos);
+                DrawWithBrush(floorPositions.ElementAt(i));
             }
             else
             {
-                int distY = Mathf.Abs(centerY - pos.y);
-                DrawWithBrush(new Vector2Int(pos.x, centerY + distY));
-                DrawWithBrush(new Vector2Int(pos.x, centerY - distY));
+                int distY = Mathf.Abs(centerY - floorPositions.ElementAt(i).y);
+                DrawWithBrush(new Vector2Int(floorPositions.ElementAt(i).x, centerY + distY));
+                DrawWithBrush(new Vector2Int(floorPositions.ElementAt(i).x, centerY - distY));
             }
         }  
     }
@@ -316,21 +319,22 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
         int centerX = mapWidth / 2;
         int centerY = mapHeight / 2;
 
-        foreach (Vector2Int pos in floorPositions)
+        int initialSize = floorPositions.Count;
+        for (int i = 0; i < initialSize; i++)
         {
-            if (pos.x == centerX && pos.y == centerY)
+            if (floorPositions.ElementAt(i).x == centerX && floorPositions.ElementAt(i).y == centerY)
             {
-                DrawWithBrush(pos);
+                DrawWithBrush(floorPositions.ElementAt(i));
             }
             else
             {
-                int distX = Mathf.Abs(centerX - pos.x);
-                DrawWithBrush(new Vector2Int(centerX + distX, pos.y));
-                DrawWithBrush(new Vector2Int(centerX - distX, pos.y));
+                int distX = Mathf.Abs(centerX - floorPositions.ElementAt(i).x);
+                DrawWithBrush(new Vector2Int(centerX + distX, floorPositions.ElementAt(i).y));
+                DrawWithBrush(new Vector2Int(centerX - distX, floorPositions.ElementAt(i).y));
 
-                int distY = Mathf.Abs(centerY - pos.y);
-                DrawWithBrush(new Vector2Int(pos.x, centerY + distY));
-                DrawWithBrush(new Vector2Int(pos.x, centerY - distY));
+                int distY = Mathf.Abs(centerY - floorPositions.ElementAt(i).y);
+                DrawWithBrush(new Vector2Int(floorPositions.ElementAt(i).x, centerY + distY));
+                DrawWithBrush(new Vector2Int(floorPositions.ElementAt(i).x, centerY - distY));
             }
         }
     }

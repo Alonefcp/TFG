@@ -99,25 +99,28 @@ public class TilemapVisualizer : MonoBehaviour
     }
 
     /// <summary>
-    /// Eliminates from the tilemap all tiles 
+    /// Eliminates from the tilemap all cells without a tile sourronded by cells with tiles
     /// </summary>
-    public void EliminateSingleSpaces()
+    /// <param name="positions">Positions which become walkable cells</param>
+    public void EliminateSingleSpaces(out HashSet<Vector2Int> positions)
     {
+        positions = new HashSet<Vector2Int>();
+
         foreach (var position in floorTilemap.cellBounds.allPositionsWithin)
         {
             Vector2Int pos = (Vector2Int)position;
 
             bool hasTile = floorTilemap.HasTile((Vector3Int)pos);
-            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1)));
-            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1)));
-            bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0)));
-            bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0)));
+            bool hasUpperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1)));
+            bool hasBottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1)));
+            bool hasRightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0)));
+            bool hasLeftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0)));
 
-
-            if (!hasTile && upperTile && bottomTile && rightTile && leftTile)
+            if (!hasTile && hasUpperTile && hasBottomTile && hasRightTile && hasLeftTile)
             {
                 Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
                 floorTilemap.SetTile(tileMapPosition, floorTile);
+                positions.Add(pos);
             }
         }
     }
