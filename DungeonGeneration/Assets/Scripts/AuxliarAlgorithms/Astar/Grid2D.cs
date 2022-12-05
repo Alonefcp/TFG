@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+//Class for representing a 2d grid for A*
 public class Grid2D
 {
 	private Node[,] grid;
