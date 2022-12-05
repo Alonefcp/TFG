@@ -89,6 +89,11 @@ public class TilemapVisualizer : MonoBehaviour
         floorTilemap.SetTile(tileMapPosition, pathTile);
     }
 
+    public void EraseSingleTile(Vector2Int position)
+    {
+        PaintSingleTile(null, position);
+    }
+
     /// <summary>
     /// Eliminates all tiles of the tilemap
     /// </summary>
@@ -138,46 +143,6 @@ public class TilemapVisualizer : MonoBehaviour
             bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(-1, 0))) == floorTile);
 
             if (!hasTile && (upperTile || bottomTile || rightTile || leftTile))
-            {
-                Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
-                floorTilemap.SetTile(tileMapPosition, wallTile);
-            }
-        }
-    }
-
-    public void EliminateSingleWalls()
-    {
-        foreach (var position in floorTilemap.cellBounds.allPositionsWithin)
-        {
-            Vector2Int pos = (Vector2Int)position;
-
-            bool hasTile = floorTilemap.HasTile((Vector3Int)pos) && floorTilemap.GetTile((Vector3Int)pos)==wallTile;
-            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, 1))) == floorTile);
-            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, -1))) == floorTile);
-            bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(1, 0))) == floorTile);
-            bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(-1, 0))) == floorTile);
-
-            if (hasTile && upperTile && bottomTile && rightTile && leftTile)
-            {
-                Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
-                floorTilemap.SetTile(tileMapPosition, floorTile);
-            }
-        }
-    }
-
-    public void EliminateSingleFloors()
-    {
-        foreach (var position in floorTilemap.cellBounds.allPositionsWithin)
-        {
-            Vector2Int pos = (Vector2Int)position;
-
-            bool hasTile = floorTilemap.HasTile((Vector3Int)pos) && floorTilemap.GetTile((Vector3Int)pos) == floorTile;
-            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, 1))) == wallTile);
-            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, -1))) == wallTile);
-            bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(1, 0))) == wallTile);
-            bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(-1, 0))) == wallTile);
-
-            if (hasTile && upperTile && bottomTile && rightTile && leftTile)
             {
                 Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
                 floorTilemap.SetTile(tileMapPosition, wallTile);

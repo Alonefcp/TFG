@@ -5,43 +5,48 @@ using System.Linq;
 using System;
 using Random = UnityEngine.Random;
 
+//Struct for storing data for each map cell
+public struct Cell
+{
+    private Vector2Int cellPos;
+    private Vector2Int closestSeed;
+    private int cellType; //1 -> wall , 0 -> floor, 2 -> erased cell
+
+    public Vector2Int CellPos { get => cellPos; set => cellPos = value; }
+    public Vector2Int ClosestSeed { get => closestSeed; set => closestSeed = value; }
+    public int CellType { get => cellType; set => cellType = value; }
+
+    public Cell(Vector2Int cellPos)
+    {
+        this.cellPos = cellPos;
+
+        closestSeed = new Vector2Int();
+        cellType = 0;
+    }
+}
 
 public class VoronoiDiagramAlgorithm : DungeonGenerator
 {
-    //Struct for storing data for each map cell
-    struct Cell
-    {
-        private Vector2Int cellPos;
-        private Vector2Int closestSeed;
-
-        public Vector2Int CellPos { get => cellPos; set => cellPos = value; }
-        public Vector2Int ClosestSeed { get => closestSeed; set => closestSeed = value; }
-
-        public Cell(Vector2Int cellPos)
-        {
-            this.cellPos = cellPos;
-
-            closestSeed = new Vector2Int();
-        }
-    }
-
-    enum DistanceAlgorithm {Euclidean, Manhattan, Chebyshev}
-
-    [Range(20,200)]
+    [Range(50,200)]
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
     [Range(2,100)]
     [SerializeField] private int numberOfSeeds = 64;
-    [SerializeField] private DistanceAlgorithm distanceAlgorithm;
+    [SerializeField] private Distance.DistanceAlgorithm distanceAlgorithm;
     [Range(0.0f,1.0f)]
     [SerializeField] private float wallErosion = 0.5f;
     [SerializeField] private bool randomShape = false;
     [SerializeField] private bool addExtraPaths = false;
-    [SerializeField] private bool eliminateSingleWalls = false;
-    [SerializeField] private bool eliminateSingleFloors = false;
+    [SerializeField] private bool makeWiderPaths = false;
+    [SerializeField] private bool connectRegions = true;
+    [Range(0, 15)]
+    [SerializeField] private int wallThresholdSize = 5;
+    [Range(0, 15)]
+    [SerializeField] private int floorThresholdSize = 5;
+    [SerializeField] private bool useRandomSeed = true;
+    [SerializeField] private string seed;
 
     private Grid2D grid;
-    private List<Edge> edges;
-    private HashSet<Edge> primEdges;
+    private System.Random rng = null;
 
     //void Start()
     //{
@@ -49,7 +54,10 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     //}
 
     public override void GenerateDungeon()
-    {       
+    {
+        if (useRandomSeed) seed = Time.time.ToString();
+        rng = new System.Random(seed.GetHashCode());
+
         tilemapVisualizer.ClearTilemap();
         grid = new Grid2D(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());
 
@@ -61,13 +69,15 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             CreateWalls(mapInfo);
 
             Dictionary<Vector2Int, HashSet<Vector2Int>> borderSets = CreateSets(borderSeeds, mapInfo);
-            EraseBorderSets(borderSets, borderSeeds);
+            EraseBorderSets(borderSets, borderSeeds,mapInfo);
 
-            HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();   
-            GenerateConnectivity(randomSeeds);
+            HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();
+            if (connectRegions) Connectivity.GenerateConnectivity(randomSeeds,mapInfo,mapWidth,mapHeight,grid,addExtraPaths,makeWiderPaths,tilemapVisualizer);
 
-            //tilemapVisualizer.PaintPathTiles(randomSeeds);
-            tilemapVisualizer.AddBorderWalls();           
+            EraseRegions(mapInfo);
+
+            tilemapVisualizer.PaintPathTiles(randomSeeds);
+            tilemapVisualizer.AddBorderWalls();
         }
         else
         {
@@ -75,12 +85,12 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             List<Cell> mapInfo = RunVoronoiDiagram(seeds);
             CreateWalls(mapInfo);
 
-            GenerateConnectivity(seeds);
+            if(connectRegions) Connectivity.GenerateConnectivity(seeds, mapInfo, mapWidth, mapHeight, grid, addExtraPaths, makeWiderPaths, tilemapVisualizer);
+
+            EraseRegions(mapInfo);
+
             //tilemapVisualizer.PaintPathTiles(seeds);     
         }
-
-        if(eliminateSingleWalls) tilemapVisualizer.EliminateSingleWalls();
-        if (eliminateSingleFloors) tilemapVisualizer.EliminateSingleFloors(); 
     }
 
     //private void OnDrawGizmos()
@@ -106,8 +116,8 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
         while(seeds.Count<numberOfSeeds)
         {
-            int xPos = Random.Range(1, mapWidth-1);
-            int yPos = Random.Range(1, mapHeight-1);
+            int xPos = rng.Next(1, mapWidth-1);
+            int yPos = rng.Next(1, mapHeight-1);
 
             seeds.Add(new Vector2Int(xPos, yPos));
         }
@@ -178,8 +188,8 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         int padding = 8;
         while (seeds.Count < numberOfSeeds)
         {
-            int xPos = Random.Range(offsetX + padding, mapWidth - offsetX - padding);
-            int yPos = Random.Range(offsetY + padding, mapHeight - offsetY - padding);
+            int xPos = rng.Next(offsetX + padding, mapWidth - offsetX - padding);
+            int yPos = rng.Next(offsetY + padding, mapHeight - offsetY - padding);
 
             seeds.Add(new Vector2Int(xPos, yPos));
         }
@@ -195,7 +205,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     /// <returns></returns>
     private List<Cell> RunVoronoiDiagram(HashSet<Vector2Int> seeds)
     {
-        List<Cell> mapInfo = new List<Cell>(mapWidth * mapHeight);
+        List<Cell> mapInfo = new List<Cell>();
         for (int i = 0; i < mapWidth * mapHeight; i++) mapInfo.Add(new Cell());
 
         for (int i = 0; i < mapInfo.Count; i++)
@@ -203,15 +213,16 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             int x = i % mapWidth;
             int y = i / mapWidth;
 
-            float mindistance = float.MaxValue;
+            //We get the closest seed to the current map position
+            float minDistance = float.MaxValue;
 
             foreach (Vector2Int seed in seeds)
             {
-                float distance = CalculateDistance(new Vector2Int(x, y), seed);
+                float distance = Distance.CalculateDistance(new Vector2Int(x, y), seed, distanceAlgorithm);
 
-                if (distance < mindistance)
+                if (distance < minDistance)
                 {
-                    mindistance = distance;
+                    minDistance = distance;
                     Vector2Int nearestSeed = seed;
                     Cell cell = new Cell(new Vector2Int(x, y));                   
                     cell.ClosestSeed = nearestSeed;
@@ -221,34 +232,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         }
 
         return mapInfo;
-    }
-
-    /// <summary>
-    /// Calculates the distance between two points with the distance algorithm chosen by the user
-    /// </summary>
-    /// <param name="from">Start point</param>
-    /// <param name="to">End point</param>
-    /// <returns>A float which is the distance between two points</returns>
-    private float CalculateDistance(Vector2Int from, Vector2Int to)
-    {
-        float distance;
-        switch (distanceAlgorithm)
-        {
-            case DistanceAlgorithm.Euclidean:
-                distance = EuclideanDistance(from, to);
-                break;
-            case DistanceAlgorithm.Manhattan:
-                distance = ManhattanDistance(from, to);
-                break;
-            case DistanceAlgorithm.Chebyshev:
-               distance = ChebyshevDistance(from, to);
-                break;
-            default:
-                distance = EuclideanDistance(from, to);
-                break;
-        }
-
-        return distance;
     }
 
     /// <summary>
@@ -263,12 +246,29 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             {
                 Cell mySeed = mapInfo[MapXYtoIndex(x, y)];
 
-                if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1) //map boundaries
+                if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1) //Map boundaries
                 {
                     tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    mySeed.CellType = 1; //Wall
+                    mapInfo[MapXYtoIndex(x, y)] = mySeed;
+                    grid.NodeFromWorldPoint(new Vector2Int(x, y)).SetIsWalkable(false);
                     continue;
                 }
 
+                //int neig = 0;
+                //if (mapInfo[MapXYtoIndex(x - 1, y)].ClosestSeed != mySeed.ClosestSeed) neig++;
+                //if (mapInfo[MapXYtoIndex(x + 1, y)].ClosestSeed != mySeed.ClosestSeed) neig++;
+                //if (mapInfo[MapXYtoIndex(x, y - 1)].ClosestSeed != mySeed.ClosestSeed) neig++;
+                //if (mapInfo[MapXYtoIndex(x, y + 1)].ClosestSeed != mySeed.ClosestSeed) neig++;
+                //if (neig<2)
+                //{
+                //    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                //}
+                //else
+                //{
+                //    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                //}
+            
                 if (mapInfo[MapXYtoIndex(x - 1, y)].ClosestSeed != mySeed.ClosestSeed ||
                 mapInfo[MapXYtoIndex(x + 1, y)].ClosestSeed != mySeed.ClosestSeed ||
                 mapInfo[MapXYtoIndex(x, y - 1)].ClosestSeed != mySeed.ClosestSeed ||
@@ -279,10 +279,12 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 mapInfo[MapXYtoIndex(x - 1, y - 1)].ClosestSeed != mySeed.ClosestSeed ||
                 mapInfo[MapXYtoIndex(x + 1, y + 1)].ClosestSeed != mySeed.ClosestSeed)
                 {
-                    if (Random.value > wallErosion)
+                    if (rng.NextDouble() > wallErosion)
                     {
                         tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                        //grid.NodeFromWorldPoint(new Vector3(x, y, 0)).SetIsWalkable(false);
+                        mySeed.CellType = 1; //Wall
+                        mapInfo[MapXYtoIndex(x, y)] = mySeed;
+                        //grid.NodeFromWorldPoint(new Vector2Int(x, y)).SetIsWalkable(false);
                     }
                     else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                 }
@@ -291,106 +293,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                     tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                 }
             }
-        }
-    }
-
-    /// <summary>
-    /// Makes a path between all the seeds.
-    /// </summary>
-    /// <param name="seeds">HashSet with all seed positions</param>
-    private void GenerateConnectivity(HashSet<Vector2Int> seeds)
-    {
-        //Delaunay triangulation 
-        List<Vertex> vertex = new List<Vertex>();
-        foreach (Vector2Int seed in seeds)
-        {
-            vertex.Add(new Vertex(seed));
-        }
-
-        edges = DelaunayTriangulation.Triangulate(vertex);
-
-        //If we can't make a graph with Delaunay
-        if (edges.Count<=0) 
-        {
-            Vertex prev = vertex[0];
-            for (int i = 1; i < vertex.Count; i++)
-            {
-                edges.Add(new Edge(prev, vertex[i]));
-                prev = vertex[i];
-            }
-        }
-
-        //If we can make a graph with Delaunay but a seed is disjointed
-        ConnectDisjointedSeeds(vertex, edges, seeds); 
-
-        //Prim algorithm
-        primEdges = PrimAlgorithm.RunMinimumSpanningTree(edges, addExtraPaths);
-
-        //A* algorithm
-        foreach (Edge edge in primEdges)
-        {
-            //We connect all seeds
-            HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.position, edge.V.position);
-            if (path != null) tilemapVisualizer.PaintFloorTiles(path);
-            else 
-            {   
-                //Extra path for connectiong the disjointed seed
-                Grid2D extraGrid = new Grid2D(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());            
-                HashSet<Vector2Int> extraPath = AstarPathfinding.FindPath(extraGrid, edge.U.position, edge.V.position);
-                MakeWiderPath(extraPath);
-                tilemapVisualizer.PaintFloorTiles(extraPath);
-            }
-        }    
-    }
-
-    /// <summary>
-    /// Make wider the path given by the user.
-    /// </summary>
-    /// <param name="path">The given path which wil become wider</param>
-    private void MakeWiderPath(HashSet<Vector2Int> path)
-    {
-        HashSet<Vector2Int> pathSides = new HashSet<Vector2Int>();
-
-        //widdening path
-        foreach (Vector2Int pos in path)
-        {
-            foreach (Vector2Int dir in Directions.GetEightDiretionsArray())
-            {
-                if (!path.Contains(pos + dir))
-                {
-                    pathSides.Add(pos + dir);
-                }
-            }
-        }
-
-        path.UnionWith(pathSides);
-    }
-
-    /// <summary>
-    /// Connects the seeds that could't connect with the rest after the Delaunay triangulation
-    /// </summary>
-    /// <param name="vertex">List with all Delaunay vertex</param>
-    /// <param name="edges">List with all Delaunay edges</param>
-    /// <param name="seeds">HashSet with all seed positions</param>
-    private void ConnectDisjointedSeeds(List<Vertex> vertex, List<Edge> edges, HashSet<Vector2Int> seeds)
-    {
-        HashSet<Vector2Int> disjointedSeed = new HashSet<Vector2Int>();
-        foreach (Vertex v in vertex)
-        {
-            foreach (Edge e in edges)
-            {
-                if (!(e.U.position == v.position && e.V.position == v.position))
-                {
-                    disjointedSeed.Add(new Vector2Int(v.position.x, v.position.y));
-                }
-            }
-        }
-        foreach (Vector2Int seed in disjointedSeed)
-        {
-            Vector2Int closestSeed = GetClosestSeed(seeds, seed);
-            Vertex a = new Vertex(seed);
-            Vertex b = new Vertex(closestSeed);
-            edges.Add(new Edge(a, b));
         }
     }
 
@@ -425,45 +327,77 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Returns the closest seed to another one given by the user (destination parameter)
-    /// </summary>
-    /// <param name="seeds">HasSet with all seed positions</param>
-    /// <param name="destination">We will find th closest seed to this one</param>
-    /// <returns>The position of the closest seed</returns>
-    private Vector2Int GetClosestSeed(HashSet<Vector2Int> seeds, Vector2Int destination)
-    {       
-        float minDistance = float.MaxValue;
-        Vector2Int closestSeed = new Vector2Int(0, 0);
-        foreach (Vector2Int seed in seeds)
-        {
-            if (seed == destination) continue;
-
-            float distance = Vector2Int.Distance(seed, destination);
-
-            if (distance < minDistance)
-            {
-                minDistance = distance;
-                closestSeed = seed;
-            }
-        }
-
-        return closestSeed;
-    }
-
-    /// <summary>
     /// Erases all the sets that belong to the border seeds
     /// </summary>
     /// <param name="borderSets">Dictionary which store all seeds sets</param>
     /// <param name="borderSeeds">HasSet with all border seeds positions</param>
-    private void EraseBorderSets(Dictionary<Vector2Int, HashSet<Vector2Int>> borderSets, HashSet<Vector2Int> borderSeeds)
+    /// <param name="mapInfo">List with info about every map seed</param>
+    private void EraseBorderSets(Dictionary<Vector2Int, HashSet<Vector2Int>> borderSets, HashSet<Vector2Int> borderSeeds, List<Cell> mapInfo)
     {
         for (int i = 0; i < borderSets.Count; i++)
-        {
-            tilemapVisualizer.EraseTiles(borderSets[borderSeeds.ElementAt(i)]);
-
+        {     
             foreach (Vector2Int seed in borderSets[borderSeeds.ElementAt(i)])
             {
+                tilemapVisualizer.EraseSingleTile(seed);
                 grid.NodeFromWorldPoint(seed).SetIsWalkable(false);
+                Cell cell = mapInfo[MapXYtoIndex(seed.x, seed.y)];
+                cell.CellType = 2; //Erased cell
+                mapInfo[MapXYtoIndex(seed.x, seed.y)] = cell;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Erases floor and wall regions which are bigger than a given trheshold
+    /// </summary>
+    /// <param name="mapInfo">List with info about every map seed</param>
+    private void EraseRegions(List<Cell> mapInfo)
+    {
+        //We get a list with all cells types
+        List<int> mapInfoCellType = new List<int>();
+        for (int i = 0; i < mapWidth * mapHeight; i++) mapInfoCellType.Add(0);
+
+        for (int i = 0; i < mapWidth * mapHeight; i++)
+        {
+            int x = i % mapWidth;
+            int y = i / mapWidth;
+
+            int type = mapInfo[MapXYtoIndex(x, y)].CellType;
+
+            mapInfoCellType[MapXYtoIndex(x, y)] = type;
+        }
+
+        //Erase wall regions
+        List<List<Vector2Int>> wallRegions = FloodFillAlgorithm.GetRegionsOfType(mapInfoCellType, 1, mapWidth, mapHeight);
+
+        foreach (List<Vector2Int> region in wallRegions)
+        {
+            if (region.Count <= wallThresholdSize)
+            {
+                foreach (Vector2Int pos in region)
+                {
+                    Cell cell = mapInfo[MapXYtoIndex(pos.x, pos.y)];
+                    cell.CellType = 0;
+                    mapInfo[MapXYtoIndex(pos.x, pos.y)] = cell;
+                    tilemapVisualizer.PaintSingleFloorTile(pos);
+                }               
+            }
+        }
+
+        //Erase floor regions
+        List<List<Vector2Int>> floorRegions = FloodFillAlgorithm.GetRegionsOfType(mapInfoCellType, 0, mapWidth, mapHeight);
+        
+        foreach (List<Vector2Int> region in floorRegions)
+        {
+            if (region.Count <= floorThresholdSize)
+            {
+                foreach (Vector2Int pos in region)
+                {
+                    Cell cell = mapInfo[MapXYtoIndex(pos.x, pos.y)];
+                    cell.CellType = 1;
+                    mapInfo[MapXYtoIndex(pos.x, pos.y)] = cell;
+                    tilemapVisualizer.PaintSingleWallTile(pos);
+                }
             }
         }
     }
@@ -478,37 +412,4 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     {
         return x + (y * mapWidth);
     }
-
-    /// <summary>
-    /// Calculates the Manhattan distance: Abs(x1 - x2) + Abs(y1 - y2)
-    /// </summary>
-    /// <param name="from">Start point</param>
-    /// <param name="to">End point</param>
-    /// <returns>A float which is the distance between two points</returns>
-    private float ManhattanDistance(Vector2Int from, Vector2Int to)
-    {
-        return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
-    }
-
-    /// <summary>
-    /// Calculates the Manhattan distance: Max(Abs(x1 - x2), Abs(y1 - y2))
-    /// </summary>
-    /// <param name="from">Start point</param>
-    /// <param name="to">End point</param>
-    /// <returns>A float which is the distance between two points</returns>
-    private float ChebyshevDistance(Vector2Int from, Vector2Int to)
-    {
-        return Mathf.Max(Mathf.Abs(from.x - to.x), Mathf.Abs(from.y - to.y));
-    }
-
-    /// <summary>
-    /// Calculates the Euclidean distance: Sqrt((x1 - x2)^2 + (y1 - y2)^2)
-    /// </summary>
-    /// <param name="from">Start point</param>
-    /// <param name="to">End point</param>
-    /// <returns>A float which is the distance between two points</returns>
-    private float EuclideanDistance(Vector2Int from, Vector2Int to) 
-    {
-        return /*Math.Abs(*/(from - to).magnitude/*)*/;
-	}
 }
