@@ -33,7 +33,7 @@ public static class Connectivity
         }
 
         //If we can make a graph with Delaunay but a seed is disjointed
-        ConnectDisjointedSeeds(vertex, edges, seeds);
+        //ConnectDisjointedSeeds(vertex, edges, seeds);
 
         //Prim algorithm
         HashSet<Edge> primEdges = PrimAlgorithm.RunMinimumSpanningTree(edges, addExtraPaths);

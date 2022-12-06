@@ -10,7 +10,7 @@ public struct Cell
 {
     private Vector2Int cellPos;
     private Vector2Int closestSeed;
-    private int cellType; //1 -> wall , 0 -> floor, 2 -> erased cell
+    private int cellType; //1 -> wall , 0 -> floor, 2 -> erased border cell
 
     public Vector2Int CellPos { get => cellPos; set => cellPos = value; }
     public Vector2Int ClosestSeed { get => closestSeed; set => closestSeed = value; }
@@ -45,6 +45,12 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     [SerializeField] private bool useRandomSeed = true;
     [SerializeField] private string seed;
 
+    [SerializeField] private bool randomSeeds = true;
+    [Range(5, 20)]
+    [SerializeField] private float seedMinDistance=10;
+    [Range(21, 70)]
+    [SerializeField] private float seedMaxDistance=50;
+
     private Grid2D grid;
     private System.Random rng = null;
 
@@ -76,12 +82,12 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
             EraseRegions(mapInfo);
 
-            tilemapVisualizer.PaintPathTiles(randomSeeds);
+            //tilemapVisualizer.PaintPathTiles(randomSeeds);
             tilemapVisualizer.AddBorderWalls();
         }
         else
         {
-            HashSet<Vector2Int> seeds = GenerateSeeds();
+            HashSet<Vector2Int> seeds = randomSeeds? GenerateSeeds(1,1,mapWidth-1,mapHeight-1): GenerateSeedBasedOnDistance(1,1,mapWidth-1,mapHeight-1);
             List<Cell> mapInfo = RunVoronoiDiagram(seeds);
             CreateWalls(mapInfo);
 
@@ -110,16 +116,44 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     /// Creates n "seeds"(positions) with a random position inside the map's boundaries
     /// </summary>
     /// <returns>Returns a hashset with all seeds positions</returns>
-    private HashSet<Vector2Int> GenerateSeeds()
+    private HashSet<Vector2Int> GenerateSeeds(int minWidth, int minHeight, int maxWidth, int maxHeight)
     {
         HashSet<Vector2Int> seeds = new HashSet<Vector2Int>();
 
         while(seeds.Count<numberOfSeeds)
         {
-            int xPos = rng.Next(1, mapWidth-1);
-            int yPos = rng.Next(1, mapHeight-1);
+            int xPos = rng.Next(minWidth, maxWidth);
+            int yPos = rng.Next(minHeight, maxHeight);
 
             seeds.Add(new Vector2Int(xPos, yPos));
+        }
+
+        return seeds;
+    }
+
+    /// <summary>
+    /// Creates n "seeds"(positions) with a random position inside the map's boundaries. The seeds positions
+    /// are based on the distance of the previous seed
+    /// </summary>
+    /// <returns>Returns a hashset with all seeds positions</returns>
+    private HashSet<Vector2Int> GenerateSeedBasedOnDistance(int minWidth, int minHeight,int maxWidth, int maxHeight)
+    {
+        HashSet<Vector2Int> seeds = new HashSet<Vector2Int>();
+
+        Vector2Int prevSeed = new Vector2Int(rng.Next(minWidth, maxWidth), rng.Next(minHeight, maxHeight));
+        seeds.Add(prevSeed);
+
+        while (seeds.Count < numberOfSeeds)
+        {
+            int xPos = rng.Next(minWidth, maxWidth);
+            int yPos = rng.Next(minHeight, maxHeight);
+
+            Vector2Int newSeed = new Vector2Int(xPos, yPos);
+            if (Vector2Int.Distance(newSeed, prevSeed) <= seedMaxDistance && Vector2Int.Distance(newSeed, prevSeed) >= seedMinDistance)
+            {
+                seeds.Add(newSeed);
+                prevSeed = newSeed;
+            }
         }
 
         return seeds;
@@ -133,8 +167,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     /// <returns>Returns a hashset with all seeds positions</returns>
     private HashSet<Vector2Int> GenerateSeeds(out HashSet<Vector2Int> borderSeeds)
     {
-        HashSet<Vector2Int> seeds = new HashSet<Vector2Int>();
-
         borderSeeds = new HashSet<Vector2Int>();
 
         int offsetX = mapWidth / 16;
@@ -185,15 +217,9 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             borderSeeds.Add(new Vector2Int(offsetX + i, mapHeight - offsetY));
         }
 
-        int padding = 8;
-        while (seeds.Count < numberOfSeeds)
-        {
-            int xPos = rng.Next(offsetX + padding, mapWidth - offsetX - padding);
-            int yPos = rng.Next(offsetY + padding, mapHeight - offsetY - padding);
-
-            seeds.Add(new Vector2Int(xPos, yPos));
-        }
-
+        int padding = 7;
+        HashSet<Vector2Int> seeds = randomSeeds ? GenerateSeeds(offsetX + padding, offsetY + padding, mapWidth - offsetX - padding, mapHeight - offsetY - padding) : GenerateSeedBasedOnDistance(offsetX + padding, offsetY + padding, mapWidth - offsetX - padding, mapHeight - offsetY - padding);
+      
         seeds.UnionWith(borderSeeds);
         return seeds;
     }
@@ -341,7 +367,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 tilemapVisualizer.EraseSingleTile(seed);
                 grid.NodeFromWorldPoint(seed).SetIsWalkable(false);
                 Cell cell = mapInfo[MapXYtoIndex(seed.x, seed.y)];
-                cell.CellType = 2; //Erased cell
+                cell.CellType = 2; //Erased border cell
                 mapInfo[MapXYtoIndex(seed.x, seed.y)] = cell;
             }
         }
