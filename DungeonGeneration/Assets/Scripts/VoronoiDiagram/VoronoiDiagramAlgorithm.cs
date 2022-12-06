@@ -374,7 +374,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Erases floor and wall regions which are bigger than a given trheshold
+    /// Erases floor and wall regions which are bigger than a given threshold
     /// </summary>
     /// <param name="mapInfo">List with info about every map seed</param>
     private void EraseRegions(List<Cell> mapInfo)

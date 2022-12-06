@@ -8,17 +8,20 @@ public class Region : IComparable<Region>
     public List<Vector2Int> tiles;
     public List<Vector2Int> borderTiles;
     public List<Region> connectedRooms;
-    public int roomSize;
-    public bool isAccessibleFromMainRoom;
-    public bool isMainRoom;
+    private int roomSize;
+    private bool isAccessibleFromMainRoom;
+    private bool isMainRoom;
+
+    public bool IsAccessibleFromMainRoom { get => isAccessibleFromMainRoom; set => isAccessibleFromMainRoom = value; }
+    public bool IsMainRoom { get => isMainRoom; set => isMainRoom = value; }
 
     public Region()
     {
     }
 
-    public Region(List<Vector2Int> _tiles, int[,] map, int mapWidth, int mapHeight)
+    public Region(List<Vector2Int> tiles, int[,] map, int mapWidth, int mapHeight)
     {
-        tiles = _tiles;
+        this.tiles = tiles;
         roomSize = tiles.Count;
         connectedRooms = new List<Region>();
         borderTiles = new List<Vector2Int>();
@@ -39,9 +42,9 @@ public class Region : IComparable<Region>
         }
     }
 
-    public Region(List<Vector2Int> _tiles, float[,] map, int mapWidth, int mapHeight)
+    public Region(List<Vector2Int> tiles, float[,] map, int mapWidth, int mapHeight)
     {
-        tiles = _tiles;
+        this.tiles = tiles;
         roomSize = tiles.Count;
         connectedRooms = new List<Region>();
         borderTiles = new List<Vector2Int>();

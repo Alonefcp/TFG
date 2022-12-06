@@ -7,7 +7,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     [Range(10, 200)]
     [SerializeField] private int mapWidth = 10, mapHeight = 10;
     [SerializeField] private float noiseScale = 0.3f;
-    [Range(0,8)]
+    [Range(1,8)]
     [SerializeField] private int octaves = 4;
     [Range(0.0f,1.0f)]
     [SerializeField] private float persistance = 0.5f;
@@ -18,15 +18,17 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     [SerializeField] private Vector2 offset;
     [SerializeField] private bool useRandomSeed = true;
     [SerializeField] private string seed;
+    [Range(0, 50)]
     [SerializeField] private int wallThresholdSize=10;
+    [Range(0, 50)]
     [SerializeField] private int floorThresholdSize=10;
     [SerializeField] private bool connectRegions = true;
     [Range(1, 3)]
     [SerializeField] private int connectionSize = 1;
     [Range(2, 8)]
     [SerializeField] int borderInterval = 2;
-    [Range(5.0f, 10.0f)]
-    [SerializeField] float borderOffset = 7.0f;
+    [Range(6, 10)]
+    [SerializeField] int borderOffset = 7;
     [SerializeField] private bool addBiggerBorders = true;
     [SerializeField] private bool showPerlinNoiseTexture = false;
 
@@ -44,20 +46,19 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
 
         tilemapVisualizer.ClearTilemap();
 
-        float[,] noiseTexture = GenerateTextureWithPerlinNoise(mapWidth, mapHeight, noiseScale, octaves, persistance, lacunarity, offset);
-        CreateMap(noiseTexture);   
+        float[,] perlinNoise = GenerateMatrixWithPerlinNoise(mapWidth, mapHeight, noiseScale, octaves, persistance, lacunarity, offset);
+        CreateMap(perlinNoise);   
 
         if(addBiggerBorders && !showPerlinNoiseTexture)
         {
-            AddBottomUpSmoothBorders(noiseTexture, borderOffset, borderInterval);
-            AddLeftRightSmoothBorders(noiseTexture, borderOffset, borderInterval);           
+            AddBottomUpSmoothBorders(perlinNoise, borderOffset, borderInterval);
+            AddLeftRightSmoothBorders(perlinNoise, borderOffset, borderInterval);           
         }
 
         if(!showPerlinNoiseTexture)
         {
-            EraseRegions(noiseTexture);
-
-            AddBorders(noiseTexture);
+            EraseRegions(perlinNoise);
+            AddBorders(perlinNoise);
         }        
     }
 
@@ -71,10 +72,10 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     /// <param name="persistance">Determines how quickly the amplitudes diminish for each successive octave</param>
     /// <param name="lacunarity">Change in frequency between octaves</param>
     /// <param name="offset">Map displacement offset</param>
-    /// <returns></returns>
-    private float[,] GenerateTextureWithPerlinNoise(int mapWidth, int mapHeight, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
+    /// <returns>A float matrix with values between 0 an 1</returns>
+    private float[,] GenerateMatrixWithPerlinNoise(int mapWidth, int mapHeight, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
     {
-        float[,] noiseTextue = new float[mapWidth, mapHeight];
+        float[,] noise = new float[mapWidth, mapHeight];
        
         Vector2[] octaveOffsets = new Vector2[octaves];
         for (int i = 0; i < octaves; i++)
@@ -120,7 +121,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                     minNoiseHeight = noiseHeight;
                 }
 
-                noiseTextue[x, y] = noiseHeight;               
+                noise[x, y] = noiseHeight;               
             }
         }
 
@@ -128,17 +129,18 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         {
             for (int x = 0; x < mapWidth; x++)
             {
-                noiseTextue[x, y] = Mathf.InverseLerp(minNoiseHeight, maxNoiseHeight, noiseTextue[x, y]);
+                noise[x, y] = Mathf.InverseLerp(minNoiseHeight, maxNoiseHeight, noise[x, y]);
             }
         }
 
-        return noiseTextue;
+        return noise;
     }
 
     /// <summary>
     /// Creates the map by adding wall tiles or floor tiles
     /// </summary>
     /// <param name="map">The map</param>
+    /// 
     private void CreateMap(float[,] map)
     {
         for (int y = 0; y < mapHeight; y++)
@@ -158,7 +160,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                     continue;
                 }
 
-                if (map[x, y] <= fillPercent) // cell becomes a floor
+                if (map[x, y] <= fillPercent) //cell becomes a floor
                 {
                     tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                     map[x, y] = 0;
@@ -331,23 +333,13 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
     }
 
+    /// <summary>
+    /// Erases floor and wall regions which are bigger than a given threshold. It also connects the floor regions
+    /// that are bigger than the threshold
+    /// </summary>
+    /// <param name="map">The map</param>
     private void EraseRegions(float[,] map)
-    {
-        //Erase wall regions
-        List<List<Vector2Int>> wallRegions = FloodFillAlgorithm.GetRegionsOfType(map, 1, mapWidth,mapHeight);
-
-        foreach (List<Vector2Int> wallRegion in wallRegions)
-        {
-            if (wallRegion.Count <= wallThresholdSize)
-            {
-                foreach (Vector2Int tile in wallRegion)
-                {
-                    map[tile.x, tile.y] = 0;
-                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(tile.x, tile.y));
-                }
-            }
-        }
-
+    {    
         //Erase floor regions
         List<List<Vector2Int>> floorRegions = FloodFillAlgorithm.GetRegionsOfType(map, 0,mapWidth,mapHeight);
         List<Region> leftFloorRegions = new List<Region>();
@@ -371,22 +363,43 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         if (connectRegions && leftFloorRegions.Count > 0)
         {
             leftFloorRegions.Sort();
-            leftFloorRegions[0].isMainRoom = true;
-            leftFloorRegions[0].isAccessibleFromMainRoom = true;
-            ConnectClosestRooms(map,leftFloorRegions);
+            leftFloorRegions[0].IsMainRoom = true;
+            leftFloorRegions[0].IsAccessibleFromMainRoom = true;
+            ConnectClosestRegions(map,leftFloorRegions);
+        }
+
+        //Erase wall regions
+        List<List<Vector2Int>> wallRegions = FloodFillAlgorithm.GetRegionsOfType(map, 1, mapWidth, mapHeight);
+
+        foreach (List<Vector2Int> wallRegion in wallRegions)
+        {
+            if (wallRegion.Count <= wallThresholdSize)
+            {
+                foreach (Vector2Int tile in wallRegion)
+                {
+                    map[tile.x, tile.y] = 0;
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(tile.x, tile.y));
+                }
+            }
         }
     }
     
-    private void ConnectClosestRooms(float[,] map,List<Region> survivingRooms, bool forceAccessibilityFromMainRoom = false)
+    /// <summary>
+    /// Connect every map region
+    /// </summary>
+    /// <param name="map">The map</param>
+    /// <param name="survivingRegions">Regions we are going to connect</param>
+    /// <param name="forceAccessibilityFromMainRegion">If we want to create a connection from the main region</param>
+    private void ConnectClosestRegions(float[,] map,List<Region> survivingRegions, bool forceAccessibilityFromMainRegion = false)
     {
         List<Region> roomList1 = new List<Region>();
         List<Region> roomList2 = new List<Region>();
 
-        if (forceAccessibilityFromMainRoom)
+        if (forceAccessibilityFromMainRegion)
         {
-            foreach (Region room in survivingRooms)
+            foreach (Region room in survivingRegions)
             {
-                if (room.isAccessibleFromMainRoom)
+                if (room.IsAccessibleFromMainRoom)
                 {
                     roomList2.Add(room);
                 }
@@ -398,8 +411,8 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
         }
         else
         {
-            roomList1 = survivingRooms;
-            roomList2 = survivingRooms;
+            roomList1 = survivingRegions;
+            roomList2 = survivingRegions;
         }
 
         int bestDistance = 0;
@@ -411,7 +424,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
 
         foreach (Region room1 in roomList1)
         {
-            if (!forceAccessibilityFromMainRoom)
+            if (!forceAccessibilityFromMainRegion)
             {
                 possibleConnectionFound = false;
                 if (room1.connectedRooms.Count > 0) continue;
@@ -442,35 +455,49 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                 }
             }
 
-            if (possibleConnectionFound && !forceAccessibilityFromMainRoom)
+            if (possibleConnectionFound && !forceAccessibilityFromMainRegion)
             {
                 CreateConnection(map,bestRoom1, bestRoom2, bestTile1, bestTile2);
             }
         }
 
-        if (possibleConnectionFound && forceAccessibilityFromMainRoom)
+        if (possibleConnectionFound && forceAccessibilityFromMainRegion)
         {
             CreateConnection(map,bestRoom1, bestRoom2, bestTile1, bestTile2);
-            ConnectClosestRooms(map,survivingRooms, true);
+            ConnectClosestRegions(map,survivingRegions, true);
         }
 
-        if (!forceAccessibilityFromMainRoom)
+        if (!forceAccessibilityFromMainRegion)
         {
-            ConnectClosestRooms(map,survivingRooms, true);
+            ConnectClosestRegions(map,survivingRegions, true);
         }
     }
 
-    private void CreateConnection(float[,] map,Region room1, Region room2, Vector2Int tile1, Vector2Int tile2)
+    /// <summary>
+    /// Creates a connection between two regions
+    /// </summary>
+    /// <param name="map">The map</param>
+    /// <param name="region1">First region</param>
+    /// <param name="region2">Second region</param>
+    /// <param name="tile1">First region tile which is the closest one to the second region</param>
+    /// <param name="tile2">Second region tile which is the closest one to the first region</param>
+    private void CreateConnection(float[,] map,Region region1, Region region2, Vector2Int tile1, Vector2Int tile2)
     {
-        Region.ConnectRooms(room1, room2);
-        List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.x, tile1.y, tile2.x, tile2.y);
-        foreach (Vector2Int coord in line)
+        Region.ConnectRooms(region1, region2);
+        List<Vector2Int> path = BresenhamsLineAlgorithm.GetLinePointsList(tile1.x, tile1.y, tile2.x, tile2.y);
+        foreach (Vector2Int coord in path)
         {
             DrawBiggerTile(map, coord, connectionSize);
         }
     }
 
-    private void DrawBiggerTile(float[,] map, Vector2Int coord, int radius)
+    /// <summary>
+    /// Draws a bigger tile
+    /// </summary>
+    /// <param name="map">The map</param>
+    /// <param name="position">Tile position</param>
+    /// <param name="radius">How much we wat to increase the tile size</param>
+    private void DrawBiggerTile(float[,] map, Vector2Int position, int radius)
     {
         for (int x = -radius; x <= radius; x++)
         {
@@ -478,8 +505,8 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
             {
                 if (x * x + y * y <= radius * radius)
                 {
-                    int drawX = coord.x + x;
-                    int drawY = coord.y + y;
+                    int drawX = position.x + x;
+                    int drawY = position.y + y;
                     if (drawX >= 0 && drawX < mapWidth && drawY >= 0 && drawY < mapHeight)
                     {
                         map[drawX, drawY] = 0;

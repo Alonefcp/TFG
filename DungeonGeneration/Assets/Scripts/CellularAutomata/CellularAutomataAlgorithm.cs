@@ -232,8 +232,8 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         if(leftFloorRegions.Count>0)
         {
             leftFloorRegions.Sort();
-            leftFloorRegions[0].isMainRoom = true;
-            leftFloorRegions[0].isAccessibleFromMainRoom = true;
+            leftFloorRegions[0].IsMainRoom = true;
+            leftFloorRegions[0].IsAccessibleFromMainRoom = true;
             ConnectClosestRooms(leftFloorRegions);
         }
     }
@@ -247,7 +247,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         {
             foreach (Region room in survivingRooms)
             {
-                if(room.isAccessibleFromMainRoom)
+                if(room.IsAccessibleFromMainRoom)
                 {
                     roomList2.Add(room);
                 }
