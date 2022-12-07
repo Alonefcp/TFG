@@ -29,19 +29,105 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     [SerializeField] private int floorThresholdSize = 50;
 
     private int[,] map; //1 -> wall , 0 -> floor
-
+    [Range(1, 3)]
+    [SerializeField] private int order=1;
+    [SerializeField] bool useHilberCurve = false;
+    private int N;
+    private int total;
+   
     //void Start()
     //{
     //    GenerateDungeon();
     //}
 
     public override void GenerateDungeon()
-    {        
+    {
         tilemapVisualizer.ClearTilemap();
 
         map = GenerateNoise();    
+        if(useHilberCurve)
+        {
+            N = (int)Mathf.Pow(2, order);
+            total = N * N;
+            CalculateHilbertCurve();
+        }
+
         RunCellularAutomata();
-        EraseRegions();         
+        EraseRegions();
+    }
+
+    private Vector2Int HilbertPoint(int i)
+    {
+        Vector2Int[] points = {
+            new Vector2Int(0, 0),
+            new Vector2Int(0, 1),
+            new Vector2Int(1, 1),
+            new Vector2Int(1, 0)
+        };
+  
+
+        int index = i & 3;
+        Vector2Int v = points[index];
+
+        for (int j = 1; j < order; j++)
+        {
+            i = i >> 2;
+            index = i & 3;
+            int len = (int)Mathf.Pow(2, j);
+            if (index == 0)
+            {
+                int temp = v.x;
+                v.x = v.y;
+                v.y = temp;
+            }
+            else if (index == 1)
+            {
+                v.y += len;
+            }
+            else if (index == 2)
+            {
+                v.x += len;
+                v.y += len;
+            }
+            else if (index == 3)
+            {
+                int temp = len - 1 - v.x;
+                v.x = len - 1 - v.y;
+                v.y = temp;
+                v.x += len;
+            }
+        }
+        return v;
+    }
+
+    private void CalculateHilbertCurve()
+    {
+        List<Vector2Int> initialPoints = new List<Vector2Int>();
+        HashSet<Vector2Int> points = new HashSet<Vector2Int>();
+
+        int len = mapWidth / N;
+        initialPoints.Add(HilbertPoint(0));
+        initialPoints[0] = initialPoints[0] * len;
+        initialPoints[0] = initialPoints[0] + new Vector2Int(len / 2, len / 2);
+        for (int i = 1; i < total; i++)
+        {
+            initialPoints.Add(HilbertPoint(i));
+            initialPoints[i] = initialPoints[i] * len;
+            initialPoints[i] = initialPoints[i] + new Vector2Int(len/2, len/2);
+
+            List<Vector2Int> extra = BresenhamsLineAlgorithm.GetLinePointsList(initialPoints[i - 1].x, initialPoints[i - 1].y, initialPoints[i].x, initialPoints[i].y);
+            for (int j = 0; j < extra.Count; j++)
+            {
+                points.Add(extra[j]);
+            }
+        }
+
+        
+        foreach (Vector2Int point in points)
+        {
+            //tilemapVisualizer.PaintSingleFloorTile(point);
+            DrawBiggerTile(point,2,1);
+        }
     }
 
     /// <summary>
@@ -192,6 +278,10 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         return nWalls;
     }
 
+    /// <summary>
+    /// Erases floor and wall regions which are bigger than a given threshold. It also connects the floor regions
+    /// that are bigger than the threshold
+    /// </summary>
     private void EraseRegions()
     {
         //Erase wall regions
@@ -234,18 +324,23 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             leftFloorRegions.Sort();
             leftFloorRegions[0].IsMainRoom = true;
             leftFloorRegions[0].IsAccessibleFromMainRoom = true;
-            ConnectClosestRooms(leftFloorRegions);
+            ConnectClosestRegions(leftFloorRegions);
         }
     }
 
-    private void ConnectClosestRooms(List<Region> survivingRooms, bool forceAccessibilityFromMainRoom=false)
+    /// <summary>
+    /// Connect every map region
+    /// </summary>
+    /// <param name="survivingRegions">Regions we are going to connect</param>
+    /// <param name="forceAccessibilityFromMainRegion">If we want to create a connection from the main region</param>
+    private void ConnectClosestRegions(List<Region> survivingRegions, bool forceAccessibilityFromMainRoom=false)
     {
         List<Region> roomList1 = new List<Region>();
         List<Region> roomList2 = new List<Region>();
 
         if(forceAccessibilityFromMainRoom)
         {
-            foreach (Region room in survivingRooms)
+            foreach (Region room in survivingRegions)
             {
                 if(room.IsAccessibleFromMainRoom)
                 {
@@ -259,8 +354,8 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }
         else
         {
-            roomList1 = survivingRooms;
-            roomList2 = survivingRooms;
+            roomList1 = survivingRegions;
+            roomList2 = survivingRegions;
         }
 
         int bestDistance = 0;
@@ -312,18 +407,25 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         if (possibleConnectionFound && forceAccessibilityFromMainRoom)
         {
             CreateConnection(bestRoom1, bestRoom2, bestTile1, bestTile2);
-            ConnectClosestRooms(survivingRooms, true);
+            ConnectClosestRegions(survivingRegions, true);
         }
 
         if (!forceAccessibilityFromMainRoom)
         {
-            ConnectClosestRooms(survivingRooms, true);
+            ConnectClosestRegions(survivingRegions, true);
         }
     }
 
-    private void CreateConnection(Region room1, Region room2, Vector2Int tile1, Vector2Int tile2) 
+    /// <summary>
+    /// Creates a connection between two regions
+    /// </summary>
+    /// <param name="region1">First region</param>
+    /// <param name="region2">Second region</param>
+    /// <param name="tile1">First region tile which is the closest one to the second region</param>
+    /// <param name="tile2">Second region tile which is the closest one to the first region</param>
+    private void CreateConnection(Region region1, Region region2, Vector2Int tile1, Vector2Int tile2) 
     {
-        Region.ConnectRooms(room1, room2);     
+        Region.ConnectRooms(region1, region2);     
         List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.x, tile1.y, tile2.x, tile2.y);
         foreach (Vector2Int coord in line)
         {
@@ -331,7 +433,12 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         }      
     }
 
-    private void DrawBiggerTile(Vector2Int coord, int radius)
+    /// <summary>
+    /// Draws a bigger tile
+    /// </summary>
+    /// <param name="position">Tile position</param>
+    /// <param name="radius">How much we wat to increase the tile size</param>
+    private void DrawBiggerTile(Vector2Int position, int radius, int cellType = 0)
     {
         for (int x = -radius; x <= radius; x++)
         {
@@ -339,11 +446,11 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             {
                 if (x * x + y * y <= radius * radius)
                 {
-                    int drawX = coord.x+x;
-                    int drawY = coord.y+y;
+                    int drawX = position.x+x;
+                    int drawY = position.y+y;
                     if (drawX >= 0 && drawX < mapWidth && drawY >= 0 && drawY < mapHeight)
                     {
-                        map[drawX, drawY] = 0;
+                        map[drawX, drawY] = cellType;
                         tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(drawX, drawY));
                     }
                 }
