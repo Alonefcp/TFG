@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 using static FloodFillAlgorithm;
 using Random = UnityEngine.Random;
 
@@ -11,7 +12,6 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     enum MooreRule {Rule3=3, Rule4=4, Rule5=5}
     enum VonNeummannRule {Rule1=1, Rule2=2, Rule3=3}
     
-
     [Range(30,200)]
     [SerializeField] private int mapWidth = 80, mapHeight = 60;
     [Range(1, 20)]
@@ -28,13 +28,17 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     [Range(0, 100)]
     [SerializeField] private int floorThresholdSize = 50;
 
-    private int[,] map; //1 -> wall , 0 -> floor
+    [SerializeField] bool useHilbertCurve = false;
     [Range(1, 3)]
-    [SerializeField] private int order=1;
-    [SerializeField] bool useHilberCurve = false;
-    private int N;
-    private int total;
-   
+    [SerializeField] private int order = 1;
+    [Range(0, 70)]
+    [SerializeField] private int minOffsetX = 0, maxOffsetX = 30;
+    [Range(0, 70)]
+    [SerializeField] private int minOffsetY = 0, maxOffsetY=30;
+
+    private int[,] map; //1 -> wall , 0 -> floor
+    private HilbertCurve hilbertCurve;
+
     //void Start()
     //{
     //    GenerateDungeon();
@@ -44,90 +48,21 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     {
         tilemapVisualizer.ClearTilemap();
 
-        map = GenerateNoise();    
-        if(useHilberCurve)
+        if(useHilbertCurve)
         {
-            N = (int)Mathf.Pow(2, order);
-            total = N * N;
-            CalculateHilbertCurve();
+            hilbertCurve = new HilbertCurve(order);
+            hilbertCurve.CalculateHilbertCurve(mapWidth,mapHeight,minOffsetX,maxOffsetX,minOffsetY,maxOffsetY);
+            int initialCount = hilbertCurve.HilbertCurvePoints.Count;
+            for (int i = 0; i < initialCount; i++)
+            {
+                //tilemapVisualizer.PaintSingleFloorTile(point);
+                DrawBiggerTile(hilbertCurve.HilbertCurvePoints.ElementAt(i), 2, hilbertCurve.HilbertCurvePoints, 1);
+            }
         }
 
+        map = GenerateNoise();    
         RunCellularAutomata();
         EraseRegions();
-    }
-
-    private Vector2Int HilbertPoint(int i)
-    {
-        Vector2Int[] points = {
-            new Vector2Int(0, 0),
-            new Vector2Int(0, 1),
-            new Vector2Int(1, 1),
-            new Vector2Int(1, 0)
-        };
-  
-
-        int index = i & 3;
-        Vector2Int v = points[index];
-
-        for (int j = 1; j < order; j++)
-        {
-            i = i >> 2;
-            index = i & 3;
-            int len = (int)Mathf.Pow(2, j);
-            if (index == 0)
-            {
-                int temp = v.x;
-                v.x = v.y;
-                v.y = temp;
-            }
-            else if (index == 1)
-            {
-                v.y += len;
-            }
-            else if (index == 2)
-            {
-                v.x += len;
-                v.y += len;
-            }
-            else if (index == 3)
-            {
-                int temp = len - 1 - v.x;
-                v.x = len - 1 - v.y;
-                v.y = temp;
-                v.x += len;
-            }
-        }
-        return v;
-    }
-
-    private void CalculateHilbertCurve()
-    {
-        List<Vector2Int> initialPoints = new List<Vector2Int>();
-        HashSet<Vector2Int> points = new HashSet<Vector2Int>();
-
-        int len = mapWidth / N;
-        initialPoints.Add(HilbertPoint(0));
-        initialPoints[0] = initialPoints[0] * len;
-        initialPoints[0] = initialPoints[0] + new Vector2Int(len / 2, len / 2);
-        for (int i = 1; i < total; i++)
-        {
-            initialPoints.Add(HilbertPoint(i));
-            initialPoints[i] = initialPoints[i] * len;
-            initialPoints[i] = initialPoints[i] + new Vector2Int(len/2, len/2);
-
-            List<Vector2Int> extra = BresenhamsLineAlgorithm.GetLinePointsList(initialPoints[i - 1].x, initialPoints[i - 1].y, initialPoints[i].x, initialPoints[i].y);
-            for (int j = 0; j < extra.Count; j++)
-            {
-                points.Add(extra[j]);
-            }
-        }
-
-        
-        foreach (Vector2Int point in points)
-        {
-            //tilemapVisualizer.PaintSingleFloorTile(point);
-            DrawBiggerTile(point,2,1);
-        }
     }
 
     /// <summary>
@@ -193,6 +128,12 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
                     map[x, y] = 1;
                 }
+                else if (useHilbertCurve && hilbertCurve.HilbertCurvePoints.Contains(new Vector2Int(x, y)))
+                {
+                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                    hilbertCurve.HilbertCurvePointsInsideTheMap.Add(new Vector2Int(x, y));
+                    map[x, y] = 1;                   
+                }
                 else
                 {
                     map[x, y] = (Random.Range(0.0f, 1.0f) < fillPercent) ? 1 : 0;
@@ -215,9 +156,14 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         {
             int[,] mapClone = (int[,])map.Clone();
             for (int x = 0; x < mapWidth; x++)
-            {
+            {             
                 for (int y = 0; y < mapHeight; y++)
                 {
+                    if (useHilbertCurve && hilbertCurve.HilbertCurvePointsInsideTheMap.Contains(new Vector2Int(x, y)))
+                    {
+                        continue;
+                    }
+
                     int neighbourWallTiles = GetWallNeighbours(x, y);
 
                     ApplyAutomata(mapClone, x, y, neighbourWallTiles);
@@ -283,22 +229,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     /// that are bigger than the threshold
     /// </summary>
     private void EraseRegions()
-    {
-        //Erase wall regions
-        List<List<Vector2Int>> wallRegions = GetRegionsOfType(map,1,mapWidth,mapHeight);
-
-        foreach (List<Vector2Int> wallRegion in wallRegions)
-        {
-            if (wallRegion.Count <= wallThresholdSize)
-            {
-                foreach (Vector2Int tile in wallRegion)
-                {
-                    map[tile.x, tile.y] = 0;                   
-                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(tile.x, tile.y));
-                }
-            }       
-        }
-
+    {      
         //Erase floor regions
         List<Region> leftFloorRegions = new List<Region>();
         List<List<Vector2Int>> floorRegions = GetRegionsOfType(map,0, mapWidth, mapHeight);
@@ -325,6 +256,21 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             leftFloorRegions[0].IsMainRoom = true;
             leftFloorRegions[0].IsAccessibleFromMainRoom = true;
             ConnectClosestRegions(leftFloorRegions);
+        }
+
+        //Erase wall regions
+        List<List<Vector2Int>> wallRegions = GetRegionsOfType(map, 1, mapWidth, mapHeight);
+
+        foreach (List<Vector2Int> wallRegion in wallRegions)
+        {
+            if (wallRegion.Count <= wallThresholdSize)
+            {
+                foreach (Vector2Int tile in wallRegion)
+                {
+                    map[tile.x, tile.y] = 0;
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(tile.x, tile.y));
+                }
+            }
         }
     }
 
@@ -438,7 +384,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     /// </summary>
     /// <param name="position">Tile position</param>
     /// <param name="radius">How much we wat to increase the tile size</param>
-    private void DrawBiggerTile(Vector2Int position, int radius, int cellType = 0)
+    private void DrawBiggerTile(Vector2Int position, int radius, HashSet<Vector2Int> addedPoints=null,int cellType = 0)
     {
         for (int x = -radius; x <= radius; x++)
         {
@@ -450,7 +396,11 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                     int drawY = position.y+y;
                     if (drawX >= 0 && drawX < mapWidth && drawY >= 0 && drawY < mapHeight)
                     {
-                        map[drawX, drawY] = cellType;
+                        if(map!=null) map[drawX, drawY] = cellType;
+                        if(addedPoints!=null)
+                        {
+                            addedPoints.Add(new Vector2Int(drawX, drawY));
+                        }
                         tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(drawX, drawY));
                     }
                 }
