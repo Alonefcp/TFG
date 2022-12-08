@@ -74,6 +74,15 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                 else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
             }
         }
+
+        //Sets player position
+        Vector2Int playerPosition = new Vector2Int(Random.Range(1,mapWidth-1), Random.Range(1, mapHeight-1));
+
+        while (map[playerPosition.x,playerPosition.y] == 1)
+        {
+            playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
+        }
+        playerController.SetPlayerPosition(playerPosition);
     }
 
     /// <summary>

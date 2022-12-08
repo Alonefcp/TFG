@@ -80,21 +80,21 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     {        
         for (int row = -1; row < mapHeight + 1; row++)
         {
-            tilemapVisualizer.PaintSingleTile(tiles[0].Tile, new Vector2Int(-1, row));
+            tilemapVisualizer.PaintSingleFloorTile(tiles[0].Tile, new Vector2Int(-1, row));
         }
         for (int row = 0; row < mapHeight + 1; row++)
         {
-            tilemapVisualizer.PaintSingleTile(tiles[0].Tile, new Vector2Int(mapWidth, row));
+            tilemapVisualizer.PaintSingleFloorTile(tiles[0].Tile, new Vector2Int(mapWidth, row));
         }
 
         for (int col = -1; col < mapWidth + 1; col++)
         {
-            tilemapVisualizer.PaintSingleTile(tiles[0].Tile, new Vector2Int(col, -1));
+            tilemapVisualizer.PaintSingleFloorTile(tiles[0].Tile, new Vector2Int(col, -1));
         }
 
         for (int col = 0; col < mapWidth + 1; col++)
         {
-            tilemapVisualizer.PaintSingleTile(tiles[0].Tile, new Vector2Int(col, mapHeight));
+            tilemapVisualizer.PaintSingleFloorTile(tiles[0].Tile, new Vector2Int(col, mapHeight));
         }
     }
 
@@ -111,7 +111,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 if (cell.Collapsed)
                 {
                     int index = cell.Options[0];
-                    tilemapVisualizer.PaintSingleTile(tiles[index].Tile, new Vector2Int(col, row));
+                    tilemapVisualizer.PaintSingleFloorTile(tiles[index].Tile, new Vector2Int(col, row));
                 }
             }
         }
@@ -446,11 +446,11 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
             {
                 int index = MapXYtoIndex(x, y);
 
-                if (grid[index].Collapsed) //DEBUG: For seeing the algorithm step by step
-                {
-                    int img = grid[index].Options[0];
-                    tilemapVisualizer.PaintSingleTile(tiles[img].Tile, new Vector2Int(x, y));
-                }
+                //if (grid[index].Collapsed) //DEBUG: For seeing the algorithm step by step
+                //{
+                //    int img = grid[index].Options[0];
+                //    tilemapVisualizer.PaintSingleFloorTile(tiles[img].Tile, new Vector2Int(x, y));
+                //}
 
                 //If the cell is not a neighbour of a collapsed cell or it is collapsed
                 if (grid[index].Collapsed || !adjacentCellsToTheCollapsedCells.Contains(grid[index]))

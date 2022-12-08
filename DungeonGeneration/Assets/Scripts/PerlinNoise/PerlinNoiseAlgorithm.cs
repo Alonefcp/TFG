@@ -76,6 +76,15 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
                 }
             }
         }
+
+        //Sets player position
+        Vector2Int playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
+
+        while (map[playerPosition.x, playerPosition.y] == 1)
+        {
+            playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
+        }
+        playerController.SetPlayerPosition(playerPosition);
     }
 
     /// <summary>
@@ -165,7 +174,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
             {
                 if(showPerlinNoiseTexture)
                 {
-                    tilemapVisualizer.PaintSingleFloorTileWithColor(new Vector2Int(x, y), Color.Lerp(Color.black, Color.white, map[x, y]));
+                    tilemapVisualizer.PaintSingleFloorTileWithColor(new Vector2Int(x, y), Color.Lerp(Color.black, Color.white, perlinNoise[x, y]));
                     continue;
                 }
 

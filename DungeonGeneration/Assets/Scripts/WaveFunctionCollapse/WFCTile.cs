@@ -87,6 +87,7 @@ public class WFCTile
         Sprite sprite = Sprite.Create(newTexture, new Rect(0, 0, newTexture.width, newTexture.height), new Vector2(0.5f, 0.5f), this.Tile.sprite.pixelsPerUnit);
         Tile tile = ScriptableObject.CreateInstance<Tile>();
         tile.sprite = sprite;
+        tile.colliderType = Tile.ColliderType.Sprite;
 
         return new WFCTile(tile, newEdges);
     }

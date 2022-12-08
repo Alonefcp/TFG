@@ -72,7 +72,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             HashSet<Vector2Int> seeds = GenerateSeeds(out HashSet<Vector2Int> borderSeeds);
             List<Cell> mapInfo = RunVoronoiDiagram(seeds);
 
-            CreateWalls(mapInfo);
+            CreateInnerWalls(mapInfo);
 
             Dictionary<Vector2Int, HashSet<Vector2Int>> borderSets = CreateSets(borderSeeds, mapInfo);
             EraseBorderSets(borderSets, borderSeeds,mapInfo);
@@ -83,6 +83,8 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             EraseRegions(mapInfo);
 
             //tilemapVisualizer.PaintPathTiles(randomSeeds);
+
+            DrawMap(mapInfo);
 
             HashSet<Cell> cellFloors = mapInfo.Where(cell => cell.CellType == 0).ToHashSet();
             HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
@@ -98,11 +100,13 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         {
             HashSet<Vector2Int> seeds = randomSeeds? GenerateSeeds(1,1,mapWidth-1,mapHeight-1): GenerateSeedBasedOnDistance(1,1,mapWidth-1,mapHeight-1);
             List<Cell> mapInfo = RunVoronoiDiagram(seeds);
-            CreateWalls(mapInfo);
+            CreateInnerWalls(mapInfo);
 
             if(connectRegions) Connectivity.GenerateConnectivity(seeds, mapInfo, mapWidth, mapHeight, grid, addExtraPaths, makeWiderPaths, tilemapVisualizer);
 
             EraseRegions(mapInfo);
+
+            DrawMap(mapInfo);
 
             playerController.SetPlayerPosition(seeds.ElementAt(Random.Range(0, seeds.Count)));
             //tilemapVisualizer.PaintPathTiles(seeds);     
@@ -121,6 +125,25 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     //        }
     //    }
     //}
+
+    /// <summary>
+    /// Draws the map
+    /// </summary>
+    /// <param name="mapInfo">Map information</param>
+    private void DrawMap(List<Cell> mapInfo)
+    {
+        for (int i = 0; i < mapInfo.Count; i++)
+        {
+            if (mapInfo[i].CellType == 0)
+            {
+                tilemapVisualizer.PaintSingleFloorTile(mapInfo[i].CellPos);
+            }
+            else if (mapInfo[i].CellType == 1)
+            {
+                tilemapVisualizer.PaintSingleWallTile(mapInfo[i].CellPos);
+            }
+        }
+    }
 
     /// <summary>
     /// Creates n "seeds"(positions) with a random position inside the map's boundaries
@@ -274,7 +297,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     /// Creates the walls between all the sets
     /// </summary>
     /// <param name="mapInfo">List with info about every map seed</param>
-    private void CreateWalls(List<Cell> mapInfo)
+    private void CreateInnerWalls(List<Cell> mapInfo)
     {
         for (int x = 0; x < mapWidth; x++)
         {
@@ -284,7 +307,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
                 if (x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1) //Map boundaries
                 {
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
                     mySeed.CellType = 1; //Wall
                     mapInfo[MapXYtoIndex(x, y)] = mySeed;
                     grid.NodeFromWorldPoint(new Vector2Int(x, y)).SetIsWalkable(false);
@@ -317,16 +339,18 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                 {
                     if (rng.NextDouble() > wallErosion)
                     {
-                        tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
                         mySeed.CellType = 1; //Wall
                         mapInfo[MapXYtoIndex(x, y)] = mySeed;
                         //grid.NodeFromWorldPoint(new Vector2Int(x, y)).SetIsWalkable(false);
                     }
-                    else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                    else 
+                    { 
+                        mySeed.CellType = 0;
+                    }
                 }
                 else
                 {
-                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                    mySeed.CellType = 0;
                 }
             }
         }
@@ -374,8 +398,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         {     
             foreach (Vector2Int seed in borderSets[borderSeeds.ElementAt(i)])
             {
-                tilemapVisualizer.EraseSingleFloorTile(seed);
-                tilemapVisualizer.EraseSingleWallTile(seed);
                 grid.NodeFromWorldPoint(seed).SetIsWalkable(false);
                 Cell cell = mapInfo[MapXYtoIndex(seed.x, seed.y)];
                 cell.CellType = 2; //Erased border cell
@@ -404,22 +426,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             mapInfoCellType[MapXYtoIndex(x, y)] = type;
         }
 
-        //Erase wall regions
-        List<List<Vector2Int>> wallRegions = FloodFillAlgorithm.GetRegionsOfType(mapInfoCellType, 1, mapWidth, mapHeight);
-
-        foreach (List<Vector2Int> region in wallRegions)
-        {
-            if (region.Count <= wallThresholdSize)
-            {
-                foreach (Vector2Int pos in region)
-                {
-                    Cell cell = mapInfo[MapXYtoIndex(pos.x, pos.y)];
-                    cell.CellType = 0;
-                    mapInfo[MapXYtoIndex(pos.x, pos.y)] = cell;
-                    tilemapVisualizer.PaintSingleFloorTile(pos);
-                }               
-            }
-        }
 
         //Erase floor regions
         List<List<Vector2Int>> floorRegions = FloodFillAlgorithm.GetRegionsOfType(mapInfoCellType, 0, mapWidth, mapHeight);
@@ -433,7 +439,22 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
                     Cell cell = mapInfo[MapXYtoIndex(pos.x, pos.y)];
                     cell.CellType = 1;
                     mapInfo[MapXYtoIndex(pos.x, pos.y)] = cell;
-                    tilemapVisualizer.PaintSingleWallTile(pos);
+                }
+            }
+        }
+
+        //Erase wall regions
+        List<List<Vector2Int>> wallRegions = FloodFillAlgorithm.GetRegionsOfType(mapInfoCellType, 1, mapWidth, mapHeight);
+
+        foreach (List<Vector2Int> region in wallRegions)
+        {
+            if (region.Count <= wallThresholdSize)
+            {
+                foreach (Vector2Int pos in region)
+                {
+                    Cell cell = mapInfo[MapXYtoIndex(pos.x, pos.y)];
+                    cell.CellType = 0;
+                    mapInfo[MapXYtoIndex(pos.x, pos.y)] = cell;
                 }
             }
         }

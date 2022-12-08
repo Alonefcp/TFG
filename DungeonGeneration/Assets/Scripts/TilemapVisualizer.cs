@@ -65,7 +65,7 @@ public class TilemapVisualizer : MonoBehaviour
         floorTilemap.SetTile(tileMapPosition, floorTile);
     }
 
-    public void PaintSingleTile(Tile tile,Vector2Int position)
+    public void PaintSingleFloorTile(Tile tile,Vector2Int position)
     {
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
         floorTilemap.SetTile(tileMapPosition, tile);
@@ -83,6 +83,13 @@ public class TilemapVisualizer : MonoBehaviour
         Vector3Int tileMapPosition = wallTilemap.WorldToCell((Vector3Int)position);
         wallTilemap.SetTile(tileMapPosition, wallTile);
     }
+
+    public void PaintSingleWallTile(Tile tile, Vector2Int position)
+    {
+        Vector3Int tileMapPosition = wallTilemap.WorldToCell((Vector3Int)position);
+        wallTilemap.SetTile(tileMapPosition, tile);
+    }
+
 
     public void PaintSinglePathTile(Vector2Int position)
     {
@@ -107,6 +114,7 @@ public class TilemapVisualizer : MonoBehaviour
     {
         floorTilemap.ClearAllTiles();
         wallTilemap.ClearAllTiles();
+        floorTile.color = Color.white;
     }
 
     /// <summary>
