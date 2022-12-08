@@ -45,7 +45,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
         grid = new Grid2D(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
         HashSet<Vector2Int> floorPositions = CreateRooms(roomList, grid);
-        tilemapVisualizer.ClearTilemap();
+        tilemapVisualizer.ClearTilemaps();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
 
         //Create connections between rooms
@@ -61,6 +61,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
         {
             HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, widerCorridors,corridorSize,spaceWidth,spaceHeight);
             tilemapVisualizer.PaintFloorTiles(corridors);
+            floorPositions.UnionWith(corridors);
         }
         else
         {
@@ -68,11 +69,15 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
             foreach (HashSet<Vector2Int> path in paths)
             {
                 tilemapVisualizer.PaintFloorTiles(path);
+                floorPositions.UnionWith(path);
             }
         }
 
         //Set special rooms
         if (setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters);
+
+        WallGenerator.CreateWalls(floorPositions,tilemapVisualizer);
+        playerController.SetPlayerPosition(roomCenters[Random.Range(0, roomCenters.Count)].position);
     }
 
     private void OnDrawGizmos()

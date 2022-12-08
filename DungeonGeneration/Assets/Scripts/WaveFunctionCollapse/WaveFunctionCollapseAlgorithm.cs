@@ -34,27 +34,27 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     //private bool firstTime = true;
     private HashSet<Vector2Int> walkablePositions;
 
-    private void Start()
-    {
-        if (useRandomSeed) seed = Time.time.ToString();
-        rng = new System.Random(seed.GetHashCode());
-        tilemapVisualizer.ClearTilemap();
-        SetUp();
+    //private void Start()
+    //{
+    //    if (useRandomSeed) seed = Time.time.ToString();
+    //    rng = new System.Random(seed.GetHashCode());
+    //    tilemapVisualizer.ClearTilemap();
+    //    SetUp();
 
-        InvokeRepeating("Run", 0.5f, 0.03f);
-        if (addBorder) DrawBorders();
-    }
-    private void Run()
-    {
-        RunWaveFunctionCollapsed();
-    }
+    //    InvokeRepeating("Run", 0.5f, 0.03f);
+    //    if (addBorder) DrawBorders();
+    //}
+    //private void Run()
+    //{
+    //    RunWaveFunctionCollapsed();
+    //}
 
     public override void GenerateDungeon()
     {
         if (useRandomSeed) seed = Time.time.ToString();
         rng = new System.Random(seed.GetHashCode());
 
-        tilemapVisualizer.ClearTilemap();
+        tilemapVisualizer.ClearTilemaps();
 
         SetUp();
 
@@ -424,7 +424,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         if(collapsedCell==null) //It the collapsed cell is null, we start over
         {
             Debug.Log("Restart");
-            tilemapVisualizer.ClearTilemap();
+            tilemapVisualizer.ClearTilemaps();
             grid = CreateGrid();
             if (forceMoreWalkableZones) ForceMoreWalkableZones();
             return false;

@@ -64,7 +64,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         if (useRandomSeed) seed = Time.time.ToString();
         rng = new System.Random(seed.GetHashCode());
 
-        tilemapVisualizer.ClearTilemap();
+        tilemapVisualizer.ClearTilemaps();
         grid = new Grid2D(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());
 
         if(randomShape)
@@ -83,7 +83,16 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
             EraseRegions(mapInfo);
 
             //tilemapVisualizer.PaintPathTiles(randomSeeds);
-            tilemapVisualizer.AddBorderWalls();
+
+            HashSet<Cell> cellFloors = mapInfo.Where(cell => cell.CellType == 0).ToHashSet();
+            HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
+            foreach (Cell cell in cellFloors)
+            {
+                floorPositions.Add(cell.CellPos);
+            }
+
+            WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+            playerController.SetPlayerPosition(seeds.ElementAt(Random.Range(0, randomSeeds.Count)));
         }
         else
         {
@@ -95,6 +104,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
             EraseRegions(mapInfo);
 
+            playerController.SetPlayerPosition(seeds.ElementAt(Random.Range(0, seeds.Count)));
             //tilemapVisualizer.PaintPathTiles(seeds);     
         }
     }
@@ -364,7 +374,8 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
         {     
             foreach (Vector2Int seed in borderSets[borderSeeds.ElementAt(i)])
             {
-                tilemapVisualizer.EraseSingleTile(seed);
+                tilemapVisualizer.EraseSingleFloorTile(seed);
+                tilemapVisualizer.EraseSingleWallTile(seed);
                 grid.NodeFromWorldPoint(seed).SetIsWalkable(false);
                 Cell cell = mapInfo[MapXYtoIndex(seed.x, seed.y)];
                 cell.CellType = 2; //Erased border cell

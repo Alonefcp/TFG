@@ -6,6 +6,7 @@ using UnityEngine.Tilemaps;
 public class TilemapVisualizer : MonoBehaviour
 {
     [SerializeField] private Tilemap floorTilemap;
+    [SerializeField] private Tilemap wallTilemap;
     [SerializeField] private Tile floorTile;
     [SerializeField] private Tile wallTile;
     [SerializeField] private Tile pathTile;
@@ -31,7 +32,7 @@ public class TilemapVisualizer : MonoBehaviour
 
     public void PaintWallTiles(IEnumerable<Vector2Int> positions)
     {
-        PaintTiles(positions, floorTilemap, wallTile);
+        PaintTiles(positions, wallTilemap, wallTile);
     }
 
     public void PaintPathTiles(IEnumerable<Vector2Int> positions)
@@ -79,8 +80,8 @@ public class TilemapVisualizer : MonoBehaviour
 
     public void PaintSingleWallTile(Vector2Int position)
     {
-        Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
-        floorTilemap.SetTile(tileMapPosition, wallTile);
+        Vector3Int tileMapPosition = wallTilemap.WorldToCell((Vector3Int)position);
+        wallTilemap.SetTile(tileMapPosition, wallTile);
     }
 
     public void PaintSinglePathTile(Vector2Int position)
@@ -89,18 +90,23 @@ public class TilemapVisualizer : MonoBehaviour
         floorTilemap.SetTile(tileMapPosition, pathTile);
     }
 
-    public void EraseSingleTile(Vector2Int position)
+    public void EraseSingleFloorTile(Vector2Int position)
     {
-        PaintSingleTile(null, position);
+        PaintSingleTile(position,floorTilemap,null);
+    }
+
+    public void EraseSingleWallTile(Vector2Int position)
+    {
+        PaintSingleTile(position, wallTilemap, null);
     }
 
     /// <summary>
     /// Eliminates all tiles of the tilemap
     /// </summary>
-    public void ClearTilemap()
+    public void ClearTilemaps()
     {
-        floorTile.color = Color.white;
         floorTilemap.ClearAllTiles();
+        wallTilemap.ClearAllTiles();
     }
 
     /// <summary>
@@ -126,26 +132,6 @@ public class TilemapVisualizer : MonoBehaviour
                 Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
                 floorTilemap.SetTile(tileMapPosition, floorTile);
                 positions.Add(pos);
-            }
-        }
-    }
-
-    public void AddBorderWalls()
-    {
-        foreach (var position in floorTilemap.cellBounds.allPositionsWithin)
-        {
-            Vector2Int pos = (Vector2Int)position;
-
-            bool hasTile = floorTilemap.HasTile((Vector3Int)pos);
-            bool upperTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, 1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, 1)))==floorTile);
-            bool bottomTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(0, -1))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(0, -1))) == floorTile);
-            bool rightTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(1, 0))) == floorTile);
-            bool leftTile = floorTilemap.HasTile((Vector3Int)(pos + new Vector2Int(-1, 0))) && (floorTilemap.GetTile((Vector3Int)(pos + new Vector2Int(-1, 0))) == floorTile);
-
-            if (!hasTile && (upperTile || bottomTile || rightTile || leftTile))
-            {
-                Vector3Int tileMapPosition = floorTilemap.WorldToCell(position);
-                floorTilemap.SetTile(tileMapPosition, wallTile);
             }
         }
     }

@@ -47,12 +47,12 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
-        tilemapVisualizer.ClearTilemap();
+        tilemapVisualizer.ClearTilemaps();
 
-        if(useHilbertCurve)
+        if (useHilbertCurve)
         {
             hilbertCurve = new HilbertCurve(order);
-            hilbertCurve.CalculateHilbertCurve(mapWidth,mapHeight,minOffsetX,maxOffsetX,minOffsetY,maxOffsetY);
+            hilbertCurve.CalculateHilbertCurve(mapWidth, mapHeight, minOffsetX, maxOffsetX, minOffsetY, maxOffsetY);
             int initialCount = hilbertCurve.HilbertCurvePoints.Count;
             for (int i = 0; i < initialCount; i++)
             {
@@ -61,9 +61,19 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             }
         }
 
-        map = GenerateNoise();    
+        map = GenerateNoise();
         RunCellularAutomata();
         EraseRegions();
+
+        //Draw the map
+        for (int x = 0; x < mapWidth; x++)
+        {
+            for (int y = 0; y < mapHeight; y++)
+            {
+                if (map[x, y] == 1) tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
+                else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+            }
+        }
     }
 
     /// <summary>
@@ -125,22 +135,16 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             {
                 if (x == 0 || x == mapWidth - 1 || y == 0 || y == mapHeight - 1)
                 {
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-
                     map[x, y] = 1;
                 }
                 else if (useHilbertCurve && hilbertCurve.HilbertCurvePoints.Contains(new Vector2Int(x, y)))
                 {
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
                     hilbertCurve.HilbertCurvePointsInsideTheMap.Add(new Vector2Int(x, y));
                     map[x, y] = 1;                   
                 }
                 else
                 {
                     map[x, y] = (Random.Range(0.0f, 1.0f) < fillPercent) ? 1 : 0;
-
-                    if (map[x, y] == 1) tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                    else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
                 }
             }
         }
@@ -188,12 +192,10 @@ public class CellularAutomataAlgorithm : DungeonGenerator
         if (neighbourWallTiles > ruleNumber) 
         {
             map[x, y] = 1;
-            tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
         }
         else if (neighbourWallTiles < ruleNumber)
         {
             map[x, y] = 0;
-            tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
         }
     }
 
@@ -242,7 +244,6 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                 foreach (Vector2Int tile in floorRegion)
                 {
                     map[tile.x, tile.y] = 1;
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(tile.x, tile.y));
                 }
             }
             else //we store floor regions which are bigger than the floorThresholdSize, to connect them
@@ -269,7 +270,6 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                 foreach (Vector2Int tile in wallRegion)
                 {
                     map[tile.x, tile.y] = 0;
-                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(tile.x, tile.y));
                 }
             }
         }
@@ -401,8 +401,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
                         if(addedPoints!=null)
                         {
                             addedPoints.Add(new Vector2Int(drawX, drawY));
-                        }
-                        tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(drawX, drawY));
+                        }                        
                     }
                 }
             }

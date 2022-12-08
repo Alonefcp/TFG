@@ -45,14 +45,17 @@ public class RandomWalkAlgorithm : DungeonGenerator
     public override void GenerateDungeon()
     {
         HashSet<Vector2Int> floorPositions = RunRandomWalk();
-        Debug.Log(floorPositions.Count);//QUITAR!!
-        tilemapVisualizer.ClearTilemap();
+       /* Debug.Log(floorPositions.Count);*///QUITAR!!
+        tilemapVisualizer.ClearTilemaps();
         tilemapVisualizer.PaintFloorTiles(floorPositions);
         if (eliminateSingleWallsCells)
         {
             tilemapVisualizer.EliminateSingleSpaces(out HashSet<Vector2Int> positions);
             floorPositions.UnionWith(positions); //we add the positions which have become walkables
         }
+
+        WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+        playerController.SetPlayerPosition(startPosition);
     }
 
     //For debugging

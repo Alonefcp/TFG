@@ -36,7 +36,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
     /// </summary>
     public override void GenerateDungeon()
     {
-        tilemapVisualizer.ClearTilemap();
+        tilemapVisualizer.ClearTilemaps();
 
         int totalTiles = mapWidth * mapHeight;
         maxFloorPositions = (int)(fillPercentage * totalTiles);
@@ -83,7 +83,10 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
                 map[MapXYtoIndex(pos.x, pos.y)] = true;
             }
             floorPositions.UnionWith(extraPositions);
-        }      
+        }
+
+        WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+        playerController.SetPlayerPosition(startPosition);
     }
 
     //For debugging
