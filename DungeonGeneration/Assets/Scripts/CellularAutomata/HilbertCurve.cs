@@ -44,7 +44,7 @@ public class HilbertCurve
         hilbertCurvePoints = new HashSet<Vector2Int>();
 
         int posX = (mapWidth / N) + Random.Range(minOffsetX, maxOffsetX);
-        int posY = (mapHeight / N) + Random.Range(minOffsetY, maxOffsetY); ;
+        int posY = (mapHeight / N) + Random.Range(minOffsetY, maxOffsetY);
         initialPoints.Add(HilbertPoint(0));
         initialPoints[0] = initialPoints[0] * new Vector2Int(posX, posY) + new Vector2Int(posX / 2, posY / 2);
 
@@ -53,10 +53,10 @@ public class HilbertCurve
             initialPoints.Add(HilbertPoint(i));
             initialPoints[i] = initialPoints[i] * new Vector2Int(posX, posY) + new Vector2Int(posX / 2, posY / 2);
 
-            List<Vector2Int> extra = BresenhamsLineAlgorithm.GetLinePointsList(initialPoints[i - 1].x, initialPoints[i - 1].y, initialPoints[i].x, initialPoints[i].y);
-            for (int j = 0; j < extra.Count; j++)
+            List<Vector2Int> extraPoints = BresenhamsLineAlgorithm.GetLinePointsList(initialPoints[i - 1].x, initialPoints[i - 1].y, initialPoints[i].x, initialPoints[i].y);
+            for (int j = 0; j < extraPoints.Count; j++)
             {
-                hilbertCurvePoints.Add(extra[j]);
+                hilbertCurvePoints.Add(extraPoints[j]);
             }
         }
     }

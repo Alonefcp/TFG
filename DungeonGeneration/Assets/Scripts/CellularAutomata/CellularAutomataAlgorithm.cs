@@ -21,6 +21,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
     [SerializeField] private Neighborhood neighborhood = Neighborhood.Moore;
     [SerializeField] private MooreRule mooreRule = MooreRule.Rule4;
     [SerializeField] private VonNeummannRule vonNeummannRule = VonNeummannRule.Rule2;
+    [SerializeField] private bool connectRegions = true;
     [Range(1,3)]
     [SerializeField] private int connectionSize = 1;
     [Range(0, 100)]
@@ -250,7 +251,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
             }
         }
 
-        if(leftFloorRegions.Count>0)
+        if(connectRegions && leftFloorRegions.Count>0)
         {
             leftFloorRegions.Sort();
             leftFloorRegions[0].IsMainRoom = true;
