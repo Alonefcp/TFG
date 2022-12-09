@@ -13,7 +13,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     {
         public Sprite sprite;
         public int nRotations;
-        public List<string> edges; 
+        public bool canSpawnPlayer;
     }
     [Range(5,50)]
     [SerializeField] private int mapWidth = 5, mapHeight = 5;
@@ -80,21 +80,21 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     {        
         for (int row = -1; row < mapHeight + 1; row++)
         {
-            tilemapVisualizer.PaintSingleFloorTile(tiles[0].Tile, new Vector2Int(-1, row));
+            tilemapVisualizer.PaintSingleWallTile(tiles[0].Tile, new Vector2Int(-1, row));
         }
         for (int row = 0; row < mapHeight + 1; row++)
         {
-            tilemapVisualizer.PaintSingleFloorTile(tiles[0].Tile, new Vector2Int(mapWidth, row));
+            tilemapVisualizer.PaintSingleWallTile(tiles[0].Tile, new Vector2Int(mapWidth, row));
         }
 
         for (int col = -1; col < mapWidth + 1; col++)
         {
-            tilemapVisualizer.PaintSingleFloorTile(tiles[0].Tile, new Vector2Int(col, -1));
+            tilemapVisualizer.PaintSingleWallTile(tiles[0].Tile, new Vector2Int(col, -1));
         }
 
         for (int col = 0; col < mapWidth + 1; col++)
         {
-            tilemapVisualizer.PaintSingleFloorTile(tiles[0].Tile, new Vector2Int(col, mapHeight));
+            tilemapVisualizer.PaintSingleWallTile(tiles[0].Tile, new Vector2Int(col, mapHeight));
         }
     }
 
@@ -103,6 +103,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     /// </summary>
     private void DrawMap()
     {
+        bool playerSpawned = false;
         for (int row = 0; row < mapHeight; row++)
         {
             for (int col = 0; col < mapWidth; col++)
@@ -111,7 +112,18 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 if (cell.Collapsed)
                 {
                     int index = cell.Options[0];
-                    tilemapVisualizer.PaintSingleFloorTile(tiles[index].Tile, new Vector2Int(col, row));
+                    if (index == 1)
+                    {
+                        if (!playerSpawned) 
+                        {
+                            playerController.SetPlayerPosition(new Vector2Int(col, row));
+                            playerSpawned = true;
+                        } 
+
+                        tilemapVisualizer.PaintSingleFloorTile(tiles[index].Tile, new Vector2Int(col, row));
+                    }
+                    else
+                        tilemapVisualizer.PaintSingleWallTile(tiles[index].Tile, new Vector2Int(col, row));
                 }
             }
         }
@@ -133,36 +145,30 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
             List<string> edges = tileEdges.CreateTileEdges(tile.sprite.texture);
             tiles.Add(new WFCTile(tile, edges));
-
-            //tiles.Add(new WFCTile(tile, tilesInfo[i].edges));
         }
 
         //Create rotations
         for (int j = 0; j < tilesInfo.Length; j++)
         {
             if (tilesInfo[j].nRotations <= 0) continue;
-
-            Texture2D baseTexture = tiles[j].Tile.sprite.texture;
             for (int i = 1; i <= tilesInfo[j].nRotations; i++)
             {
-                WFCTile wFCTile = tiles[j].RotateTile(baseTexture, i);
+                WFCTile wFCTile = tiles[j].RotateTile(i);
                 tiles.Add(wFCTile);
-
-                baseTexture = wFCTile.Tile.sprite.texture;
             }
         }
 
         //int pos = 0;
         //foreach (WFCTile tile in tiles) //DEBUG: For seeing all the tiles
         //{
-        //    tilemapVisualizer.PaintSingleTile(tile.tile, new Vector2Int(pos, 0));
+        //    tilemapVisualizer.PaintSingleWallTile(tile.Tile, new Vector2Int(pos, 0));
 
-        //    foreach (string edge in tile.edges)
-        //    {
-        //        Debug.Log(edge);
-        //    }
+        //    //foreach (string edge in tile.edges)
+        //    //{
+        //    //    Debug.Log(edge);
+        //    //}
 
-        //    Debug.Log("\n");
+        //    //Debug.Log("\n");
 
         //    pos++;
         //}

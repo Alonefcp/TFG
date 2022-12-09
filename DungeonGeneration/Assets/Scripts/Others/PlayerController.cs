@@ -31,8 +31,12 @@ public class PlayerController : MonoBehaviour
         rigidbody2D.velocity = movement * speed;
     }
 
+    /// <summary>
+    /// Sets the player position
+    /// </summary>
+    /// <param name="newPos">New position</param>
     public void SetPlayerPosition(Vector2 newPos)
     {
-        transform.position = newPos+new Vector2(0.5f,0.5f);
+        transform.position = newPos + new Vector2(0.5f,0.5f);
     }
 }

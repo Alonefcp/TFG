@@ -14,7 +14,7 @@ public class TileEdges
     }
 
     /// <summary>
-    /// Once we have looped through the texture's edge, we assign the edge of the last part of the texture's edge.
+    /// Once we have looped through the texture's edge, we assign the edge of the last part of the texture's edge
     /// </summary>
     /// <param name="initialColor">Initial pixel color</param>
     /// <param name="currentColor">Current pixel color</param>
@@ -37,7 +37,7 @@ public class TileEdges
     }
 
     /// <summary>
-    /// Creates the tiles' edge by checking all the colours of the tile's texture.
+    /// Creates the tiles' edge by checking all the colours of the tile's texture
     /// </summary>
     /// <param name="texture">Tiles's texture</param>
     /// <param name="initialColor">Initial pixel color</param>

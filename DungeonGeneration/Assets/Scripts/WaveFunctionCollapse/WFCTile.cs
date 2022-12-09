@@ -64,15 +64,11 @@ public class WFCTile
     /// <summary>
     /// Rotates the tile (texture and edges).
     /// </summary>
-    /// <param name="texture">Tile's texture we are going to rotate</param>
     /// <param name="nRotations">Number of rotations</param>
     /// <returns></returns>
-    public WFCTile RotateTile(Texture2D texture, int nRotations)
+    public WFCTile RotateTile(int nRotations)
     {
-        if (nRotations == 0) return this;
-
-        //We rotate te texture
-        Texture2D newTexture = RotateTexture(texture);
+        if (nRotations == 0) return this; //We return the same tile, no need for rotating it
         
         //We rotate the edges
         List<string> newEdges = new List<string>();
@@ -84,12 +80,30 @@ public class WFCTile
         }
 
         //We return the new tile
-        Sprite sprite = Sprite.Create(newTexture, new Rect(0, 0, newTexture.width, newTexture.height), new Vector2(0.5f, 0.5f), this.Tile.sprite.pixelsPerUnit);
         Tile tile = ScriptableObject.CreateInstance<Tile>();
-        tile.sprite = sprite;
-        tile.colliderType = Tile.ColliderType.Sprite;
+        tile.sprite = Tile.sprite;
+        tile.colliderType = Tile.colliderType;
+        var newTrasform = Tile.transform;
+        newTrasform.SetTRS(Vector3.zero, GetRotation(nRotations), Vector3.one);
+        tile.transform = newTrasform;
 
         return new WFCTile(tile, newEdges);
+    }
+
+    private Quaternion GetRotation(int mask)
+    {
+        switch (mask)
+        {            
+            case 1:
+                return Quaternion.Euler(0f, 0f, -90f);
+            case 2:
+                return Quaternion.Euler(0f, 0f, -180f);
+            case 3:
+                return Quaternion.Euler(0f, 0f, -270f);
+            default:
+                return Quaternion.Euler(0f, 0f, 0f);
+        }
+        
     }
 
     /// <summary>
@@ -113,38 +127,5 @@ public class WFCTile
         char[] charArray = s.ToCharArray();
         Array.Reverse(charArray);
         return new string(charArray);
-    }
-
-    /// <summary>
-    /// Rotates the tile's texture.
-    /// </summary>
-    /// <param name="originalTexture">Texture we are going to rotate</param>
-    /// <param name="clockwise">If we rotate the texture clockwise or not</param>
-    /// <returns></returns>
-    private Texture2D RotateTexture(Texture2D originalTexture, bool clockwise = true)
-    {
-        Color32[] original = originalTexture.GetPixels32();
-        Color32[] rotated = new Color32[original.Length];
-        int w = originalTexture.width;
-        int h = originalTexture.height;
-
-        int iRotated, iOriginal;
-
-        for (int j = 0; j < h; ++j)
-        {
-            for (int i = 0; i < w; ++i)
-            {
-                iRotated = (i + 1) * h - j - 1;
-                iOriginal = clockwise ? original.Length - 1 - (j * w + i) : j * w + i;
-                rotated[iRotated] = original[iOriginal];
-            }
-        }
-
-        Texture2D rotatedTexture = new Texture2D(h, w);
-        rotatedTexture.SetPixels32(rotated);
-        rotatedTexture.Apply();
-        rotatedTexture.filterMode = FilterMode.Point;
-        rotatedTexture.wrapMode = TextureWrapMode.Clamp;
-        return rotatedTexture;
     }
 }
