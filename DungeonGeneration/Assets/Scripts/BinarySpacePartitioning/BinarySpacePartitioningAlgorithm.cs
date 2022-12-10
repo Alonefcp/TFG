@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BinarySpacePartitioningAlgorithm : DungeonGenerator
+public class BinarySpacePartitioningAlgorithm : DungeonGeneration
 {
     enum CorridorsAlgorithm {TunnelingAlgorithm, Delaunay_Prim_Astar}
 
@@ -39,6 +39,8 @@ public class BinarySpacePartitioningAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
+        base.GenerateDungeon();
+
         //Create and draw rooms
         BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
         roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, minRoomHeight);

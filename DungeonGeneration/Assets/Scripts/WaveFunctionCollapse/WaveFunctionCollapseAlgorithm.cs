@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class WaveFunctionCollapseAlgorithm : DungeonGenerator
+public class WaveFunctionCollapseAlgorithm : DungeonGeneration
 {
     [Serializable]
     private struct TileInfo
@@ -16,8 +16,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     }
     [Range(5,50)]
     [SerializeField] private int mapWidth = 5, mapHeight = 5;
-    [SerializeField] private bool useRandomSeed = true;
-    [SerializeField] private string seed;
     [SerializeField] private bool addBorder=false;
     [SerializeField] private bool forceMoreWalkableZones=false;
     [Range(1, 15)]
@@ -31,7 +29,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     private List<WFCTile> tiles;
     private List<int> options;
     private TileEdges tileEdges;
-    private System.Random rng = null;
+
     //private bool firstTime = true;
     private HashSet<Vector2Int> walkablePositions;
 
@@ -52,10 +50,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
-        if (useRandomSeed) seed = Time.time.ToString();
-        rng = new System.Random(seed.GetHashCode());
-
-        tilemapVisualizer.ClearTilemaps();
+        base.GenerateDungeon();
 
         SetUp();
 

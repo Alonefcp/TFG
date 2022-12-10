@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 
 //Diffusion limited aggregation algorithm (DLA)
-public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
+public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
 {
     enum Symmetry { None, Horizontal, Vertical, Both }
 
@@ -36,7 +36,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGenerator
     /// </summary>
     public override void GenerateDungeon()
     {
-        tilemapVisualizer.ClearTilemaps();
+        base.GenerateDungeon();
 
         int totalTiles = mapWidth * mapHeight;
         maxFloorPositions = (int)(fillPercentage * totalTiles);

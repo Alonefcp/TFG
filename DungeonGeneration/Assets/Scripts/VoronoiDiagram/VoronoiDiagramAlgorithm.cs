@@ -25,7 +25,7 @@ public struct Cell
     }
 }
 
-public class VoronoiDiagramAlgorithm : DungeonGenerator
+public class VoronoiDiagramAlgorithm : DungeonGeneration
 {
     [Range(50,200)]
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
@@ -42,9 +42,7 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     [SerializeField] private int wallThresholdSize = 5;
     [Range(0, 15)]
     [SerializeField] private int floorThresholdSize = 5;
-    [SerializeField] private bool useRandomSeed = true;
-    [SerializeField] private string seed;
-
+ 
     [SerializeField] private bool randomSeeds = true;
     [Range(5, 20)]
     [SerializeField] private float seedMinDistance=10;
@@ -52,7 +50,6 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
     [SerializeField] private float seedMaxDistance=50;
 
     private Grid2D grid;
-    private System.Random rng = null;
 
     //void Start()
     //{
@@ -61,10 +58,8 @@ public class VoronoiDiagramAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
-        if (useRandomSeed) seed = Time.time.ToString();
-        rng = new System.Random(seed.GetHashCode());
+        base.GenerateDungeon();
 
-        tilemapVisualizer.ClearTilemaps();
         grid = new Grid2D(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());
 
         if(randomShape)

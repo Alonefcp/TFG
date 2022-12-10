@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 
 //Drunkard’s walk or Random Walk algorithm
-public class RandomWalkAlgorithm : DungeonGenerator
+public class RandomWalkAlgorithm : DungeonGeneration
 {
     //Walker representation
     struct Walker
@@ -44,9 +44,11 @@ public class RandomWalkAlgorithm : DungeonGenerator
     /// </summary>
     public override void GenerateDungeon()
     {
+        base.GenerateDungeon();
+
         HashSet<Vector2Int> floorPositions = RunRandomWalk();
        /* Debug.Log(floorPositions.Count);*///QUITAR!!
-        tilemapVisualizer.ClearTilemaps();
+       
         tilemapVisualizer.PaintFloorTiles(floorPositions);
         if (eliminateSingleWallsCells)
         {

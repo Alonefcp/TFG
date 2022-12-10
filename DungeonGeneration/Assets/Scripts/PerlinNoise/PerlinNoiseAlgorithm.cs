@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PerlinNoiseAlgorithm : DungeonGenerator
+public class PerlinNoiseAlgorithm : DungeonGeneration
 {
     [Range(10, 200)]
     [SerializeField] private int mapWidth = 10, mapHeight = 10;
@@ -16,8 +16,6 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     [Range(0.0f, 1.0f)]
     [SerializeField] private float fillPercent = 0.5f;
     [SerializeField] private Vector2 offset;
-    [SerializeField] private bool useRandomSeed = true;
-    [SerializeField] private string seed;
     [Range(0, 50)]
     [SerializeField] private int wallThresholdSize=10;
     [Range(0, 50)]
@@ -32,7 +30,6 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
     [SerializeField] private bool addBiggerBorders = true;
     [SerializeField] private bool showPerlinNoiseTexture = false;
 
-    private System.Random rng = null;
     int[,] map;
     //void Start()
     //{
@@ -41,10 +38,7 @@ public class PerlinNoiseAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
-        if (useRandomSeed) seed = Time.time.ToString();
-        rng = new System.Random(seed.GetHashCode());
-
-        tilemapVisualizer.ClearTilemaps();
+        base.GenerateDungeon();
 
         float[,] perlinNoise = GenerateMatrixWithPerlinNoise(mapWidth, mapHeight, noiseScale, octaves, persistance, lacunarity, offset);
         CreateMap(perlinNoise);

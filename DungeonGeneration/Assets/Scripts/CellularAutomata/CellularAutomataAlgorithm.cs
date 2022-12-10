@@ -6,7 +6,7 @@ using System.Linq;
 using static FloodFillAlgorithm;
 using Random = UnityEngine.Random;
 
-public class CellularAutomataAlgorithm : DungeonGenerator
+public class CellularAutomataAlgorithm : DungeonGeneration
 {
     enum Neighborhood {Moore, VonNeummann}
     enum MooreRule {Rule3=3, Rule4=4, Rule5=5}
@@ -47,7 +47,7 @@ public class CellularAutomataAlgorithm : DungeonGenerator
 
     public override void GenerateDungeon()
     {
-        tilemapVisualizer.ClearTilemaps();
+        base.GenerateDungeon();
 
         if (useHilbertCurve)
         {

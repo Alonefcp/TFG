@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(DungeonGenerator),true)]
+[CustomEditor(typeof(DungeonGeneration),true)]
 public class DungeonGenerationEditor : Editor
 {
-    DungeonGenerator generator;
+    DungeonGeneration generator;
 
     private void Awake()
     {
-        generator = (DungeonGenerator)target;
+        generator = (DungeonGeneration)target;
     }
 
     /// <summary>
