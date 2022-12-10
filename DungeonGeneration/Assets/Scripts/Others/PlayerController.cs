@@ -32,11 +32,13 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets the player position
+    /// Sets the player position and scale
     /// </summary>
     /// <param name="newPos">New position</param>
-    public void SetPlayerPosition(Vector2 newPos)
+    /// /// <param name="newScale">New scale</param>
+    public void SetPlayer(Vector2 newPos, Vector3 newScale)
     {
         transform.position = newPos + new Vector2(0.5f,0.5f);
+        transform.localScale = newScale;
     }
 }

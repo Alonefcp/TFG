@@ -7,8 +7,8 @@ public static class WallGenerator
 { 
     public static void CreateWalls(HashSet<Vector2Int> floorPositions, TilemapVisualizer tilemapVisualizer)
     {
-        Vector2Int[] fourDirectionsArray = Directions.GetFourDirectionsArray();
-        HashSet<Vector2Int> wallPositions = FindWallsInDirections(floorPositions, fourDirectionsArray);
+        Vector2Int[] eightDirectionsArray = Directions.GetEightDiretionsArray();
+        HashSet<Vector2Int> wallPositions = FindWallsInDirections(floorPositions, eightDirectionsArray);
         tilemapVisualizer.PaintWallTiles(wallPositions);
 
     }

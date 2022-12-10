@@ -116,7 +116,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
                     {
                         if (!playerSpawned) 
                         {
-                            playerController.SetPlayerPosition(new Vector2Int(col, row));
+                            playerController.SetPlayer(new Vector2Int(col, row), new Vector3(0.2f, 0.2f, 0.2f));
                             playerSpawned = true;
                         } 
 

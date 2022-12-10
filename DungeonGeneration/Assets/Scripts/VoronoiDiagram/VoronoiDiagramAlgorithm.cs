@@ -89,7 +89,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
             }
 
             WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
-            playerController.SetPlayerPosition(seeds.ElementAt(Random.Range(0, randomSeeds.Count)));
+            playerController.SetPlayer(seeds.ElementAt(Random.Range(0, randomSeeds.Count)), new Vector3(0.3f, 0.3f, 0.3f));
         }
         else
         {
@@ -103,7 +103,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
             DrawMap(mapInfo);
 
-            playerController.SetPlayerPosition(seeds.ElementAt(Random.Range(0, seeds.Count)));
+            playerController.SetPlayer(seeds.ElementAt(Random.Range(0, seeds.Count)), new Vector3(0.3f, 0.3f, 0.3f));
             //tilemapVisualizer.PaintPathTiles(seeds);     
         }
     }

@@ -57,7 +57,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
         }
 
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
-        playerController.SetPlayerPosition(startPosition);
+        playerController.SetPlayer(startPosition,new Vector3(0.3f,0.3f,0.3f));
     }
 
     //For debugging

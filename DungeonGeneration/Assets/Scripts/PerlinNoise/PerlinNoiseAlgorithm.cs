@@ -78,7 +78,7 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
         {
             playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
         }
-        playerController.SetPlayerPosition(playerPosition);
+        playerController.SetPlayer(playerPosition, new Vector3(0.3f, 0.3f, 0.3f));
     }
 
     /// <summary>

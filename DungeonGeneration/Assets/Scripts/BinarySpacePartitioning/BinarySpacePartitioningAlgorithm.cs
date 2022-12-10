@@ -79,7 +79,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
         if (setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters);
 
         WallGenerator.CreateWalls(floorPositions,tilemapVisualizer);
-        playerController.SetPlayerPosition(roomCenters[Random.Range(0, roomCenters.Count)].position);
+        playerController.SetPlayer(roomCenters[Random.Range(0, roomCenters.Count)].position, new Vector3(0.3f, 0.3f, 0.3f));
     }
 
     private void OnDrawGizmos()
