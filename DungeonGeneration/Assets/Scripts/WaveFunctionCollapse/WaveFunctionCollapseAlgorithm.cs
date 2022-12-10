@@ -6,14 +6,13 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class WaveFunctionCollapseAlgorithm : DungeonGenerator 
+public class WaveFunctionCollapseAlgorithm : DungeonGenerator
 {
     [Serializable]
     private struct TileInfo
     {
         public Sprite sprite;
         public int nRotations;
-        public bool canSpawnPlayer;
     }
     [Range(5,50)]
     [SerializeField] private int mapWidth = 5, mapHeight = 5;
@@ -25,6 +24,8 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     [SerializeField] private int nWalkableZones = 3;
     [Range(1, 15)]
     [SerializeField] private int maxWalkableZoneSize = 3;
+    [SerializeField] private Sprite borderSprite = null;
+    [SerializeField] private int playerSpriteSpawn = 1;
     [SerializeField] private TileInfo[] tilesInfo;
     private List<WFCCell> grid;
     private List<WFCTile> tiles;
@@ -74,32 +75,36 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     }
     
     /// <summary>
-    /// Draws the map's borders by using the tilemap visualizer.
+    /// Draws the map's borders by using the tilemap visualizer
     /// </summary>
     private void DrawBorders()
-    {        
+    {
+        Tile borderTile = ScriptableObject.CreateInstance<Tile>();
+        borderTile.sprite = borderSprite;
+        borderTile.colliderType = Tile.ColliderType.Sprite;
+
         for (int row = -1; row < mapHeight + 1; row++)
         {
-            tilemapVisualizer.PaintSingleWallTile(tiles[0].Tile, new Vector2Int(-1, row));
+            tilemapVisualizer.PaintSingleWallTile(borderTile, new Vector2Int(-1, row));
         }
         for (int row = 0; row < mapHeight + 1; row++)
         {
-            tilemapVisualizer.PaintSingleWallTile(tiles[0].Tile, new Vector2Int(mapWidth, row));
+            tilemapVisualizer.PaintSingleWallTile(borderTile, new Vector2Int(mapWidth, row));
         }
 
         for (int col = -1; col < mapWidth + 1; col++)
         {
-            tilemapVisualizer.PaintSingleWallTile(tiles[0].Tile, new Vector2Int(col, -1));
+            tilemapVisualizer.PaintSingleWallTile(borderTile, new Vector2Int(col, -1));
         }
 
         for (int col = 0; col < mapWidth + 1; col++)
         {
-            tilemapVisualizer.PaintSingleWallTile(tiles[0].Tile, new Vector2Int(col, mapHeight));
+            tilemapVisualizer.PaintSingleWallTile(borderTile, new Vector2Int(col, mapHeight));
         }
     }
 
     /// <summary>
-    /// Draws the map by using the tilemap visualizer.
+    /// Draws the map by using the tilemap visualizer
     /// </summary>
     private void DrawMap()
     {
@@ -112,7 +117,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
                 if (cell.Collapsed)
                 {
                     int index = cell.Options[0];
-                    if (index == 1)
+                    if (index == playerSpriteSpawn)
                     {
                         if (!playerSpawned) 
                         {
@@ -130,7 +135,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Creates all images and the map grid.
+    /// Creates all images and the map grid
     /// </summary>
     private void SetUp()
     {
@@ -142,6 +147,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
         {           
             Tile tile = ScriptableObject.CreateInstance<Tile>();
             tile.sprite = tilesInfo[i].sprite;
+            tile.colliderType = Tile.ColliderType.Sprite;
 
             List<string> edges = tileEdges.CreateTileEdges(tile.sprite.texture);
             tiles.Add(new WFCTile(tile, edges));
@@ -185,7 +191,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Creates walkables zones on the map.
+    /// Creates walkables zones on the map
     /// </summary>
     /// <returns></returns>
     private void ForceMoreWalkableZones()
@@ -264,7 +270,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Creates a grid with all cells uncollapsed with all available options.
+    /// Creates a grid with all cells uncollapsed with all available options
     /// </summary>
     /// <returns></returns>
     private List<WFCCell> CreateGrid()
@@ -279,7 +285,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Returns all the adjacent cells to the collapsed cells.
+    /// Returns all the adjacent cells to the collapsed cells
     /// </summary>
     /// <returns></returns>
     private List<WFCCell> GetAdjacentCellsToCollapsedCells(List<WFCCell> grid)
@@ -500,7 +506,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGenerator
     }
 
     /// <summary>
-    /// Converts a map position to an index.
+    /// Converts a map position to an index
     /// </summary>
     /// <param name="x">X map position</param>
     /// <param name="y">Y map position</param>
