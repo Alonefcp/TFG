@@ -8,8 +8,10 @@ public class DungeonGeneration : MonoBehaviour
 {
     [SerializeField] protected TilemapVisualizer tilemapVisualizer = null;
     [SerializeField] protected PlayerController playerController = null;
-    [SerializeField] private bool useRandomSeed = true;
-    [SerializeField] private int seed;
+    [SerializeField] protected bool useRandomSeed = true;
+    [SerializeField] protected int seed;
+
+    public bool showBottom = false;
 
     /// <summary>
     /// Creates a dungeon with an algorithm

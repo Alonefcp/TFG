@@ -8,9 +8,17 @@ public class DungeonGenerationEditor : Editor
 {
     DungeonGeneration generator;
 
-    private void Awake()
+    SerializedProperty tilemapVisualizer;
+    SerializedProperty playerController;
+    SerializedProperty useRandomSeed;
+    SerializedProperty seed;
+
+    public virtual void OnEnable()
     {
-        generator = (DungeonGeneration)target;
+        tilemapVisualizer = serializedObject.FindProperty("tilemapVisualizer");
+        playerController = serializedObject.FindProperty("playerController");
+        useRandomSeed = serializedObject.FindProperty("useRandomSeed");
+        seed = serializedObject.FindProperty("seed");     
     }
 
     /// <summary>
@@ -18,10 +26,24 @@ public class DungeonGenerationEditor : Editor
     /// </summary>
     public override void OnInspectorGUI()
     {
-        base.OnInspectorGUI();
+        generator = (DungeonGeneration)target;
+        
+        //base.OnInspectorGUI();
 
-        //true when the user press the button
-        if(GUILayout.Button("Generate Dungeon"))
+        serializedObject.Update();
+
+        EditorGUILayout.PropertyField(tilemapVisualizer);
+        EditorGUILayout.PropertyField(playerController);
+        EditorGUILayout.PropertyField(useRandomSeed);
+        EditorGUILayout.PropertyField(seed);
+
+        serializedObject.ApplyModifiedProperties();
+    }
+
+    protected void GenerateButton()
+    {
+        //True when the user press the button
+        if (GUILayout.Button("Generate Dungeon"))
         {
             generator.GenerateDungeon();
         }

@@ -101,27 +101,27 @@ public static class Connectivity
     /// <param name="vertex">List with all Delaunay vertex</param>
     /// <param name="edges">List with all Delaunay edges</param>
     /// <param name="seeds">HashSet with all seed positions</param>
-    private static void ConnectDisjointedSeeds(List<Vertex> vertex, List<Edge> edges, HashSet<Vector2Int> seeds)
-    {
-        HashSet<Vector2Int> disjointedSeed = new HashSet<Vector2Int>();
-        foreach (Vertex v in vertex)
-        {
-            foreach (Edge e in edges)
-            {
-                if (!(e.U.position == v.position && e.V.position == v.position))
-                {
-                    disjointedSeed.Add(new Vector2Int(v.position.x, v.position.y));
-                }
-            }
-        }
-        foreach (Vector2Int seed in disjointedSeed)
-        {
-            Vector2Int closestSeed = GetClosestSeed(seeds, seed);
-            Vertex a = new Vertex(seed);
-            Vertex b = new Vertex(closestSeed);
-            edges.Add(new Edge(a, b));
-        }
-    }
+    //private static void ConnectDisjointedSeeds(List<Vertex> vertex, List<Edge> edges, HashSet<Vector2Int> seeds)
+    //{
+    //    HashSet<Vector2Int> disjointedSeed = new HashSet<Vector2Int>();
+    //    foreach (Vertex v in vertex)
+    //    {
+    //        foreach (Edge e in edges)
+    //        {
+    //            if (!(e.U.position == v.position && e.V.position == v.position))
+    //            {
+    //                disjointedSeed.Add(new Vector2Int(v.position.x, v.position.y));
+    //            }
+    //        }
+    //    }
+    //    foreach (Vector2Int seed in disjointedSeed)
+    //    {
+    //        Vector2Int closestSeed = GetClosestSeed(seeds, seed);
+    //        Vertex a = new Vertex(seed);
+    //        Vertex b = new Vertex(closestSeed);
+    //        edges.Add(new Edge(a, b));
+    //    }
+    //}
 
     /// <summary>
     /// Returns the closest seed to another one given by the user (destination parameter)
@@ -129,25 +129,25 @@ public static class Connectivity
     /// <param name="seeds">HasSet with all seed positions</param>
     /// <param name="destination">We will find th closest seed to this one</param>
     /// <returns>The position of the closest seed</returns>
-    private static Vector2Int GetClosestSeed(HashSet<Vector2Int> seeds, Vector2Int destination)
-    {
-        float minDistance = float.MaxValue;
-        Vector2Int closestSeed = new Vector2Int(0, 0);
-        foreach (Vector2Int seed in seeds)
-        {
-            if (seed == destination) continue;
+    //private static Vector2Int GetClosestSeed(HashSet<Vector2Int> seeds, Vector2Int destination)
+    //{
+    //    float minDistance = float.MaxValue;
+    //    Vector2Int closestSeed = new Vector2Int(0, 0);
+    //    foreach (Vector2Int seed in seeds)
+    //    {
+    //        if (seed == destination) continue;
 
-            float distance = Vector2Int.Distance(seed, destination);
+    //        float distance = Vector2Int.Distance(seed, destination);
 
-            if (distance < minDistance)
-            {
-                minDistance = distance;
-                closestSeed = seed;
-            }
-        }
+    //        if (distance < minDistance)
+    //        {
+    //            minDistance = distance;
+    //            closestSeed = seed;
+    //        }
+    //    }
 
-        return closestSeed;
-    }
+    //    return closestSeed;
+    //}
 
     /// <summary>
     /// Converts a map position to an index

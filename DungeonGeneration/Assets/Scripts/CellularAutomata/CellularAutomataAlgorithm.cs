@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 
 public class CellularAutomataAlgorithm : DungeonGeneration
 {
-    enum Neighborhood {Moore, VonNeummann}
+    public enum Neighborhood {Moore, VonNeummann}
     enum MooreRule {Rule3=3, Rule4=4, Rule5=5}
     enum VonNeummannRule {Rule1=1, Rule2=2, Rule3=3}
     
@@ -40,6 +40,10 @@ public class CellularAutomataAlgorithm : DungeonGeneration
     private int[,] map; //1 -> wall , 0 -> floor
     private HilbertCurve hilbertCurve;
 
+    public Neighborhood NeighborhoodType { get => neighborhood;}
+    public bool ConnectRegions { get => connectRegions;}
+    public bool UseHilbertCurve { get => useHilbertCurve;}
+
     //void Start()
     //{
     //    GenerateDungeon();
@@ -49,7 +53,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
     {
         base.GenerateDungeon();
 
-        if (useHilbertCurve)
+        if (UseHilbertCurve)
         {
             hilbertCurve = new HilbertCurve(order);
             hilbertCurve.CalculateHilbertCurve(mapWidth, mapHeight, minOffsetX, maxOffsetX, minOffsetY, maxOffsetY);
@@ -146,7 +150,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
                 {
                     map[x, y] = 1;
                 }
-                else if (useHilbertCurve && hilbertCurve.HilbertCurvePoints.Contains(new Vector2Int(x, y)))
+                else if (UseHilbertCurve && hilbertCurve.HilbertCurvePoints.Contains(new Vector2Int(x, y)))
                 {
                     hilbertCurve.HilbertCurvePointsInsideTheMap.Add(new Vector2Int(x, y));
                     map[x, y] = 1;                   
@@ -173,7 +177,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
             {             
                 for (int y = 0; y < mapHeight; y++)
                 {
-                    if (useHilbertCurve && hilbertCurve.HilbertCurvePointsInsideTheMap.Contains(new Vector2Int(x, y)))
+                    if (UseHilbertCurve && hilbertCurve.HilbertCurvePointsInsideTheMap.Contains(new Vector2Int(x, y)))
                     {
                         continue;
                     }
@@ -261,7 +265,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
             }
         }
 
-        if(connectRegions && leftFloorRegions.Count>0)
+        if(ConnectRegions && leftFloorRegions.Count>0)
         {
             leftFloorRegions.Sort();
             leftFloorRegions[0].IsMainRoom = true;

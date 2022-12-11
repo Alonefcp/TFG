@@ -34,11 +34,13 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     //private bool firstTime = true;
     private HashSet<Vector2Int> walkablePositions;
 
+    public bool MoreWalkableZones { get => forceMoreWalkableZones;}
+
     //private void Start()
     //{
-    //    if (useRandomSeed) seed = Time.time.ToString();
-    //    rng = new System.Random(seed.GetHashCode());
-    //    tilemapVisualizer.ClearTilemap();
+    //    if (useRandomSeed) seed = (int)DateTime.Now.Ticks/*Time.time*/;
+    //    Random.InitState(seed);
+    //    tilemapVisualizer.ClearTilemaps();
     //    SetUp();
 
     //    InvokeRepeating("Run", 0.5f, 0.03f);

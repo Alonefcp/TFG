@@ -9,18 +9,21 @@ public static class SpecialRooms
     /// </summary>
     /// <param name="tilemapVisualizer">For marking the start and end room</param>
     /// <param name="roomCenters">Rooms positions which are the rooms centers</param>
-    public static void SetStartAndEndRoom(TilemapVisualizer tilemapVisualizer, List<Vertex> roomCenters)
+    public static void SetStartAndEndRoom(TilemapVisualizer tilemapVisualizer, List<Vertex> roomCenters, out Vector2Int roomStartPosition)
     {
-        Vertex start = roomCenters[Random.Range(0, roomCenters.Count)];
-        roomCenters.Remove(start);
+        List<Vertex> rooms = new List<Vertex>(roomCenters);
 
+        Vertex start = rooms[Random.Range(0, rooms.Count)];
+        rooms.Remove(start);
+
+        roomStartPosition = start.position;
         tilemapVisualizer.PaintSingleWallTile(start.position);
 
         float maxDistance = -1;
 
         Vertex furthest = null;
 
-        foreach (Vertex vertex in roomCenters)
+        foreach (Vertex vertex in rooms)
         {
             float dist = Vector2Int.Distance(start.position, vertex.position);
             if (dist > maxDistance)

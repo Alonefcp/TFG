@@ -23,14 +23,18 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
     [SerializeField] private bool connectRegions = true;
     [Range(1, 3)]
     [SerializeField] private int connectionSize = 1;
+    [SerializeField] private bool addBiggerBorders = true;
     [Range(2, 8)]
     [SerializeField] int borderInterval = 2;
     [Range(6, 10)]
     [SerializeField] int borderOffset = 7;
-    [SerializeField] private bool addBiggerBorders = true;
     [SerializeField] private bool showPerlinNoiseTexture = false;
 
     int[,] map;
+
+    public bool AddBiggerBorders { get => addBiggerBorders;}
+    public bool ConnectRegions { get => connectRegions;}
+
     //void Start()
     //{
     //    GenerateDungeon();

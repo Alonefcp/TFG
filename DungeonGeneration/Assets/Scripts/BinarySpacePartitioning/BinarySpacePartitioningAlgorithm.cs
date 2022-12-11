@@ -4,13 +4,12 @@ using UnityEngine;
 
 public class BinarySpacePartitioningAlgorithm : DungeonGeneration
 {
-    enum CorridorsAlgorithm {TunnelingAlgorithm, Delaunay_Prim_Astar}
+    public enum CorridorsAlgorithm {TunnelingAlgorithm, Delaunay_Prim_Astar}
 
     [Range(40,150)]
     [SerializeField] private int spaceWidth = 20,  spaceHeight = 20;
     [Range(8, 20)]
     [SerializeField] private int minRoomWidth = 4, /*maxRoomWidth = 4,*/  minRoomHeight = 4; /*maxRoomHeight = 4*/
-    [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
 
     [Range(1,2)]
     [SerializeField] private int roomOffset = 1;
@@ -27,10 +26,12 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
 
     [SerializeField] private bool setSpecialRooms = false;
 
-    [SerializeField] private bool showGizmos = false;
-
     private Grid2D grid;
     private List<BoundsInt> roomList;
+
+    public bool WiderCorridors { get => widerCorridors;}
+    public CorridorsAlgorithm CorridorsAlgorithmType { get => corridorsAlgorithm;}
+
 
     //void Start()
     //{
@@ -42,14 +43,14 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
         base.GenerateDungeon();
 
         //Create and draw rooms
+        Vector2Int startPosition = new Vector2Int(0, 0);
         BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
         roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, minRoomHeight);
 
         grid = new Grid2D(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
         HashSet<Vector2Int> floorPositions = CreateRooms(roomList, grid);
-        tilemapVisualizer.ClearTilemaps();
-        tilemapVisualizer.PaintFloorTiles(floorPositions);
 
+        tilemapVisualizer.PaintFloorTiles(floorPositions);
         //Create connections between rooms
         List<Vertex> roomCenters = new List<Vertex>();
 
@@ -59,57 +60,33 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
             roomCenters.Add(new Vertex(center));
         }
 
+        //Set special rooms
+        Vector2Int roomStartPosition = new Vector2Int();
+        if (setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters, out roomStartPosition);
+
+        //Set player position
+        playerController.SetPlayer(new Vector2(roomStartPosition.x, roomStartPosition.y), new Vector3(0.3f, 0.3f, 0.3f));
+
+        //Connect rooms
         if (corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
         {
-            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, widerCorridors,corridorSize,spaceWidth,spaceHeight);
+            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, WiderCorridors,corridorSize,spaceWidth,spaceHeight);
             tilemapVisualizer.PaintFloorTiles(corridors);
             floorPositions.UnionWith(corridors);
         }
         else
         {
-            List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCenters, grid, widerCorridors, corridorSize,spaceWidth, spaceHeight, addSomeRemainingEdges);
+            List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCenters, grid, WiderCorridors, corridorSize,spaceWidth, spaceHeight, addSomeRemainingEdges);
             foreach (HashSet<Vector2Int> path in paths)
             {
                 tilemapVisualizer.PaintFloorTiles(path);
                 floorPositions.UnionWith(path);
             }
         }
+       
 
-        //Set special rooms
-        if (setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters);
-
-        WallGenerator.CreateWalls(floorPositions,tilemapVisualizer);
-        playerController.SetPlayer(roomCenters[Random.Range(0, roomCenters.Count)].position, new Vector3(0.3f, 0.3f, 0.3f));
-    }
-
-    private void OnDrawGizmos()
-    {
-        if (showGizmos)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireCube(new Vector3(spaceWidth / 2, spaceHeight / 2, 0), new Vector3Int(spaceWidth, spaceHeight, 0));
-
-            //Gizmos.color = Color.green;
-            //if (delaunayTriangulation != null)
-            //{
-            //    foreach (var edge in edges)
-            //    {
-            //        Gizmos.DrawLine(edge.U.Position, edge.V.Position);
-            //    }
-            //}
-
-            //if(paths!=null)
-            //{
-            //    foreach (var path in paths)
-            //    {
-            //        foreach (var node in path)
-            //        {
-            //            Gizmos.DrawWireSphere(node.worldPosition, 1.0f);
-            //        }
-            //    }
-            //}
-
-        }
+        //Creates outter walls
+        WallGenerator.CreateWalls(floorPositions,tilemapVisualizer);      
     }
 
     /// <summary>

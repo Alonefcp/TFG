@@ -31,7 +31,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
     [SerializeField] private int mapWidth = 40, mapHeight = 40;
     [Range(2,100)]
     [SerializeField] private int numberOfSeeds = 64;
-    [SerializeField] private Distance.DistanceAlgorithm distanceAlgorithm;
+    [SerializeField] private Distance.DistanceFormula distanceFormula;
     [Range(0.0f,1.0f)]
     [SerializeField] private float wallErosion = 0.5f;
     [SerializeField] private bool randomShape = false;
@@ -50,6 +50,8 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
     [SerializeField] private float seedMaxDistance=50;
 
     private Grid2D grid;
+
+    public bool RandomSeeds { get => randomSeeds;}
 
     //void Start()
     //{
@@ -93,7 +95,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
         }
         else
         {
-            HashSet<Vector2Int> seeds = randomSeeds? GenerateSeeds(1,1,mapWidth-1,mapHeight-1): GenerateSeedBasedOnDistance(1,1,mapWidth-1,mapHeight-1);
+            HashSet<Vector2Int> seeds = RandomSeeds? GenerateSeeds(1,1,mapWidth-1,mapHeight-1): GenerateSeedBasedOnDistance(1,1,mapWidth-1,mapHeight-1);
             List<Cell> mapInfo = RunVoronoiDiagram(seeds);
             CreateInnerWalls(mapInfo);
 
@@ -246,7 +248,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
         }
 
         int padding = 7;
-        HashSet<Vector2Int> seeds = randomSeeds ? GenerateSeeds(offsetX + padding, offsetY + padding, mapWidth - offsetX - padding, mapHeight - offsetY - padding) : GenerateSeedBasedOnDistance(offsetX + padding, offsetY + padding, mapWidth - offsetX - padding, mapHeight - offsetY - padding);
+        HashSet<Vector2Int> seeds = RandomSeeds ? GenerateSeeds(offsetX + padding, offsetY + padding, mapWidth - offsetX - padding, mapHeight - offsetY - padding) : GenerateSeedBasedOnDistance(offsetX + padding, offsetY + padding, mapWidth - offsetX - padding, mapHeight - offsetY - padding);
       
         seeds.UnionWith(borderSeeds);
         return seeds;
@@ -272,7 +274,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
             foreach (Vector2Int seed in seeds)
             {
-                float distance = Distance.CalculateDistance(new Vector2Int(x, y), seed, distanceAlgorithm);
+                float distance = Distance.CalculateDistance(new Vector2Int(x, y), seed, distanceFormula);
 
                 if (distance < minDistance)
                 {

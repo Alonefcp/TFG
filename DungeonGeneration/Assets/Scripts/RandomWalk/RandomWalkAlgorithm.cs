@@ -24,16 +24,18 @@ public class RandomWalkAlgorithm : DungeonGeneration
     [SerializeField] private int numberOfFloorPositions = 50;
     [SerializeField] private int minSteps = 10, maxSteps = 20;
     [Range(0.0f, 1.0f)]
-    [SerializeField] float chanceToChangeDirection = 1.0f;
-    [SerializeField] bool eliminateSingleWallsCells = false;
-    [SerializeField] bool useEightDirections = false;
-    [SerializeField] bool levyFlight = false;
+    [SerializeField] private float chanceToChangeDirection = 1.0f;
+    [SerializeField] private bool eliminateSingleWallsCells = false;
+    [SerializeField] private bool useEightDirections = false;
+    [SerializeField] private bool levyFlight = false;
     [Range(0.0f, 1.0f)]
-    [SerializeField] float levyFlightChance = 0.02f;
+    [SerializeField] private float levyFlightChance = 0.02f;
     [Range(2, 12)]
-    [SerializeField] int minStepLength = 3;
+    [SerializeField] private int minStepLength = 3;
     [Range(2, 12)]
-    [SerializeField] int maxStepLength = 7;
+    [SerializeField] private int maxStepLength = 7;
+
+    public bool LevyFlight { get => levyFlight;}
 
     //void Start()
     //{
@@ -135,7 +137,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
 
             if (Random.value <= chanceToChangeDirection) //There is a chance to change or not the walker direction
             {
-                if (levyFlight && Random.value <= levyFlightChance) //There is a chance to apply or not the levy flight
+                if (LevyFlight && Random.value <= levyFlightChance) //There is a chance to apply or not the levy flight
                 {
                     int stepLength = Random.Range(minStepLength, maxStepLength);
                     walker.dir = (useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection()) * stepLength;

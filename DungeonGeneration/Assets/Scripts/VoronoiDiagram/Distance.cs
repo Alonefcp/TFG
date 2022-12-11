@@ -5,7 +5,7 @@ using UnityEngine;
 //Class for calculating the differents distances
 public static class Distance
 {
-    public enum DistanceAlgorithm { Euclidean, Manhattan, Chebyshev }
+    public enum DistanceFormula { Euclidean, Manhattan, Chebyshev }
 
     /// <summary>
     /// Calculates the distance between two points with the distance algorithm chosen by the user
@@ -14,18 +14,18 @@ public static class Distance
     /// <param name="to">End point</param>
     /// <param name="distanceAlgorithm">Distance algorithm</param>
     /// <returns>A float which is the distance between two points</returns>
-    public static float CalculateDistance(Vector2Int from, Vector2Int to, DistanceAlgorithm distanceAlgorithm)
+    public static float CalculateDistance(Vector2Int from, Vector2Int to, DistanceFormula distanceAlgorithm)
     {
         float distance;
         switch (distanceAlgorithm)
         {
-            case DistanceAlgorithm.Euclidean:
+            case DistanceFormula.Euclidean:
                 distance = EuclideanDistance(from, to);
                 break;
-            case DistanceAlgorithm.Manhattan:
+            case DistanceFormula.Manhattan:
                 distance = ManhattanDistance(from, to);
                 break;
-            case DistanceAlgorithm.Chebyshev:
+            case DistanceFormula.Chebyshev:
                 distance = ChebyshevDistance(from, to);
                 break;
             default:
