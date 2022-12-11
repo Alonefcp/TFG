@@ -19,11 +19,10 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
     [SerializeField] private int seedSize = 1;
     [SerializeField] private bool useCentralAttractor = false;
     [SerializeField] bool eliminateSingleWallsCells = false;
-    [SerializeField] bool showGizmos = false;
 
     private Vector2Int startPosition;
     private int maxFloorPositions;
-    private List<bool> map;
+    private List<bool> map; //true -> floor , false -> wall
     private HashSet<Vector2Int> floorPositions;
 
     //void Start()
@@ -87,19 +86,6 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
 
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
         playerController.SetPlayer(startPosition, new Vector3(0.3f, 0.3f, 0.3f));
-    }
-
-    //For debugging
-    private void OnDrawGizmos()
-    {
-        if(showGizmos)
-        {
-            Gizmos.color = Color.red;
-            //We show map size
-            Gizmos.DrawWireCube(new Vector3(startPosition.x, startPosition.y, 0.0f), new Vector3(mapWidth, mapHeight, 0.0f));
-            //We show the start position
-            Gizmos.DrawWireSphere(new Vector3(startPosition.x+0.5f, startPosition.y+0.5f, 0.0f), 0.5f);
-        }       
     }
 
     /// <summary>

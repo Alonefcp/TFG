@@ -4,16 +4,16 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] Camera camera = null;
+    [SerializeField] Camera mainCamera = null;
     [SerializeField] float speed = 5.0f;
-    [SerializeField] Rigidbody2D rigidbody2D = null;
+    [SerializeField] Rigidbody2D playerRigidbody2D = null;
 
     private Vector2 movement = Vector2.zero;
 
     private void LateUpdate()
     {
         //Camera follow
-        camera.transform.position = new Vector3(transform.position.x, transform.position.y, camera.transform.position.z);
+        mainCamera.transform.position = new Vector3(transform.position.x, transform.position.y, mainCamera.transform.position.z);
     }
 
     private void Update()
@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         //Player movement
-        rigidbody2D.velocity = movement * speed;
+        playerRigidbody2D.velocity = movement * speed;
     }
 
     /// <summary>

@@ -38,18 +38,6 @@ public static class Directions
     }
 
     /// <summary>
-    /// Returns a random cardinal direction (up, down, right , left)
-    /// </summary>
-    /// <param name="rng">Random generator</param>
-    /// <returns></returns>
-    public static Vector2Int GetRandomFourDirection(System.Random rng)
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1) };
-
-        return directions[rng.Next(0, directions.Length)];
-    }
-
-    /// <summary>
     /// Returns a random eight-way direction
     /// </summary>
     /// <returns></returns>

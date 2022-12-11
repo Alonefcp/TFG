@@ -30,9 +30,10 @@ public class RandomWalkAlgorithm : DungeonGeneration
     [SerializeField] bool levyFlight = false;
     [Range(0.0f, 1.0f)]
     [SerializeField] float levyFlightChance = 0.02f;
+    [Range(2, 12)]
     [SerializeField] int minStepLength = 3;
+    [Range(2, 12)]
     [SerializeField] int maxStepLength = 7;
-    [SerializeField] bool showGizmos = false;
 
     //void Start()
     //{
@@ -60,18 +61,6 @@ public class RandomWalkAlgorithm : DungeonGeneration
         playerController.SetPlayer(startPosition,new Vector3(0.3f,0.3f,0.3f));
     }
 
-    //For debugging
-    private void OnDrawGizmos()
-    {
-        if (showGizmos)
-        {
-            Gizmos.color = Color.red;
-
-            //We show the start position
-            Gizmos.DrawWireSphere(new Vector3(startPosition.x+0.5f, startPosition.y+0.5f, 0.0f), 0.5f);
-        }
-    }
-
     /// <summary>
     /// Performs the Random Walk or Drunkard's Walk algorithm
     /// </summary>
@@ -96,10 +85,10 @@ public class RandomWalkAlgorithm : DungeonGeneration
             HashSet<Vector2Int> path = SimpleRandomWalk(walker, numberOfSteps);
             positions.UnionWith(path);
 
-            //We set a new walker`s direction
+            //We set a new walker direction
             walker.dir = useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection();
 
-            //We change walker's position
+            //We change walker position
             if (startRandomlyEachIteration)
             {
                 Vector2Int randomPosition = positions.ElementAt(Random.Range(0, positions.Count));
@@ -129,7 +118,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
             //Take one step in a random direction
             Vector2Int newPos = walker.pos + walker.dir;
 
-            //1.-For the levy fligh we calculate the positions between the walker's position and the new position,
+            //1.-For the levy fligh we calculate the positions between the walker position and the new position,
             //and we add them to the path positions
             //2.- If the walker moves diagonally
             if (walker.dir.magnitude > 1)
@@ -141,17 +130,17 @@ public class RandomWalkAlgorithm : DungeonGeneration
                 pathPositions.Add(newPos);
             }
 
-            //We set a new walker`s position
+            //We set a new walker position
             walker.pos = newPos;
 
-            if (Random.value <= chanceToChangeDirection) //There is a chance to change or not the walker's direction
+            if (Random.value <= chanceToChangeDirection) //There is a chance to change or not the walker direction
             {
                 if (levyFlight && Random.value <= levyFlightChance) //There is a chance to apply or not the levy flight
                 {
                     int stepLength = Random.Range(minStepLength, maxStepLength);
                     walker.dir = (useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection()) * stepLength;
                 }
-                else //Otherwise we set a new walker`s direction
+                else //Otherwise we set a new walker direction
                 {
                     walker.dir = useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection();
                 }
@@ -162,15 +151,15 @@ public class RandomWalkAlgorithm : DungeonGeneration
     }  
 
     /// <summary>
-    /// Calculate the positions between the walker's position and his new position. This method is used 
-    /// for diagonal positions.
+    /// Calculate the positions between the walker position and his new position. This method is used 
+    /// for diagonal positions
     /// </summary>
     /// <param name="walker">Walker struct which contains his position and direction</param>
     /// <param name="newPosition">New walker position</param>
     /// <param name="pathPositions">Structure to hold the path positions</param>
     private void CalculatePositions(Walker walker, Vector2Int newPosition, HashSet<Vector2Int> pathPositions)
     {
-        //We add to the path the positions between the walker's position his new position
+        //We add to the path the positions between the walker position his new position
         while (walker.pos.x != newPosition.x || walker.pos.y != newPosition.y)
         {
             bool moveDiagonally = true;
@@ -208,7 +197,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
 
             pathPositions.Add(walker.pos);
 
-            //If we are moving diagonally, we add more positions around the walker's position,
+            //If we are moving diagonally, we add more positions around the walker position,
             //so this positions are walkable. If we don`t do this diagonal positions are not walkable.
             if (moveDiagonally)
             {
@@ -218,9 +207,9 @@ public class RandomWalkAlgorithm : DungeonGeneration
     }
 
     /// <summary>
-    /// Adds more positions around the walker's position
+    /// Adds more positions around the walker position
     /// </summary>
-    /// <param name="pos">Walker's position</param>
+    /// <param name="pos">Walker position</param>
     /// <param name="radius">Indicates how many positions we want to add around</param>
     /// <param name="pathPositions">Structure to hold the path positions</param>
     private void AddMorePositions(Vector2Int pos, int radius, HashSet<Vector2Int> pathPositions)

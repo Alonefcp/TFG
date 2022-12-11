@@ -150,8 +150,8 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
         while(seeds.Count<numberOfSeeds)
         {
-            int xPos = rng.Next(minWidth, maxWidth);
-            int yPos = rng.Next(minHeight, maxHeight);
+            int xPos = Random.Range(minWidth, maxWidth);
+            int yPos = Random.Range(minHeight, maxHeight);
 
             seeds.Add(new Vector2Int(xPos, yPos));
         }
@@ -168,13 +168,13 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
     {
         HashSet<Vector2Int> seeds = new HashSet<Vector2Int>();
 
-        Vector2Int prevSeed = new Vector2Int(rng.Next(minWidth, maxWidth), rng.Next(minHeight, maxHeight));
+        Vector2Int prevSeed = new Vector2Int(Random.Range(minWidth, maxWidth), Random.Range(minHeight, maxHeight));
         seeds.Add(prevSeed);
 
         while (seeds.Count < numberOfSeeds)
         {
-            int xPos = rng.Next(minWidth, maxWidth);
-            int yPos = rng.Next(minHeight, maxHeight);
+            int xPos = Random.Range(minWidth, maxWidth);
+            int yPos = Random.Range(minHeight, maxHeight);
 
             Vector2Int newSeed = new Vector2Int(xPos, yPos);
             if (Vector2Int.Distance(newSeed, prevSeed) <= seedMaxDistance && Vector2Int.Distance(newSeed, prevSeed) >= seedMinDistance)
@@ -332,7 +332,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
                 mapInfo[MapXYtoIndex(x - 1, y - 1)].ClosestSeed != mySeed.ClosestSeed ||
                 mapInfo[MapXYtoIndex(x + 1, y + 1)].ClosestSeed != mySeed.ClosestSeed)
                 {
-                    if (rng.NextDouble() > wallErosion)
+                    if (Random.value > wallErosion)
                     {
                         mySeed.CellType = 1; //Wall
                         mapInfo[MapXYtoIndex(x, y)] = mySeed;

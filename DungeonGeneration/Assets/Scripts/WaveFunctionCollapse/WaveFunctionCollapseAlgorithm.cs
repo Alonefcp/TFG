@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Random = UnityEngine.Random;
 
 public class WaveFunctionCollapseAlgorithm : DungeonGeneration
 {
@@ -194,14 +195,14 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
         walkablePositions = new HashSet<Vector2Int>();
         for (int i = 0; i < nWalkableZones; i++)
         {
-            int x = rng.Next(0, mapWidth);
-            int y = rng.Next(0, mapHeight);
+            int x = Random.Range(0, mapWidth);
+            int y = Random.Range(0, mapHeight);
 
             HashSet<Vector2Int> auxPos = new HashSet<Vector2Int>();
             while (auxPos.Count < maxWalkableZoneSize)
             {
                 if(!walkablePositions.Contains(new Vector2Int(x, y)))auxPos.Add(new Vector2Int(x, y));
-                Vector2Int randomDirection = Directions.GetRandomFourDirection(rng);
+                Vector2Int randomDirection = Directions.GetRandomFourDirection();
                 x += randomDirection.x;
                 y += randomDirection.y;
                 x = Mathf.Clamp(x, 0, mapWidth - 1);
@@ -401,7 +402,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
         }
 
         collapsedCell.Collapsed = true;
-        int randomCellOp = collapsedCell.Options[rng.Next(0, collapsedCell.Options.Count)];
+        int randomCellOp = collapsedCell.Options[Random.Range(0, collapsedCell.Options.Count)];
         collapsedCell.Options = new List<int>() { randomCellOp };
         return collapsedCell;
     }

@@ -99,8 +99,8 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
         Vector2[] octaveOffsets = new Vector2[octaves];
         for (int i = 0; i < octaves; i++)
         {
-            float offsetX = rng.Next(-100000, 100000)+offset.x;
-            float offsetY = rng.Next(-100000, 100000)+offset.y;
+            float offsetX = Random.Range(-100000, 100001)+offset.x;
+            float offsetY = Random.Range(-100000, 100001)+offset.y;
             octaveOffsets[i] = new Vector2(offsetX, offsetY);
         }
 
@@ -230,7 +230,7 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
             //Generate the noise
             for (int x = 0; x <= mapWidth; x += interval)
             {
-                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(x, rng.Next(0, 100000) * reduction) * offset);
+                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(x, Random.Range(0, 100001) * reduction) * offset);
                 noiseY.Add(newPoint);
                 noiseX.Add(x);
             }
@@ -297,7 +297,7 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
             //Generate the noise
             for (int y = 0; y <= mapHeight; y += interval)
             {
-                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(rng.Next(0, 100000) * reduction, y) * offset);
+                newPoint = Mathf.FloorToInt(Mathf.PerlinNoise(Random.Range(0, 100001) * reduction, y) * offset);
                 noiseY.Add(y);
                 noiseX.Add(newPoint);
             }
