@@ -70,14 +70,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
         EraseRegions();
 
         //Draw the map
-        for (int x = 0; x < mapWidth; x++)
-        {
-            for (int y = 0; y < mapHeight; y++)
-            {
-                if (map[x, y] == 1) tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                else tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
-            }
-        }
+        DrawMap();
 
         //Sets player position
         Vector2Int playerPosition = new Vector2Int(Random.Range(1,mapWidth-1), Random.Range(1, mapHeight-1));
@@ -87,6 +80,29 @@ public class CellularAutomataAlgorithm : DungeonGeneration
             playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
         }
         playerController.SetPlayer(playerPosition, new Vector3(0.3f, 0.3f, 0.3f));
+    }
+
+    /// <summary>
+    /// Draws the map
+    /// </summary>
+    private void DrawMap()
+    {
+        HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
+        
+        for (int x = 0; x < mapWidth; x++)
+        {
+            for (int y = 0; y < mapHeight; y++)
+            {
+                if (map[x, y] == 1) tilemapVisualizer.PaintSingleInnerWallTile(new Vector2Int(x, y));
+                else
+                {
+                    floorPositions.Add(new Vector2Int(x, y));
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
     }
 
     /// <summary>

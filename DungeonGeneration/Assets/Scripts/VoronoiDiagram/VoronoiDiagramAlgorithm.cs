@@ -82,15 +82,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
             //tilemapVisualizer.PaintPathTiles(randomSeeds);
 
             DrawMap(mapInfo);
-
-            HashSet<Cell> cellFloors = mapInfo.Where(cell => cell.CellType == 0).ToHashSet();
-            HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
-            foreach (Cell cell in cellFloors)
-            {
-                floorPositions.Add(cell.CellPos);
-            }
-
-            WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+           
             playerController.SetPlayer(seeds.ElementAt(Random.Range(0, randomSeeds.Count)), new Vector3(0.3f, 0.3f, 0.3f));
         }
         else
@@ -106,6 +98,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
             DrawMap(mapInfo);
 
             playerController.SetPlayer(seeds.ElementAt(Random.Range(0, seeds.Count)), new Vector3(0.3f, 0.3f, 0.3f));
+           
             //tilemapVisualizer.PaintPathTiles(seeds);     
         }
     }
@@ -131,15 +124,23 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
     {
         for (int i = 0; i < mapInfo.Count; i++)
         {
-            if (mapInfo[i].CellType == 0)
+            if (mapInfo[i].CellType == 0) //Floor
             {
                 tilemapVisualizer.PaintSingleFloorTile(mapInfo[i].CellPos);
             }
-            else if (mapInfo[i].CellType == 1)
+            else if (mapInfo[i].CellType == 1) //Wall
             {
-                tilemapVisualizer.PaintSingleWallTile(mapInfo[i].CellPos);
+                tilemapVisualizer.PaintSingleInnerWallTile(mapInfo[i].CellPos);
             }
         }
+
+        HashSet<Cell> cellFloors = mapInfo.Where(cell => cell.CellType == 0).ToHashSet();
+        HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
+        foreach (Cell cell in cellFloors)
+        {
+            floorPositions.Add(cell.CellPos);
+        }
+        WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
     }
 
     /// <summary>

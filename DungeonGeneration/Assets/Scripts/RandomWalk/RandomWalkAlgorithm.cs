@@ -59,6 +59,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
             floorPositions.UnionWith(positions); //we add the positions which have become walkables
         }
 
+        
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
         playerController.SetPlayer(startPosition,new Vector3(0.3f,0.3f,0.3f));
     }

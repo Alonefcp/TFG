@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,13 +8,31 @@ public class TilemapVisualizer : MonoBehaviour
 {
     [SerializeField] private Tilemap floorTilemap;
     [SerializeField] private Tilemap wallTilemap;
+    [Header("Final Tiles")]
     [SerializeField] private Tile floorTile;
-    [SerializeField] private Tile wallTile;
-    [SerializeField] private Tile pathTile;
+    [SerializeField] private Tile wallTop, wallSideRight, wallSideLeft, wallBottom, wallFull,
+        wallInnerCornerDownLeft, wallInnerCornerDownRight, wallDiagonalCornerDownRight, wallDiagonalCornerDownLeft, wallDiagonalCornerUpRight,
+        wallDiagonalCornerUpLeft, innerWall;
+    [Header("Test Tiles")] //DEBUG
+    [SerializeField] private Tile pathTestTile;
+    [SerializeField] private Tile floorTestTile;
+    [SerializeField] private Tile wallTestTile; 
+
+
+    public void PaintPathTiles(IEnumerable<Vector2Int> positions) //DEBUG
+    {
+        PaintTiles(positions, floorTilemap, pathTestTile);
+    }
+
+    public void PaintSinglePathTile(Vector2Int position)//DEBUG
+    {
+        PaintSingleTile(position, floorTilemap, pathTestTile);
+    }
+
 
 
     /// <summary>
-    /// Returns the cell's radius. We assume a cell is n*n.
+    /// Returns the cell's radius. We assume a cell is n*n
     /// </summary>
     /// <returns></returns>
     public float GetCellRadius()
@@ -30,33 +49,89 @@ public class TilemapVisualizer : MonoBehaviour
         PaintTiles(positions, floorTilemap, floorTile);
     }
 
-    public void PaintWallTiles(IEnumerable<Vector2Int> positions)
-    {
-        PaintTiles(positions, wallTilemap, wallTile);
-    }
-
-    public void PaintPathTiles(IEnumerable<Vector2Int> positions)
-    {
-        PaintTiles(positions, floorTilemap, pathTile);
-    }
-
-    public void EraseTiles(IEnumerable<Vector2Int> positions)
-    {
-        PaintTiles(positions, floorTilemap, null);
-    }
-
     /// <summary>
-    /// Returns true if th tilemap has a tile in a given position
+    /// Paints a corner wall tile
     /// </summary>
     /// <param name="position">Tile position</param>
-    /// <returns></returns>
-    public bool HasTile(Vector2Int position)
+    /// <param name="type">Corner wall type</param>
+    public void PaintSingleCornerWallTile(Vector2Int position, string type="")
     {
-       return floorTilemap.HasTile((Vector3Int)position);
+        int typeASInt = Convert.ToInt32(type, 2);
+        TileBase tile = null;
+
+        if (WallTypesHelper.wallInnerCornerDownLeft.Contains(typeASInt))
+        {
+            tile = wallInnerCornerDownLeft;
+        }
+        else if (WallTypesHelper.wallInnerCornerDownRight.Contains(typeASInt))
+        {
+            tile = wallInnerCornerDownRight;
+        }
+        else if (WallTypesHelper.wallDiagonalCornerDownLeft.Contains(typeASInt))
+        {
+            tile = wallDiagonalCornerDownLeft;
+        }
+        else if (WallTypesHelper.wallDiagonalCornerDownRight.Contains(typeASInt))
+        {
+            tile = wallDiagonalCornerDownRight;
+        }
+        else if (WallTypesHelper.wallDiagonalCornerUpRight.Contains(typeASInt))
+        {
+            tile = wallDiagonalCornerUpRight;
+        }
+        else if (WallTypesHelper.wallDiagonalCornerUpLeft.Contains(typeASInt))
+        {
+            tile = wallDiagonalCornerUpLeft;
+        }
+        else if (WallTypesHelper.wallFullEightDirections.Contains(typeASInt))
+        {
+            tile = wallFull;
+        }
+        else if (WallTypesHelper.wallBottmEightDirections.Contains(typeASInt))
+        {
+            tile = wallBottom;
+        }
+
+        if (tile != null)
+            PaintSingleTile(position, wallTilemap, tile);
     }
 
     /// <summary>
-    /// Paints a single tile
+    /// 
+    /// </summary>
+    /// <param name="position">Tyle position</param>
+    /// <param name="type">Wall type</param>
+    public void PaintSingleWallTile(Vector2Int position, string type = "")
+    {
+        int typeAsInt = Convert.ToInt32(type, 2);
+        TileBase tile = null;
+        if (WallTypesHelper.wallTop.Contains(typeAsInt))
+        {
+            tile = wallTop;
+        }
+        else if (WallTypesHelper.wallSideRight.Contains(typeAsInt))
+        {
+            tile = wallSideRight;
+        }
+        else if (WallTypesHelper.wallSideLeft.Contains(typeAsInt))
+        {
+            tile = wallSideLeft;
+        }
+        else if (WallTypesHelper.wallBottm.Contains(typeAsInt))
+        {
+            tile = wallBottom;
+        }
+        else if (WallTypesHelper.wallFull.Contains(typeAsInt))
+        {
+            tile = wallFull;
+        }
+
+        if (tile != null)
+            PaintSingleTile(position, wallTilemap, tile);
+    }
+
+    /// <summary>
+    /// Paints a single floor tile
     /// </summary>
     /// <param name="position">Tile position</param>
     public void PaintSingleFloorTile(Vector2Int position)
@@ -65,46 +140,45 @@ public class TilemapVisualizer : MonoBehaviour
         floorTilemap.SetTile(tileMapPosition, floorTile);
     }
 
-    public void PaintSingleFloorTile(Tile tile,Vector2Int position)
-    {
-        Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
-        floorTilemap.SetTile(tileMapPosition, tile);
-    }
-
+    /// <summary>
+    /// Paints a single floor tile with color
+    /// </summary>
+    /// <param name="position">Tile position</param>
+    /// <param name="color">Tile color</param>
     public void PaintSingleFloorTileWithColor(Vector2Int position, Color color)
     {
-        floorTile.color = color;
+        floorTestTile.color = color;
         Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
-        floorTilemap.SetTile(tileMapPosition, floorTile);
+        floorTilemap.SetTile(tileMapPosition, floorTestTile);
     }
 
-    public void PaintSingleWallTile(Vector2Int position)
-    {
-        Vector3Int tileMapPosition = wallTilemap.WorldToCell((Vector3Int)position);
-        wallTilemap.SetTile(tileMapPosition, wallTile);
+    /// <summary>
+    /// Paints a inner wall tile
+    /// </summary>
+    /// <param name="position">Tile position</param>
+    public void PaintSingleInnerWallTile(Vector2Int position)
+    {      
+        PaintSingleTile(position,wallTilemap, innerWall);
     }
 
+    /// <summary>
+    /// Paints a tile on the wall tilemap
+    /// </summary>
+    /// <param name="tile">Wall tile</param>
+    /// <param name="position">Tile position</param>
     public void PaintSingleWallTile(Tile tile, Vector2Int position)
     {
-        Vector3Int tileMapPosition = wallTilemap.WorldToCell((Vector3Int)position);
-        wallTilemap.SetTile(tileMapPosition, tile);
+        PaintSingleTile(position, wallTilemap, tile);
     }
 
-
-    public void PaintSinglePathTile(Vector2Int position)
+    /// <summary>
+    /// Paints a tile on the floor tilemap
+    /// </summary>
+    /// <param name="tile">Floor tile</param>
+    /// <param name="position">Tile position</param>
+    public void PaintSingleFloorTile(Tile tile, Vector2Int position)
     {
-        Vector3Int tileMapPosition = floorTilemap.WorldToCell((Vector3Int)position);
-        floorTilemap.SetTile(tileMapPosition, pathTile);
-    }
-
-    public void EraseSingleFloorTile(Vector2Int position)
-    {
-        PaintSingleTile(position,floorTilemap,null);
-    }
-
-    public void EraseSingleWallTile(Vector2Int position)
-    {
-        PaintSingleTile(position, wallTilemap, null);
+        PaintSingleTile(position, floorTilemap, tile);
     }
 
     /// <summary>
@@ -114,7 +188,7 @@ public class TilemapVisualizer : MonoBehaviour
     {
         floorTilemap.ClearAllTiles();
         wallTilemap.ClearAllTiles();
-        floorTile.color = Color.white;
+        floorTestTile.color = Color.white;
     }
 
     /// <summary>

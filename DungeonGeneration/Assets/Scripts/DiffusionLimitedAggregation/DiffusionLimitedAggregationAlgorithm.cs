@@ -84,6 +84,16 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
             floorPositions.UnionWith(extraPositions);
         }
 
+        //for (int i = 0; i < map.Count; i++)
+        //{
+        //    int x = i % mapWidth;
+        //    int y = i / mapWidth;
+        //    if (!map[i]) //Wall
+        //    {
+        //        tilemapVisualizer.PaintSingleInnerWallTile(new Vector2Int(x,y));
+        //    }
+        //}
+
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
         playerController.SetPlayer(startPosition, new Vector3(0.3f, 0.3f, 0.3f));
     }

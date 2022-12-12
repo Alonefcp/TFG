@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class Directions 
@@ -8,7 +9,14 @@ public static class Directions
     /// <returns></returns>
     public static Vector2Int[] GetFourDirectionsArray()
     {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1) };
+        Vector2Int[] directions = { new Vector2Int(0, 1), new Vector2Int(1, 0), new Vector2Int(0, -1), new Vector2Int(-1, 0) };
+
+        return directions;
+    }
+
+    public static Vector2Int[] GetDiagonalsDirectionsArray()
+    {
+        Vector2Int[] directions = { new Vector2Int(1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1), new Vector2Int(-1, 1) };
 
         return directions;
     }
@@ -20,8 +28,17 @@ public static class Directions
     /// <returns></returns>
     public static Vector2Int[] GetEightDiretionsArray()
     {
-        Vector2Int[] directions = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
-            new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1)};
+        Vector2Int[] directions = { 
+            new Vector2Int(0, 1), 
+            new Vector2Int(1, 1), 
+            new Vector2Int(1, 0), 
+            new Vector2Int(1, -1),
+            new Vector2Int(0, -1), 
+            new Vector2Int(-1, -1), 
+            new Vector2Int(-1, 0), 
+            new Vector2Int(-1, 1)};
+
+       
 
         return directions;
     }

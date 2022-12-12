@@ -60,20 +60,7 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
         }
 
         //Draw map
-        for (int y = 0; y < mapHeight; y++)
-        {
-            for (int x = 0; x < mapWidth; x++)
-            {
-                if (map[x, y]==0) //cell becomes a floor
-                {
-                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
-                }
-                else //cell becomes a wall
-                {
-                    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(x, y));
-                }
-            }
-        }
+        if(!showPerlinNoiseTexture) DrawMap();
 
         //Sets player position
         Vector2Int playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
@@ -83,6 +70,28 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
             playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
         }
         playerController.SetPlayer(playerPosition, new Vector3(0.3f, 0.3f, 0.3f));
+    }
+
+    private void DrawMap()
+    {
+        HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
+        for (int y = 0; y < mapHeight; y++)
+        {
+            for (int x = 0; x < mapWidth; x++)
+            {
+                if (map[x, y] == 0) //cell becomes a floor
+                {
+                    tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x, y));
+                    floorPositions.Add(new Vector2Int(x, y));
+                }
+                else //cell becomes a wall
+                {
+                    tilemapVisualizer.PaintSingleInnerWallTile(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
     }
 
     /// <summary>
