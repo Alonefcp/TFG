@@ -83,7 +83,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
             DrawMap(mapInfo);
            
-            playerController.SetPlayer(seeds.ElementAt(Random.Range(0, randomSeeds.Count)), new Vector3(0.3f, 0.3f, 0.3f));
+            playerController.SetPlayer(seeds.ElementAt(Random.Range(0, randomSeeds.Count)), new Vector3(1.0f, 1.0f, 1.0f));
         }
         else
         {
@@ -97,7 +97,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
             DrawMap(mapInfo);
 
-            playerController.SetPlayer(seeds.ElementAt(Random.Range(0, seeds.Count)), new Vector3(0.3f, 0.3f, 0.3f));
+            playerController.SetPlayer(seeds.ElementAt(Random.Range(0, seeds.Count)), new Vector3(1.0f, 1.0f, 1.0f));
            
             //tilemapVisualizer.PaintPathTiles(seeds);     
         }

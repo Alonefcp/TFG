@@ -66,7 +66,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
         if (setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters, out roomStartPosition, out roomEndPosition);
 
         //Set player position
-        playerController.SetPlayer(new Vector2(roomStartPosition.x, roomStartPosition.y), new Vector3(0.3f, 0.3f, 0.3f));
+        playerController.SetPlayer(new Vector2(roomStartPosition.x, roomStartPosition.y), new Vector3(1.0f, 1.0f, 1.0f));
 
         //Connect rooms
         if (corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)

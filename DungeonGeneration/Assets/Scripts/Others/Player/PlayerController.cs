@@ -35,10 +35,14 @@ public class PlayerController : MonoBehaviour
     /// Sets the player position and scale
     /// </summary>
     /// <param name="newPos">New position</param>
-    /// /// <param name="newScale">New scale</param>
-    public void SetPlayer(Vector2 newPos, Vector3 newScale)
+    /// <param name="newScale">New scale</param>
+    /// <param name="playerSpeed">New player speed</param>
+    /// <param name="cameraSize">New camera size</param>
+    public void SetPlayer(Vector2 newPos, Vector3 newScale, float playerSpeed=4.0f, float cameraSize = 3.0f)
     {
         transform.position = newPos + new Vector2(0.5f,0.5f);
         transform.localScale = newScale;
+        speed = playerSpeed;
+        mainCamera.orthographicSize = cameraSize;
     }
 }

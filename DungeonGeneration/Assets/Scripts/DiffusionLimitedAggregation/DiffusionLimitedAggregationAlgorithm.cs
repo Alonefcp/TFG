@@ -95,7 +95,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
         //}
 
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
-        playerController.SetPlayer(startPosition, new Vector3(0.3f, 0.3f, 0.3f));
+        playerController.SetPlayer(startPosition, new Vector3(1.0f, 1.0f, 1.0f));
     }
 
     /// <summary>

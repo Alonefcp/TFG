@@ -79,7 +79,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
         {
             playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
         }
-        playerController.SetPlayer(playerPosition, new Vector3(0.3f, 0.3f, 0.3f));
+        playerController.SetPlayer(playerPosition, new Vector3(1.0f, 1.0f, 1.0f));
     }
 
     /// <summary>
