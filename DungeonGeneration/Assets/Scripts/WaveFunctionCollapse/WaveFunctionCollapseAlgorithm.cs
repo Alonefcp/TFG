@@ -24,7 +24,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     [Range(1, 15)]
     [SerializeField] private int maxWalkableZoneSize = 3;
     [SerializeField] private Sprite borderSprite = null;
-    [SerializeField] private int playerSpriteSpawn = 1;
+    [SerializeField] private int floorSpriteIndex = 1;
     [SerializeField] private TileInfo[] tilesInfo;
     private List<WFCCell> grid;
     private List<WFCTile> tiles;
@@ -115,7 +115,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
                 if (cell.Collapsed)
                 {
                     int index = cell.Options[0];
-                    if (index == playerSpriteSpawn)
+                    if (index == floorSpriteIndex)
                     {
                         if (!playerSpawned) 
                         {
@@ -222,7 +222,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
             //grid[MapXYtoIndex(pos.x, pos.y)] = cell;
 
             grid[MapXYtoIndex(pos.x, pos.y)].Collapsed = true;
-            grid[MapXYtoIndex(pos.x, pos.y)].Options = new List<int> { 1 };
+            grid[MapXYtoIndex(pos.x, pos.y)].Options = new List<int> { floorSpriteIndex };
         }
 
         //We change the entropy of the adjacent cells to the collapsed cells
@@ -348,29 +348,29 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     /// <param name="x">Neighbour cell x position</param>
     /// <param name="y">Neighbour cell y position</param>
     /// <param name="availableOptions">All available options of the cell</param>
-    /// <param name="direction">0:up options, 1:right options, 2:down options, 3:left options</param>
-    private void CheckNeighbourd(int x, int y, List<int> availableOptions, int direction, List<WFCCell> grid)
+    /// <param name="oppositeDirection">0:up options, 1:right options, 2:down options, 3:left options</param>
+    private void CheckNeighbourd(int x, int y, List<int> availableOptions, int oppositeDirection, List<WFCCell> grid)
     {
         WFCCell cell = grid[MapXYtoIndex(x, y)];
         HashSet<int> validOptions = new HashSet<int>();
         foreach (int option in cell.Options)
         {
-            if(direction==0)
+            if(oppositeDirection==0)
             {
                 List<int> valid = tiles[option].Up;
                 validOptions = validOptions.Concat(valid).ToHashSet();
             }
-            else if(direction==1)
+            else if(oppositeDirection==1)
             {
                 List<int> valid = tiles[option].Right;
                 validOptions = validOptions.Concat(valid).ToHashSet();
             }
-            else if(direction==2)
+            else if(oppositeDirection==2)
             {
                 List<int> valid = tiles[option].Down;
                 validOptions = validOptions.Concat(valid).ToHashSet();
             }
-            else if(direction==3)
+            else if(oppositeDirection==3)
             {
                 List<int> valid = tiles[option].Left;
                 validOptions = validOptions.Concat(valid).ToHashSet();

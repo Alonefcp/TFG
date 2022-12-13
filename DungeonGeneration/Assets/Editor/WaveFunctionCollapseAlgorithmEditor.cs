@@ -12,7 +12,7 @@ public class WaveFunctionCollapseAlgorithmEditor : DungeonGenerationEditor
     SerializedProperty nWalkableZones;
     SerializedProperty maxWalkableZoneSize;
     SerializedProperty borderSprite;
-    SerializedProperty playerSpriteSpawn;
+    SerializedProperty floorSpriteIndex;
     SerializedProperty tilesInfo;
 
     public override void OnEnable()
@@ -26,7 +26,7 @@ public class WaveFunctionCollapseAlgorithmEditor : DungeonGenerationEditor
         nWalkableZones = serializedObject.FindProperty("nWalkableZones");
         maxWalkableZoneSize = serializedObject.FindProperty("maxWalkableZoneSize");
         borderSprite = serializedObject.FindProperty("borderSprite");
-        playerSpriteSpawn = serializedObject.FindProperty("playerSpriteSpawn");
+        floorSpriteIndex = serializedObject.FindProperty("floorSpriteIndex");
         tilesInfo = serializedObject.FindProperty("tilesInfo");
     }
 
@@ -48,7 +48,7 @@ public class WaveFunctionCollapseAlgorithmEditor : DungeonGenerationEditor
             EditorGUILayout.PropertyField(maxWalkableZoneSize);
         }
         EditorGUILayout.PropertyField(borderSprite);
-        EditorGUILayout.PropertyField(playerSpriteSpawn);
+        EditorGUILayout.PropertyField(floorSpriteIndex);
         EditorGUILayout.PropertyField(tilesInfo);
 
         serializedObject.ApplyModifiedProperties();
