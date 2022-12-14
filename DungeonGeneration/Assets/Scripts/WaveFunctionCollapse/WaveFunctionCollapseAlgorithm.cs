@@ -66,6 +66,12 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
         DrawMap();
         if (addBorder) DrawBorders();
 
+        List<WFCCell> floors = grid.Where(cell => cell.Options[0] == floorSpriteIndex).ToList();
+        WFCCell playerFloor = floors[Random.Range(0, floors.Count)];
+        int x = playerFloor.GridIndex % mapWidth;
+        int y = playerFloor.GridIndex / mapWidth;
+        playerController.SetPlayer(new Vector2Int(x, y), new Vector3(0.3f, 0.3f, 0.3f), 1.0f, 1.0f);
+
         //foreach (Vector2Int pos in walkablePositions) //DEBUG:For seeing all forced walkable poisitions
         //{
         //    tilemapVisualizer.PaintSingleWallTile(new Vector2Int(pos.x, pos.y));
@@ -106,7 +112,6 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     /// </summary>
     private void DrawMap()
     {
-        bool playerSpawned = false;
         for (int row = 0; row < mapHeight; row++)
         {
             for (int col = 0; col < mapWidth; col++)
@@ -116,15 +121,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
                 {
                     int index = cell.Options[0];
                     if (index == floorSpriteIndex)
-                    {
-                        if (!playerSpawned) 
-                        {
-                            playerController.SetPlayer(new Vector2Int(col, row), new Vector3(0.3f, 0.3f, 0.3f), 1.0f, 1.0f);
-                            playerSpawned = true;
-                        } 
-
                         tilemapVisualizer.PaintSingleFloorTile(tiles[index].Tile, new Vector2Int(col, row));
-                    }
                     else
                         tilemapVisualizer.PaintSingleWallTile(tiles[index].Tile, new Vector2Int(col, row));
                 }

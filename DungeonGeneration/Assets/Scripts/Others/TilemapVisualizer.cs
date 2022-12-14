@@ -29,7 +29,10 @@ public class TilemapVisualizer : MonoBehaviour
         PaintSingleTile(position, floorTilemap, pathTestTile);
     }
 
-
+    public void EraseTile(Vector2Int pos)
+    {
+        PaintSingleTile(pos, floorTilemap, null);
+    }
 
     /// <summary>
     /// Returns the cell's radius. We assume a cell is n*n
