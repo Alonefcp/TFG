@@ -18,6 +18,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     [Range(5,50)]
     [SerializeField] private int mapWidth = 5, mapHeight = 5;
     [SerializeField] private bool addBorder=false;
+    [SerializeField] private bool useBacktracking=false;
     [SerializeField] private bool forceMoreWalkableZones=false;
     [Range(1, 15)]
     [SerializeField] private int nWalkableZones = 3;
@@ -30,6 +31,8 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     private List<WFCTile> tiles;
     private List<int> options;
     private TileEdges tileEdges;
+    private Stack<List<WFCCell>> states;
+    private int nbackTracks = 7;
 
     //private bool firstTime = true;
     private HashSet<Vector2Int> walkablePositions;
@@ -43,7 +46,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     //    tilemapVisualizer.ClearTilemaps();
     //    SetUp();
 
-    //    InvokeRepeating("Run", 0.5f, 0.03f);
+    //    InvokeRepeating("Run", 0.5f, 0.05f);
     //    if (addBorder) DrawBorders();
     //}
     //private void Run()
@@ -134,6 +137,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     /// </summary>
     private void SetUp()
     {
+        states = new Stack<List<WFCCell>>();
         tiles = new List<WFCTile>();
         tileEdges = new TileEdges();
 
@@ -378,7 +382,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
 
     /// <summary>
     /// Sets and returns a collapsed cell. If the the collapsed cell doesn't have
-    /// any options it returns null.
+    /// any options it returns null
     /// </summary>
     /// <param name="gridCopy">Grid copy map</param>
     /// <returns></returns>
@@ -396,13 +400,14 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
         //}
 
         if (collapsedCell.Options.Count <= 0)
-        {           
-            return null;
+        {
+            return collapsedCell;
         }
 
         collapsedCell.Collapsed = true;
         int randomCellOp = collapsedCell.Options[Random.Range(0, collapsedCell.Options.Count)];
         collapsedCell.Options = new List<int>() { randomCellOp };
+
         return collapsedCell;
     }
 
@@ -428,11 +433,29 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
 
         //We get a collapsed cell with the least entropy
         WFCCell collapsedCell = GetCollapsedCell(gridCopy);
-        if(collapsedCell==null) //It the collapsed cell is null, we start over
+        if(collapsedCell.Options.Count <= 0) //It the collapsed cell is null, we start over
         {
             Debug.Log("Restart");
             tilemapVisualizer.ClearTilemaps();
-            grid = CreateGrid();
+            if(!useBacktracking)
+            {
+                grid = CreateGrid();
+            }
+            else
+            {
+                if (states.Count > nbackTracks)
+                {
+                    int i = 0;
+                    while(states.Count>0 && i<nbackTracks-1)
+                    {
+                        states.Pop();
+                        i++;
+                    }
+                    grid = states.Pop();
+                }
+                else grid = CreateGrid();
+            }
+            
             if (forceMoreWalkableZones) ForceMoreWalkableZones();
             return false;
         }
@@ -453,11 +476,11 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
             {
                 int index = MapXYtoIndex(x, y);
 
-                //if (grid[index].Collapsed) //DEBUG: For seeing the algorithm step by step
-                //{
-                //    int img = grid[index].Options[0];
-                //    tilemapVisualizer.PaintSingleFloorTile(tiles[img].Tile, new Vector2Int(x, y));
-                //}
+                if (grid[index].Collapsed) //DEBUG: For seeing the algorithm step by step
+                {
+                    int img = grid[index].Options[0];
+                    tilemapVisualizer.PaintSingleFloorTile(tiles[img].Tile, new Vector2Int(x, y));
+                }
 
                 //If the cell is not a neighbour of a collapsed cell or it is collapsed
                 if (grid[index].Collapsed || !adjacentCellsToTheCollapsedCells.Contains(grid[index]))
@@ -496,6 +519,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
         }
 
         grid = new List<WFCCell>(nextGrid);
+        states.Push(grid);
 
         return false;
     }

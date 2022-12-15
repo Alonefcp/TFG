@@ -8,6 +8,7 @@ public class WaveFunctionCollapseAlgorithmEditor : DungeonGenerationEditor
 {
     SerializedProperty mapWidth, mapHeight;
     SerializedProperty addBorder;
+    SerializedProperty useBacktracking;
     SerializedProperty forceMoreWalkableZones;
     SerializedProperty nWalkableZones;
     SerializedProperty maxWalkableZoneSize;
@@ -22,6 +23,7 @@ public class WaveFunctionCollapseAlgorithmEditor : DungeonGenerationEditor
         mapWidth = serializedObject.FindProperty("mapWidth");
         mapHeight = serializedObject.FindProperty("mapHeight");
         addBorder = serializedObject.FindProperty("addBorder");
+        useBacktracking = serializedObject.FindProperty("useBacktracking");
         forceMoreWalkableZones = serializedObject.FindProperty("forceMoreWalkableZones");
         nWalkableZones = serializedObject.FindProperty("nWalkableZones");
         maxWalkableZoneSize = serializedObject.FindProperty("maxWalkableZoneSize");
@@ -41,6 +43,7 @@ public class WaveFunctionCollapseAlgorithmEditor : DungeonGenerationEditor
         EditorGUILayout.PropertyField(mapWidth);
         EditorGUILayout.PropertyField(mapHeight);
         EditorGUILayout.PropertyField(addBorder);
+        EditorGUILayout.PropertyField(useBacktracking);
         EditorGUILayout.PropertyField(forceMoreWalkableZones);
         if(wfc.MoreWalkableZones)
         {
