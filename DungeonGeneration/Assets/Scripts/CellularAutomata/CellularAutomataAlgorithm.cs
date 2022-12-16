@@ -44,10 +44,17 @@ public class CellularAutomataAlgorithm : DungeonGeneration
     public bool ConnectRegions { get => connectRegions;}
     public bool UseHilbertCurve { get => useHilbertCurve;}
 
-    //void Start()
-    //{
-    //    GenerateDungeon();
-    //}
+    void Start()
+    {
+        if (useRandomSeed) seed = (int)DateTime.Now.Ticks/*Time.time*/;
+        Random.InitState(seed);
+
+        tilemapVisualizer.ClearTilemaps();
+
+        StartCoroutine(RunCellularAutomataStepByStep());
+
+        //GenerateDungeon();
+    }
 
     public override void GenerateDungeon()
     {
@@ -205,6 +212,61 @@ public class CellularAutomataAlgorithm : DungeonGeneration
             }
             map = (int[,])mapClone.Clone();
         }    
+    }
+
+    private IEnumerator RunCellularAutomataStepByStep()
+    {
+        if (UseHilbertCurve)
+        {
+            hilbertCurve = new HilbertCurve(order);
+            hilbertCurve.CalculateHilbertCurve(mapWidth, mapHeight, minOffsetX, maxOffsetX, minOffsetY, maxOffsetY);
+            int initialCount = hilbertCurve.HilbertCurvePoints.Count;
+            for (int i = 0; i < initialCount; i++)
+            {
+                //tilemapVisualizer.PaintSingleFloorTile(point);
+                DrawBiggerTile(hilbertCurve.HilbertCurvePoints.ElementAt(i), 2, hilbertCurve.HilbertCurvePoints, 1);
+            }
+        }
+
+        map = GenerateNoise();
+        HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
+        for (int i = 0; i < iterations; i++)
+        {
+            int[,] mapClone = (int[,])map.Clone();
+            for (int x = 0; x < mapWidth; x++)
+            {
+                for (int y = 0; y < mapHeight; y++)
+                {
+                    if (UseHilbertCurve && hilbertCurve.HilbertCurvePointsInsideTheMap.Contains(new Vector2Int(x, y)))
+                    {
+                        continue;
+                    }
+
+                    int neighbourWallTiles = GetWallNeighbours(x, y);
+
+                    ApplyAutomata(mapClone, x, y, neighbourWallTiles);
+                    
+                }
+            }
+
+            map = (int[,])mapClone.Clone();
+            tilemapVisualizer.ClearTilemaps();
+            DrawMap();
+            yield return new WaitForSeconds(0.5f);
+        }
+        WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+        EraseRegions();
+        tilemapVisualizer.ClearTilemaps();
+        DrawMap();
+
+        //Sets player position
+        Vector2Int playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
+
+        while (map[playerPosition.x, playerPosition.y] == 1)
+        {
+            playerPosition = new Vector2Int(Random.Range(1, mapWidth - 1), Random.Range(1, mapHeight - 1));
+        }
+        playerController.SetPlayer(playerPosition, new Vector3(1.0f, 1.0f, 1.0f));
     }
 
     /// <summary>

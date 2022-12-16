@@ -53,10 +53,17 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
     public bool RandomSeeds { get => randomSeeds;}
 
-    //void Start()
-    //{
-    //    GenerateDungeon();
-    //}
+    void Start()
+    {
+        if (useRandomSeed) seed = (int)DateTime.Now.Ticks/*Time.time*/;
+        Random.InitState(seed);
+
+        tilemapVisualizer.ClearTilemaps();
+        grid = new Grid2D(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());
+        StartCoroutine(RunVoronoiStepByStep());
+
+        //GenerateDungeon();
+    }
 
     public override void GenerateDungeon()
     {
@@ -99,6 +106,105 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
             playerController.SetPlayer(seeds.ElementAt(Random.Range(0, seeds.Count)), new Vector3(1.0f, 1.0f, 1.0f));
            
+            //tilemapVisualizer.PaintPathTiles(seeds);     
+        }
+    }
+
+    private IEnumerator RunVoronoiStepByStep()
+    {       
+        if (randomShape)
+        {
+            HashSet<Vector2Int> seeds = GenerateSeeds(out HashSet<Vector2Int> borderSeeds);
+            tilemapVisualizer.PaintPathTiles(seeds.Except(borderSeeds).ToHashSet());
+            List<Cell> mapInfo = RunVoronoiDiagram(seeds);
+
+            foreach (Vector2Int seed in seeds.Except(borderSeeds).ToHashSet())
+            {
+                for (int i = 0; i < mapInfo.Count; i++)
+                {
+                    if (mapInfo[i].ClosestSeed == seed)
+                    {
+                        tilemapVisualizer.PaintSingleFloorTile(mapInfo[i].CellPos);
+                    }
+                }
+
+                yield return new WaitForSeconds(0.3f);
+            }
+
+            CreateInnerWalls(mapInfo);
+
+            Dictionary<Vector2Int, HashSet<Vector2Int>> borderSets = CreateSets(borderSeeds, mapInfo);
+            EraseBorderSets(borderSets, borderSeeds, mapInfo);
+
+            HashSet<Cell> cellFloors = mapInfo.Where(cell => cell.CellType == 1).ToHashSet();
+            for (int i = 0; i < cellFloors.Count; i++)
+            {
+
+                tilemapVisualizer.PaintSingleInnerWallTile(cellFloors.ElementAt(i).CellPos);
+                yield return new WaitForSeconds(0.000001f);
+            }
+
+            HashSet<Vector2Int> randomSeeds = seeds.Except(borderSeeds).ToHashSet();
+            if (connectRegions) Connectivity.GenerateConnectivity(randomSeeds, mapInfo, mapWidth, mapHeight, grid, addExtraPaths, makeWiderPaths, tilemapVisualizer);
+
+            EraseRegions(mapInfo);
+            tilemapVisualizer.ClearTilemaps();
+            foreach (Cell cell in mapInfo)
+            {
+                if (cell.CellType == 0) //Floor
+                {
+                    tilemapVisualizer.PaintSingleFloorTile(cell.CellPos);
+                }
+                else if (cell.CellType == 1) //Wall
+                {
+                    tilemapVisualizer.PaintSingleInnerWallTile(cell.CellPos);
+                }
+            }
+
+            yield return new WaitForSeconds(0.5f);
+            //tilemapVisualizer.PaintPathTiles(randomSeeds);
+
+            DrawMap(mapInfo);
+
+            playerController.SetPlayer(seeds.ElementAt(Random.Range(0, randomSeeds.Count)), new Vector3(1.0f, 1.0f, 1.0f));
+        }
+        else
+        {
+            HashSet<Vector2Int> seeds = RandomSeeds ? GenerateSeeds(1, 1, mapWidth - 1, mapHeight - 1) : GenerateSeedBasedOnDistance(1, 1, mapWidth - 1, mapHeight - 1);
+            tilemapVisualizer.PaintPathTiles(seeds);
+            List<Cell> mapInfo = RunVoronoiDiagram(seeds);
+
+            foreach (Vector2Int seed in seeds)
+            {
+                for (int i = 0; i < mapInfo.Count; i++)
+                {
+                    if (mapInfo[i].ClosestSeed == seed)
+                    {                       
+                        tilemapVisualizer.PaintSingleFloorTile(mapInfo[i].CellPos);                                            
+                    }               
+                }
+
+                yield return new WaitForSeconds(0.3f);
+            }
+            CreateInnerWalls(mapInfo);
+            HashSet<Cell> cellFloors = mapInfo.Where(cell => cell.CellType == 1).ToHashSet();
+            for (int i = 0; i < cellFloors.Count; i++)
+            {
+                
+                tilemapVisualizer.PaintSingleInnerWallTile(cellFloors.ElementAt(i).CellPos);
+                yield return new WaitForSeconds(0.000001f);
+            }
+            tilemapVisualizer.ClearTilemaps();
+            
+            //tilemapVisualizer.ClearTilemaps();
+            if (connectRegions) Connectivity.GenerateConnectivity(seeds, mapInfo, mapWidth, mapHeight, grid, addExtraPaths, makeWiderPaths, tilemapVisualizer);
+
+            EraseRegions(mapInfo);
+
+            DrawMap(mapInfo);
+
+            playerController.SetPlayer(seeds.ElementAt(Random.Range(0, seeds.Count)), new Vector3(1.0f, 1.0f, 1.0f));
+
             //tilemapVisualizer.PaintPathTiles(seeds);     
         }
     }

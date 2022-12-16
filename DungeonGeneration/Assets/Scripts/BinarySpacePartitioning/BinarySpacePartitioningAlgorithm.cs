@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
+using System;
 
 public class BinarySpacePartitioningAlgorithm : DungeonGeneration
 {
@@ -33,10 +35,18 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
     public CorridorsAlgorithm CorridorsAlgorithmType { get => corridorsAlgorithm;}
 
 
-    //void Start()
-    //{
-    //    GenerateDungeon();
-    //}
+    void Start()
+    {
+        if (useRandomSeed) seed = (int)DateTime.Now.Ticks/*Time.time*/;
+        Random.InitState(seed);
+
+        tilemapVisualizer.ClearTilemaps();
+        grid = new Grid2D(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
+        Vector2Int startPosition = new Vector2Int(0, 0);
+        BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
+        StartCoroutine(BinarySpacePartitioningStepByStep(totalSpace, minRoomWidth, minRoomHeight));
+        //GenerateDungeon();
+    }
 
     public override void GenerateDungeon()
     {
@@ -177,6 +187,110 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
         }
 
         return roomsList;
+    }
+
+    private IEnumerator BinarySpacePartitioningStepByStep(BoundsInt spaceToSplit, int minWidth, int minHeight)
+    {
+        Queue<BoundsInt> roomsQueue = new Queue<BoundsInt>();
+        List<BoundsInt> roomsList = new List<BoundsInt>();
+        roomsQueue.Enqueue(spaceToSplit);
+
+        while (roomsQueue.Count > 0)
+        {
+            BoundsInt room = roomsQueue.Dequeue();
+
+            if (room.size.y >= minHeight && room.size.x >= minWidth)
+            {
+                float roomMultiplier = Random.Range(1.25f, 3.0f);
+                if (Random.value < 0.5f)
+                {
+                    if (room.size.y >= minHeight * roomMultiplier)
+                    {
+                        HorizontalSplit(roomsQueue, room);
+                    }
+                    else if (room.size.x >= minWidth * roomMultiplier)
+                    {
+                        VerticalSplit(roomsQueue, room);
+                    }
+                    else
+                    {
+                        roomsList.Add(room);
+                        tilemapVisualizer.PaintFloorTiles(CreateRooms(roomsList, grid));
+                    }
+                }
+                else
+                {
+                    if (room.size.x >= minWidth * roomMultiplier)
+                    {
+                        VerticalSplit(roomsQueue, room);
+                    }
+                    else if (room.size.y >= minHeight * roomMultiplier)
+                    {
+                        HorizontalSplit(roomsQueue, room);
+                    }
+                    else
+                    {
+                        roomsList.Add(room);
+                        tilemapVisualizer.PaintFloorTiles(CreateRooms(roomsList, grid));
+                    }
+                }
+            }
+
+            yield return new WaitForSeconds(0.05f);
+
+        }
+        HashSet<Vector2Int> floorPositions = CreateRooms(roomsList, grid);
+        List<Vertex> roomCenters = new List<Vertex>();
+
+        foreach (BoundsInt room in roomsList)
+        {
+            Vector2Int center = (Vector2Int)Vector3Int.RoundToInt(room.center);
+            roomCenters.Add(new Vertex(center));
+        }
+
+        //Set special rooms
+        Vector2Int roomStartPosition = new Vector2Int();
+        Vector2Int roomEndPosition = new Vector2Int();
+        if (setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters, out roomStartPosition, out roomEndPosition);
+
+        //Set player position
+        playerController.SetPlayer(new Vector2(roomStartPosition.x, roomStartPosition.y), new Vector3(1.0f, 1.0f, 1.0f));
+
+        //Connect rooms
+        if (corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
+        {
+            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, WiderCorridors, corridorSize, spaceWidth, spaceHeight);
+            foreach (Vector2Int corridorPosition in corridors)
+            {
+                tilemapVisualizer.PaintSingleFloorTile(corridorPosition);
+                yield return new WaitForSeconds(0.01f);
+            }
+            //tilemapVisualizer.PaintFloorTiles(corridors);
+            floorPositions.UnionWith(corridors);
+            
+        }
+        else
+        {
+            List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCenters, grid, WiderCorridors, corridorSize, spaceWidth, spaceHeight, addSomeRemainingEdges);
+            foreach (HashSet<Vector2Int> path in paths)
+            {
+                tilemapVisualizer.PaintFloorTiles(path);
+                floorPositions.UnionWith(path);
+                yield return new WaitForSeconds(0.2f);
+            }
+        }
+
+        yield return new WaitForSeconds(0.2f);
+
+        //Creates outter walls
+        WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+
+        if (setSpecialRooms)
+        {
+            tilemapVisualizer.PaintSinglePathTile(roomStartPosition);
+            tilemapVisualizer.PaintSinglePathTile(roomEndPosition);
+        }
+
     }
 
     /// <summary>

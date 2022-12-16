@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
+using System;
 
 //Drunkard’s walk or Random Walk algorithm
 public class RandomWalkAlgorithm : DungeonGeneration
@@ -35,12 +37,20 @@ public class RandomWalkAlgorithm : DungeonGeneration
     [Range(2, 12)]
     [SerializeField] private int maxStepLength = 7;
 
+    private HashSet<Vector2Int> floorPositions;
     public bool LevyFlight { get => levyFlight;}
 
-    //void Start()
-    //{
-    //    GenerateDungeon();
-    //}
+    void Start()
+    {
+        if (useRandomSeed) seed = (int)DateTime.Now.Ticks/*Time.time*/;
+        Random.InitState(seed);
+
+        tilemapVisualizer.ClearTilemaps();
+
+        StartCoroutine(RunRandomWalkStepByStep());
+
+        //GenerateDungeon();
+    }
 
     /// <summary>
     /// Creates a dungeon with the Random Walk or Drunkard's Walk algorithm
@@ -49,7 +59,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
     {
         base.GenerateDungeon();
 
-        HashSet<Vector2Int> floorPositions = RunRandomWalk();
+        floorPositions = RunRandomWalk();
        /* Debug.Log(floorPositions.Count);*///QUITAR!!
        
         tilemapVisualizer.PaintFloorTiles(floorPositions);
@@ -62,6 +72,53 @@ public class RandomWalkAlgorithm : DungeonGeneration
         
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
         playerController.SetPlayer(startPosition,new Vector3(1.0f,1.0f,1.0f));
+    }
+
+    private IEnumerator RunRandomWalkStepByStep()
+    {
+        floorPositions = new HashSet<Vector2Int>();
+
+        //Pick a map cell as the starting point
+        Walker walker = new Walker(startPosition, useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection());
+
+        //Turn the selected map cell into floor
+        floorPositions.Add(startPosition);
+        tilemapVisualizer.PaintSingleFloorTile(startPosition);
+
+        //While insufficient cells have been turned into floor
+        while (floorPositions.Count < numberOfFloorPositions)
+        {
+            //Take X steps (path length) 
+            int numberOfSteps = Random.Range(minSteps, maxSteps);
+
+            //Path positions
+            HashSet<Vector2Int> path = SimpleRandomWalk(walker, numberOfSteps);
+            floorPositions.UnionWith(path);
+            tilemapVisualizer.PaintFloorTiles(path);
+            yield return new WaitForSeconds(0.2f);
+
+            //We set a new walker direction
+            walker.dir = useEightDirections ? Directions.GetRandomEightDirection() : Directions.GetRandomFourDirection();
+
+            //We change walker position
+            if (startRandomlyEachIteration)
+            {
+                Vector2Int randomPosition = floorPositions.ElementAt(Random.Range(0, floorPositions.Count));
+                Walker newWalker = new Walker(randomPosition, walker.dir);
+                walker = newWalker;
+            }
+        }
+
+
+        if (eliminateSingleWallsCells)
+        {
+            tilemapVisualizer.EliminateSingleSpaces(out HashSet<Vector2Int> positions);
+            floorPositions.UnionWith(positions); //we add the positions which have become walkables
+        }
+
+
+        WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+        playerController.SetPlayer(startPosition, new Vector3(1.0f, 1.0f, 1.0f));
     }
 
     /// <summary>
@@ -102,8 +159,6 @@ public class RandomWalkAlgorithm : DungeonGeneration
 
         return positions;
     }
-
-
 
     /// <summary>
     /// Makes a path of nSteps

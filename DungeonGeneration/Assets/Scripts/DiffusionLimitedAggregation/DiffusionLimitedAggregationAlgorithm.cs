@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
+using System;
 
 //Diffusion limited aggregation algorithm (DLA)
 public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
@@ -25,10 +27,18 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
     private List<bool> map; //true -> floor , false -> wall
     private HashSet<Vector2Int> floorPositions;
 
-    //void Start()
-    //{
-    //    GenerateDungeon();
-    //}
+    void Start()
+    {
+        if (useRandomSeed) seed = (int)DateTime.Now.Ticks/*Time.time*/;
+        Random.InitState(seed);
+
+        tilemapVisualizer.ClearTilemaps();
+
+        int totalTiles = mapWidth * mapHeight;
+        maxFloorPositions = (int)(fillPercentage * totalTiles);
+        StartCoroutine(RunDiffusionLimitedAggregationStepByStep());
+        //GenerateDungeon();
+    }
 
     /// <summary>
     /// Creates a dungeon with the Diffusion Limited Aggregation algorithm
@@ -186,6 +196,160 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
         }
 
         return positions;
+    }
+
+    private IEnumerator RunDiffusionLimitedAggregationStepByStep()
+    {
+        map = CreateMap(); //false -> hasn't floor , true -> has floor
+
+        floorPositions = new HashSet<Vector2Int>();
+
+        startPosition = new Vector2Int(mapWidth / 2, mapHeight / 2);
+
+        //Dig a "seed" area around your central starting point
+        CreateSeed(map, floorPositions);
+        tilemapVisualizer.PaintFloorTiles(floorPositions);
+
+        //While the number of floor tiles is less than your desired total
+        while (floorPositions.Count < maxFloorPositions)
+        {
+
+            //Select a starting point at random for your digger
+            int xPos = Random.Range(0, mapWidth);
+            int yPos = Random.Range(0, mapHeight);
+            Vector2Int diggerPos = new Vector2Int(xPos, yPos);
+            Vector2Int diggerPrevPos = diggerPos;
+
+            //Use the "drunkard's walk" algorithm to move randomly
+            //If the digger hit a floor tile, then the previous tile they were in also becomes a floor and the digger stops
+            while (!map[MapXYtoIndex(diggerPos.x, diggerPos.y)])
+            {
+                //We store the digger previous position
+                diggerPrevPos = diggerPos;
+
+                int number = Random.Range(1, 5);
+                //We move the digger
+                if (number == 1)
+                {
+                    if (diggerPos.x > 1) diggerPos.x -= 1;
+                }
+                else if (number == 2)
+                {
+                    if (diggerPos.x < mapWidth - 2) { diggerPos.x += 1; }
+                }
+                else if (number == 3)
+                {
+                    if (diggerPos.y > 1) { diggerPos.y -= 1; }
+                }
+                else if (number == 4)
+                {
+                    if (diggerPos.y < mapHeight - 1) { diggerPos.y += 1; }
+                }
+            }
+
+            //The digger previous position becomes a floor
+            map[MapXYtoIndex(diggerPrevPos.x, diggerPrevPos.y)] = true;
+            floorPositions.Add(diggerPrevPos);
+
+            tilemapVisualizer.PaintSingleFloorTile(diggerPrevPos);
+            
+            yield return new WaitForSeconds(0.001f);
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        if (symmetryType == Symmetry.Horizontal)
+        {
+            
+            int centerX = mapWidth / 2;
+            int initialSize = floorPositions.Count;
+            for (int i = 0; i < initialSize; i++)
+            {
+                if (floorPositions.ElementAt(i).x == centerX)
+                {
+                    DrawWithBrush(floorPositions.ElementAt(i));
+                }
+                else
+                {
+                    int distX = Mathf.Abs(centerX - floorPositions.ElementAt(i).x);
+                    DrawWithBrush(new Vector2Int(centerX + distX, floorPositions.ElementAt(i).y));
+                    DrawWithBrush(new Vector2Int(centerX - distX, floorPositions.ElementAt(i).y));
+                }
+
+                yield return new WaitForSeconds(0.001f);
+            }
+        }
+        else if (symmetryType == Symmetry.Vertical)
+        {
+            int centerY = mapHeight / 2;
+
+            int initialSize = floorPositions.Count;
+            for (int i = 0; i < initialSize; i++)
+            {
+                if (floorPositions.ElementAt(i).y == centerY)
+                {
+                    DrawWithBrush(floorPositions.ElementAt(i));
+                }
+                else
+                {
+                    int distY = Mathf.Abs(centerY - floorPositions.ElementAt(i).y);
+                    DrawWithBrush(new Vector2Int(floorPositions.ElementAt(i).x, centerY + distY));
+                    DrawWithBrush(new Vector2Int(floorPositions.ElementAt(i).x, centerY - distY));
+                }
+                yield return new WaitForSeconds(0.001f);
+            }
+        }
+        else if (symmetryType == Symmetry.Both)
+        {
+            int centerX = mapWidth / 2;
+            int centerY = mapHeight / 2;
+
+            int initialSize = floorPositions.Count;
+            for (int i = 0; i < initialSize; i++)
+            {
+                if (floorPositions.ElementAt(i).x == centerX && floorPositions.ElementAt(i).y == centerY)
+                {
+                    DrawWithBrush(floorPositions.ElementAt(i));
+                }
+                else
+                {
+                    int distX = Mathf.Abs(centerX - floorPositions.ElementAt(i).x);
+                    DrawWithBrush(new Vector2Int(centerX + distX, floorPositions.ElementAt(i).y));
+                    DrawWithBrush(new Vector2Int(centerX - distX, floorPositions.ElementAt(i).y));
+
+                    int distY = Mathf.Abs(centerY - floorPositions.ElementAt(i).y);
+                    DrawWithBrush(new Vector2Int(floorPositions.ElementAt(i).x, centerY + distY));
+                    DrawWithBrush(new Vector2Int(floorPositions.ElementAt(i).x, centerY - distY));
+                }
+                yield return new WaitForSeconds(0.001f);
+            }
+        }
+        else if (symmetryType == Symmetry.None)
+        {
+            int initialSize = floorPositions.Count;
+            for (int i = 0; i < initialSize; i++)
+            {
+                DrawWithBrush(floorPositions.ElementAt(i));
+                yield return new WaitForSeconds(0.001f);
+            }
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        if (eliminateSingleWallsCells)
+        {
+            tilemapVisualizer.EliminateSingleSpaces(out HashSet<Vector2Int> extraPositions);
+
+            //we add the positions which have become walkables
+            foreach (Vector2Int pos in extraPositions)
+            {
+                map[MapXYtoIndex(pos.x, pos.y)] = true;
+            }
+            floorPositions.UnionWith(extraPositions);
+        }
+
+        WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+        playerController.SetPlayer(startPosition, new Vector3(1.0f, 1.0f, 1.0f));
     }
 
     /// <summary>
