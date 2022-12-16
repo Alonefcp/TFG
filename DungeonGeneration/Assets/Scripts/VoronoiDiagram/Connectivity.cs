@@ -9,7 +9,13 @@ public static class Connectivity
     /// Makes a path between all the seeds
     /// </summary>
     /// <param name="seeds">HashSet with all seed positions</param>
-    /// <param name="mapInfo">List with info about every map seed</param>
+    /// <param name="mapInfo">List with info about every map cell</param>
+    /// <param name="mapWidth">Map width</param>
+    /// <param name="mapHeight">Map height</param>
+    /// <param name="grid">Map grid for A*</param>
+    /// <param name="addExtraPaths">If we want to add extra paths between seeds</param>
+    /// <param name="makeWiderPaths">If we want to make wider paths</param>
+    /// <param name="tilemapVisualizer">Tilemap visualizer for painting</param>
     public static void GenerateConnectivity(HashSet<Vector2Int> seeds, List<Cell> mapInfo, int mapWidth, int mapHeight,Grid2D grid,bool addExtraPaths, bool makeWiderPaths, TilemapVisualizer tilemapVisualizer)
     {
         //Delaunay triangulation 
@@ -45,7 +51,7 @@ public static class Connectivity
             HashSet<Vector2Int> path = AstarPathfinding.FindPath(grid, edge.U.position, edge.V.position);
             if (path != null)
             {
-                if (makeWiderPaths) MakeWiderPath(path);
+                if (makeWiderPaths) MakeWiderPath(path,mapWidth,mapHeight);
 
                 foreach (Vector2Int pos in path)
                 {
@@ -60,7 +66,7 @@ public static class Connectivity
                 //Extra path for connectiong the disjointed seed
                 Grid2D extraGrid = new Grid2D(mapWidth, mapHeight, tilemapVisualizer.GetCellRadius());
                 HashSet<Vector2Int> extraPath = AstarPathfinding.FindPath(extraGrid, edge.U.position, edge.V.position);
-                MakeWiderPath(extraPath);
+                MakeWiderPath(extraPath,mapWidth,mapHeight);
                 foreach (Vector2Int pos in extraPath)
                 {
                     tilemapVisualizer.PaintSingleFloorTile(pos);
@@ -76,7 +82,9 @@ public static class Connectivity
     /// Make wider the path given by the user
     /// </summary>
     /// <param name="path">The given path which wil become wider</param>
-    private static void MakeWiderPath(HashSet<Vector2Int> path)
+    /// <param name="mapWidth">Map width</param>
+    /// <param name="mapHeight">Map height</param>
+    private static void MakeWiderPath(HashSet<Vector2Int> path, int mapWidth, int mapHeight)
     {
         HashSet<Vector2Int> pathSides = new HashSet<Vector2Int>();
 
@@ -85,10 +93,14 @@ public static class Connectivity
         {
             foreach (Vector2Int dir in Directions.GetEightDiretionsArray())
             {
-                if (!path.Contains(pos + dir))
+                Vector2Int newPos = pos + dir;
+                if(newPos.x>=1 && newPos.y>=1 && newPos.x < mapWidth-1 && newPos.y < mapHeight-1)
                 {
-                    pathSides.Add(pos + dir);
-                }
+                    if (!path.Contains(pos + dir))
+                    {
+                        pathSides.Add(pos + dir);
+                    }
+                }                
             }
         }
 
