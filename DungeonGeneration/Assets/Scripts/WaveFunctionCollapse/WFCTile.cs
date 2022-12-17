@@ -83,7 +83,7 @@ public class WFCTile
         Tile tile = ScriptableObject.CreateInstance<Tile>();
         tile.sprite = Tile.sprite;
         tile.colliderType = Tile.colliderType;
-        var newTrasform = Tile.transform;
+        Matrix4x4 newTrasform = Tile.transform;
         newTrasform.SetTRS(Vector3.zero, GetRotation(nRotations), Vector3.one);
         tile.transform = newTrasform;
 

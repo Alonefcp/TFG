@@ -25,7 +25,7 @@ public static class DelaunayTriangulation
         int maxX = minX;
         int maxY = minY;
 
-        foreach (var vertex in DelaunayTriangulation.vertices)
+        foreach (Vertex vertex in DelaunayTriangulation.vertices)
         {
             if (vertex.position.x < minX) minX = vertex.position.x;
             if (vertex.position.x > maxX) maxX = vertex.position.x;
@@ -43,11 +43,11 @@ public static class DelaunayTriangulation
 
         triangles.Add(new Triangle(p1, p2, p3));
 
-        foreach (var vertex in DelaunayTriangulation.vertices)
+        foreach (Vertex vertex in DelaunayTriangulation.vertices)
         {
             List<Edge> polygon = new List<Edge>();
 
-            foreach (var t in triangles)
+            foreach (Triangle t in triangles)
             {
                 if (t.CircumCircleContains(vertex.position))
                 {
@@ -74,7 +74,7 @@ public static class DelaunayTriangulation
 
             polygon.RemoveAll((Edge e) => e.IsBad);
 
-            foreach (var edge in polygon)
+            foreach (Edge edge in polygon)
             {
                 triangles.Add(new Triangle(edge.U, edge.V, vertex));
             }
@@ -84,11 +84,11 @@ public static class DelaunayTriangulation
 
         HashSet<Edge> edgeSet = new HashSet<Edge>();
 
-        foreach (var t in triangles)
+        foreach (Triangle t in triangles)
         {
-            var ab = new Edge(t.A, t.B);
-            var bc = new Edge(t.B, t.C);
-            var ca = new Edge(t.C, t.A);
+            Edge ab = new Edge(t.A, t.B);
+            Edge bc = new Edge(t.B, t.C);
+            Edge ca = new Edge(t.C, t.A);
 
             if (edgeSet.Add(ab))
             {

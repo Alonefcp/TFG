@@ -307,7 +307,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
                 {
                     mySeed.CellType = 1; //Wall
                     mapInfo[MapXYtoIndex(x, y)] = mySeed;
-                    grid.NodeFromWorldPoint(new Vector2Int(x, y)).SetIsWalkable(false);
+                    grid.NodeFromWorldPoint(new Vector2Int(x, y)).Walkable = false;
                     continue;
                 }
 
@@ -396,7 +396,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
         {     
             foreach (Vector2Int seed in borderSets[borderSeeds.ElementAt(i)])
             {
-                grid.NodeFromWorldPoint(seed).SetIsWalkable(false);
+                grid.NodeFromWorldPoint(seed).Walkable = false;
                 Cell cell = mapInfo[MapXYtoIndex(seed.x, seed.y)];
                 cell.CellType = 2; //Erased border cell
                 mapInfo[MapXYtoIndex(seed.x, seed.y)] = cell;

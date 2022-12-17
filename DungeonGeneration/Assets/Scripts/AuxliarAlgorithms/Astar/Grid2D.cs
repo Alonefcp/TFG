@@ -33,36 +33,18 @@ public class Grid2D
 		get{ return gridSizeX * gridSizeY; }
 					
 	}
-
-	//public void CreateGrid(int gridWorldSizeX, int gridWorldSizeY, float nodeRadius)
-	//{
-	//	nodeDiameter = nodeRadius * 2;
-	//	gridSizeX = Mathf.RoundToInt(gridWorldSizeX / nodeDiameter);
-	//	gridSizeY = Mathf.RoundToInt(gridWorldSizeY / nodeDiameter);
-
-	//	grid = new Node[gridSizeX, gridSizeY];
-		
-	//	for (int x = 0; x < gridSizeX; x++)
-	//	{
-	//		for (int y = 0; y < gridSizeY; y++)
-	//		{
-	//			Vector3 worldPoint = new Vector3(x, y, 0);
-	//			grid[x, y] = new Node(worldPoint, x, y);
-	//		}
-	//	}
-	//}
 	
 	public List<Node> GetNeighbours(Node node)
 	{
 		List<Node> neighbours = new List<Node>();
 
-        foreach (var pos in Directions.GetFourDirectionsArray())
+        foreach (Vector2Int pos in Directions.GetFourDirectionsArray())
         {
 			if (pos.x == 0 && pos.y == 0)
                 continue;
 
-            int checkX = node.gridX + pos.x;
-            int checkY = node.gridY + pos.y;
+            int checkX = node.GridX + pos.x;
+            int checkY = node.GridY + pos.y;
 
             if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeY)
             {

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//Class for representing a region for the flood fill algorithm
 public class Region : IComparable<Region>
 {
     public List<Vector2Int> tiles;

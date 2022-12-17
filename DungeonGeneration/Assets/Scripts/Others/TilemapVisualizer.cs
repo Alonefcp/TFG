@@ -202,7 +202,7 @@ public class TilemapVisualizer : MonoBehaviour
     {
         positions = new HashSet<Vector2Int>();
 
-        foreach (var position in floorTilemap.cellBounds.allPositionsWithin)
+        foreach (Vector3Int position in floorTilemap.cellBounds.allPositionsWithin)
         {
             Vector2Int pos = (Vector2Int)position;
 

@@ -91,7 +91,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
 
         if (setSpecialRooms)
         {
-            tilemapVisualizer.PaintSinglePathTile(roomStartPosition);
+            //tilemapVisualizer.PaintSinglePathTile(roomStartPosition);
             tilemapVisualizer.PaintSinglePathTile(roomEndPosition);
         }
     }
@@ -112,7 +112,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
                 for (int row = roomOffset; row < room.size.y - roomOffset; row++)
                 {
                     Vector2Int position = (Vector2Int)room.min + new Vector2Int(col, row);
-                    grid.NodeFromWorldPoint(position).SetType(Node.NodeType.Floor);                    
+                    grid.NodeFromWorldPoint(position).AccessNodeType=Node.NodeType.Floor;                    
                     floor.Add(position);
                 }
             }
