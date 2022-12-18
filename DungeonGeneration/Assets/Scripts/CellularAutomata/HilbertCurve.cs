@@ -34,17 +34,13 @@ public class HilbertCurve
     /// </summary>
     /// <param name="mapWidth">Map width</param>
     /// <param name="mapHeight">Map height</param>
-    /// <param name="minOffsetX">Min X offset for the curve</param>
-    /// <param name="maxOffsetX">Max X offset for the curve</param>
-    /// <param name="minOffsetY">Min Y offset for the curve</param>
-    /// <param name="maxOffsetY">Max Y offset for the curve</param>
-    public void CalculateHilbertCurve(int mapWidth, int mapHeight, int minOffsetX, int maxOffsetX, int minOffsetY, int maxOffsetY)
+    public void CalculateHilbertCurve(int mapWidth, int mapHeight)
     {
         List<Vector2Int> initialPoints = new List<Vector2Int>();
         hilbertCurvePoints = new HashSet<Vector2Int>();
 
-        int posX = (mapWidth / N) + Random.Range(minOffsetX, maxOffsetX);
-        int posY = (mapHeight / N) + Random.Range(minOffsetY, maxOffsetY);
+        int posX = (mapWidth / N) /*+Random.Range(minOffsetX, maxOffsetX)*/;
+        int posY = (mapHeight / N) /*+Random.Range(minOffsetY, maxOffsetY)*/;
         initialPoints.Add(HilbertPoint(0));
         initialPoints[0] = initialPoints[0] * new Vector2Int(posX, posY) + new Vector2Int(posX / 2, posY / 2);
 

@@ -58,14 +58,16 @@ public static class FloodFillAlgorithm
     /// <param name="mapWidth">Map width</param>
     /// <param name="mapHeight">Map height</param>
     /// <returns>A list of lists with all map cell positions which have given type</returns>
-    public static List<List<Vector2Int>> GetRegionsOfType<T>(T[,] map, T tileType, int mapWidth, int mapHeight)
+    public static List<List<Vector2Int>> GetRegionsOfType<T>(T[,] map, T tileType, int mapWidth, int mapHeight,int startOffsetX=0,int endOffsetX=0, int startOffsetY=0, int endOffsetY = 0)
     {
         List<List<Vector2Int>> regions = new List<List<Vector2Int>>();
         bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
 
-        for (int x = 0; x < mapWidth; x++)
+        if (endOffsetX == 0) endOffsetX = mapWidth;
+        if (endOffsetY == 0) endOffsetY = mapHeight;
+        for (int x = startOffsetX; x < endOffsetX; x++)
         {
-            for (int y = 0; y < mapHeight; y++)
+            for (int y = startOffsetY; y < endOffsetY; y++)
             {
                 if (!visitedTiles[x, y] && Equals(map[x, y],tileType)/*map[x, y] == tileType*/)
                 {
