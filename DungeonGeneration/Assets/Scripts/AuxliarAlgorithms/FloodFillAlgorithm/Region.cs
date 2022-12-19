@@ -8,23 +8,24 @@ public class Region : IComparable<Region>
 {
     public List<Vector2Int> tiles;
     public List<Vector2Int> borderTiles;
-    public List<Region> connectedRooms;
-    private int roomSize;
-    private bool isAccessibleFromMainRoom;
-    private bool isMainRoom;
+    public List<Region> connectedRegions;
+    private int regionSize;
+    private bool isAccessibleFromMainRegion;
+    private bool isMainRegion;
 
-    public bool IsAccessibleFromMainRoom { get => isAccessibleFromMainRoom; set => isAccessibleFromMainRoom = value; }
-    public bool IsMainRoom { get => isMainRoom; set => isMainRoom = value; }
+    public bool IsAccessibleFromMainRegion { get => isAccessibleFromMainRegion; set => isAccessibleFromMainRegion = value; }
+    public bool IsMainRoom { get => isMainRegion; set => isMainRegion = value; }
 
     public Region()
     {
     }
 
+    //We create the region
     public Region(List<Vector2Int> tiles, int[,] map, int mapWidth, int mapHeight)
     {
         this.tiles = tiles;
-        roomSize = tiles.Count;
-        connectedRooms = new List<Region>();
+        regionSize = tiles.Count;
+        connectedRegions = new List<Region>();
         borderTiles = new List<Vector2Int>();
 
         foreach (Vector2Int tile in tiles)
@@ -43,63 +44,58 @@ public class Region : IComparable<Region>
         }
     }
 
-    public Region(List<Vector2Int> tiles, float[,] map, int mapWidth, int mapHeight)
+    /// <summary>
+    /// Connects two rooms
+    /// </summary>
+    /// <param name="region1">First region</param>
+    /// <param name="region2">Second region</param>
+    public static void ConnectRegions(Region region1, Region region2)
     {
-        this.tiles = tiles;
-        roomSize = tiles.Count;
-        connectedRooms = new List<Region>();
-        borderTiles = new List<Vector2Int>();
-
-        foreach (Vector2Int tile in tiles)
+        if(region1.isAccessibleFromMainRegion)
         {
-            Vector2Int[] directions = Directions.GetFourDirectionsArray();
-            foreach (Vector2Int dir in directions)
-            {
-                int neighbourX = tile.x + dir.x;
-                int neighbourY = tile.y + dir.y;
+            region2.SetAccessFromMainRegion();
+        }
+        else if(region2.isAccessibleFromMainRegion)
+        {
+            region1.SetAccessFromMainRegion();
+        }
 
-                if (neighbourX >= 0 && neighbourX < mapWidth && neighbourY >= 0 && neighbourY < mapHeight && map[neighbourX, neighbourY] == 1)// 1-> wall
-                {
-                    borderTiles.Add(tile);
-                }
+        region1.connectedRegions.Add(region2);
+        region2.connectedRegions.Add(region1);
+    }
+
+    /// <summary>
+    /// Creates an acces from the main region
+    /// </summary>
+    public void SetAccessFromMainRegion()
+    {
+        if(!isAccessibleFromMainRegion)
+        {
+            isAccessibleFromMainRegion = true;
+            foreach (Region room in connectedRegions)
+            {
+                room.SetAccessFromMainRegion();
             }
         }
     }
 
-    public static void ConnectRooms(Region room1, Region room2)
-    {
-        if(room1.isAccessibleFromMainRoom)
-        {
-            room2.SetAccessFromMainRoom();
-        }
-        else if(room2.isAccessibleFromMainRoom)
-        {
-            room1.SetAccessFromMainRoom();
-        }
-
-        room1.connectedRooms.Add(room2);
-        room2.connectedRooms.Add(room1);
-    }
-
-    public void SetAccessFromMainRoom()
-    {
-        if(!isAccessibleFromMainRoom)
-        {
-            isAccessibleFromMainRoom = true;
-            foreach (Region room in connectedRooms)
-            {
-                room.SetAccessFromMainRoom();
-            }
-        }
-    }
-
+    /// <summary>
+    /// Compares the region size to other
+    /// </summary>
+    /// <param name="other">The other region</param>
+    /// <returns></returns>
     public int CompareTo(Region other)
     {
-        return other.roomSize.CompareTo(roomSize);
+        return other.regionSize.CompareTo(regionSize);
     }
 
+    /// <summary>
+    /// Returns if one region is connected to other region
+    /// </summary>
+    /// <param name="other">Other rgion</param>
+    /// <returns>True if the region is connected to the other region</returns>
     public bool IsConnected(Region other)
     {
-        return connectedRooms.Contains(other);
+        return connectedRegions.Contains(other);
     }
 }

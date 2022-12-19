@@ -10,6 +10,13 @@ public class Grid2D
 
 	private int gridSizeX, gridSizeY;
 
+	public int MaxSize
+	{
+		get { return gridSizeX * gridSizeY; }
+					
+	}
+
+	//We create the grid
 	public Grid2D(int gridWorldSizeX, int gridWorldSizeY, float nodeRadius)
     {
 		nodeDiameter = nodeRadius * 2;
@@ -28,12 +35,11 @@ public class Grid2D
 		}
 	}
 
-	public int MaxSize
-	{
-		get{ return gridSizeX * gridSizeY; }
-					
-	}
-	
+	/// <summary>
+	/// Returns the four neighbours of a given node
+	/// </summary>
+	/// <param name="node">Given node</param>
+	/// <returns>A list nodes</returns>
 	public List<Node> GetNeighbours(Node node)
 	{
 		List<Node> neighbours = new List<Node>();
@@ -54,7 +60,11 @@ public class Grid2D
 		return neighbours;
 	}
 
-
+	/// <summary>
+	/// Returns a node in a given position
+	/// </summary>
+	/// <param name="worldPosition">Given position</param>
+	/// <returns></returns>
 	public Node NodeFromWorldPoint(Vector2Int worldPosition)
 	{
 		return grid[worldPosition.x, worldPosition.y];

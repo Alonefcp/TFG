@@ -30,9 +30,16 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
     [SerializeField] int borderOffset = 7;
     [SerializeField] private bool showPerlinNoiseTexture = false;
 
-    int[,] map;
+    private int[,] map;
 
+    /// <summary>
+    /// Getter for knowing if we are adding bigger borders
+    /// </summary>
     public bool AddBiggerBorders { get => addBiggerBorders;}
+
+    /// <summary>
+    /// Getter for knowing if we are connecting regions
+    /// </summary>
     public bool ConnectRegions { get => connectRegions;}
 
     //void Start()
@@ -72,6 +79,9 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
         playerController.SetPlayer(playerPosition, new Vector3(1.0f, 1.0f, 1.0f));
     }
 
+    /// <summary>
+    /// Draws the map
+    /// </summary>
     private void DrawMap()
     {
         HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
@@ -91,6 +101,7 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
             }
         }
 
+        //We paint the outter walls
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
     }
 
@@ -170,7 +181,8 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
 
     /// <summary>
     /// Creates the map by adding wall tiles or floor tiles
-    /// </summary>   
+    /// </summary>
+    /// <param name="perlinNoise">Matrix created with perlin noise</param>
     private void CreateMap(float[,] perlinNoise)
     {
         map = new int[mapWidth, mapHeight];
@@ -383,7 +395,7 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
         {
             leftFloorRegions.Sort();
             leftFloorRegions[0].IsMainRoom = true;
-            leftFloorRegions[0].IsAccessibleFromMainRoom = true;
+            leftFloorRegions[0].IsAccessibleFromMainRegion = true;
             ConnectClosestRegions(leftFloorRegions);
         }
 
@@ -416,7 +428,7 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
         {
             foreach (Region room in survivingRegions)
             {
-                if (room.IsAccessibleFromMainRoom)
+                if (room.IsAccessibleFromMainRegion)
                 {
                     roomList2.Add(room);
                 }
@@ -444,7 +456,7 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
             if (!forceAccessibilityFromMainRegion)
             {
                 possibleConnectionFound = false;
-                if (room1.connectedRooms.Count > 0) continue;
+                if (room1.connectedRegions.Count > 0) continue;
             }
 
             foreach (Region room2 in roomList2)
@@ -499,20 +511,20 @@ public class PerlinNoiseAlgorithm : DungeonGeneration
     /// <param name="tile2">Second region tile which is the closest one to the first region</param>
     private void CreateConnection(Region region1, Region region2, Vector2Int tile1, Vector2Int tile2)
     {
-        Region.ConnectRooms(region1, region2);
+        Region.ConnectRegions(region1, region2);
         List<Vector2Int> path = BresenhamsLineAlgorithm.GetLinePointsList(tile1.x, tile1.y, tile2.x, tile2.y);
         foreach (Vector2Int coord in path)
         {
-            DrawBiggerTile(coord, connectionSize);
+            MakeBiggerTile(coord, connectionSize);
         }
     }
 
     /// <summary>
-    /// Draws a bigger tile
+    /// Makes a bigger tile
     /// </summary>
     /// <param name="position">Tile position</param>
     /// <param name="radius">How much we wat to increase the tile size</param>
-    private void DrawBiggerTile(Vector2Int position, int radius)
+    private void MakeBiggerTile(Vector2Int position, int radius)
     {
         for (int x = -radius; x <= radius; x++)
         {

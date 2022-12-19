@@ -7,18 +7,17 @@ public static class FloodFillAlgorithm
     /// <summary>
     /// Performs the flood fill algorithm
     /// </summary>
-    /// <typeparam name="T">Map type</typeparam>
     /// <param name="startX">X start position</param>
     /// <param name="startY">Y start position</param>
     /// <param name="map">Map</param>
     /// <param name="mapWidth">Map width</param>
     /// <param name="mapHeight">Map height</param>
     /// <returns>A list with all map cell positions which have the same type</returns>
-    private static List<Vector2Int> GetRegionTiles<T>(int startX, int startY, T[,] map, int mapWidth, int mapHeight)
+    private static List<Vector2Int> GetRegionTiles(int startX, int startY, int[,] map, int mapWidth, int mapHeight)
     {
         List<Vector2Int> tiles = new List<Vector2Int>();
         bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
-        T tileType = map[startX, startY];
+        int tileType = map[startX, startY];
 
         Queue<Vector2Int> queue = new Queue<Vector2Int>();
         queue.Enqueue(new Vector2Int(startX, startY));
@@ -52,13 +51,12 @@ public static class FloodFillAlgorithm
     /// <summary>
     /// Returns all map regions which are the given type (tileType parameter)
     /// </summary>
-    /// <typeparam name="T">Map type</typeparam>
     /// <param name="map">Map</param>
     /// <param name="tileType">Cell type</param>
     /// <param name="mapWidth">Map width</param>
     /// <param name="mapHeight">Map height</param>
     /// <returns>A list of lists with all map cell positions which have given type</returns>
-    public static List<List<Vector2Int>> GetRegionsOfType<T>(T[,] map, T tileType, int mapWidth, int mapHeight,int startOffsetX=0,int endOffsetX=0, int startOffsetY=0, int endOffsetY = 0)
+    public static List<List<Vector2Int>> GetRegionsOfType(int[,] map, int tileType, int mapWidth, int mapHeight,int startOffsetX=0,int endOffsetX=0, int startOffsetY=0, int endOffsetY = 0)
     {
         List<List<Vector2Int>> regions = new List<List<Vector2Int>>();
         bool[,] visitedTiles = new bool[mapWidth, mapHeight]; // true: visited , false: not visited
@@ -88,14 +86,13 @@ public static class FloodFillAlgorithm
     /// <summary>
     /// Performs the flood fill algorithm
     /// </summary>
-    /// <typeparam name="T">Map type</typeparam>
     /// <param name="startX">X start position</param>
     /// <param name="startY">Y start position</param>
     /// <param name="map">Map</param>
     /// <param name="mapWidth">Map width</param>
     /// <param name="mapHeight">Map height</param>
     /// <returns>A list with all map cell positions which have the same type</returns>
-    private static List<Vector2Int> GetRegionTiles<T>(int startX, int startY, List<T> map, int mapWidth, int mapHeight)
+    private static List<Vector2Int> GetRegionTiles(int startX, int startY, List<int> map, int mapWidth, int mapHeight)
     {
         List<Vector2Int> tiles = new List<Vector2Int>();
         List<bool> visitedTiles = new List<bool>(); // true: visited , false: not visited
@@ -103,7 +100,7 @@ public static class FloodFillAlgorithm
         {
             visitedTiles.Add(false);
         } 
-        T tileType = map[MapXYtoIndex(startX,startY,mapWidth)];
+        int tileType = map[MapXYtoIndex(startX,startY,mapWidth)];
 
         Queue<Vector2Int> queue = new Queue<Vector2Int>();
         queue.Enqueue(new Vector2Int(startX, startY));
@@ -138,13 +135,12 @@ public static class FloodFillAlgorithm
     /// <summary>
     /// Returns all map regions which are the given type (tileType parameter)
     /// </summary>
-    /// <typeparam name="T">Map type</typeparam>
     /// <param name="map">Map</param>
     /// <param name="tileType">Cell type</param>
     /// <param name="mapWidth">Map width</param>
     /// <param name="mapHeight">Map height</param>
     /// <returns>A list of lists with all map cell positions which have given type</returns>
-    public static List<List<Vector2Int>> GetRegionsOfType<T>(List<T> map, T tileType, int mapWidth, int mapHeight)
+    public static List<List<Vector2Int>> GetRegionsOfType(List<int> map, int tileType, int mapWidth, int mapHeight)
     {
         List<List<Vector2Int>> regions = new List<List<Vector2Int>>();
         List<bool> visitedTiles = new List<bool>(); // true: visited , false: not visited

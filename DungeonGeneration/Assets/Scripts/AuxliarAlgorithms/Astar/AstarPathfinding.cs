@@ -40,11 +40,11 @@ public static class AstarPathfinding
 
 				int newMovementCostToNeighbour = currentNode.GCost + GetDistance(currentNode, neighbour);
 				int extra = 0;
-                if (grid.NodeFromWorldPoint(neighbour.WorldPosition).AccessNodeType == Node.NodeType.Floor)
+                if (grid.NodeFromWorldPoint(neighbour.WorldPosition).GridNodeType == Node.NodeType.Floor)
                 {
                     extra += 10;
                 }
-                else if (grid.NodeFromWorldPoint(neighbour.WorldPosition).AccessNodeType == Node.NodeType.Hallway)
+                else if (grid.NodeFromWorldPoint(neighbour.WorldPosition).GridNodeType == Node.NodeType.Hallway)
                 {
                     extra += 5;
                 }
@@ -88,7 +88,7 @@ public static class AstarPathfinding
 		{
 			path.Add(currentNode.WorldPosition);
 			currentNode = currentNode.Parent;
-			if(currentNode.AccessNodeType != Node.NodeType.Floor)grid.NodeFromWorldPoint(currentNode.WorldPosition).AccessNodeType = Node.NodeType.Hallway;
+			if(currentNode.GridNodeType != Node.NodeType.Floor)grid.NodeFromWorldPoint(currentNode.WorldPosition).GridNodeType = Node.NodeType.Hallway;
 		}
 
 		path.Add(startNode.WorldPosition);

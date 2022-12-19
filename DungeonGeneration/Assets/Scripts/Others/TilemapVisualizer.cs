@@ -37,7 +37,7 @@ public class TilemapVisualizer : MonoBehaviour
     /// <summary>
     /// Returns the cell's radius. We assume a cell is n*n
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Cell's radius</returns>
     public float GetCellRadius()
     {
         return floorTilemap.cellSize.x / 2.0f;
@@ -100,9 +100,9 @@ public class TilemapVisualizer : MonoBehaviour
     }
 
     /// <summary>
-    /// 
+    /// Paints a wall tile
     /// </summary>
-    /// <param name="position">Tyle position</param>
+    /// <param name="position">Tile position</param>
     /// <param name="type">Wall type</param>
     public void PaintSingleWallTile(Vector2Int position, string type = "")
     {

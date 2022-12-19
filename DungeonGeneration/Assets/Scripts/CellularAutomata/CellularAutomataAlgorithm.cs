@@ -12,7 +12,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
     enum MooreRule {Rule3=3, Rule4=4, Rule5=5}
     enum VonNeummannRule {Rule1=1, Rule2=2, Rule3=3}
     
-    [Range(50,200)]
+    [Range(50,150)]
     [SerializeField] private int mapWidth = 80, mapHeight = 60;
     [Range(1, 20)]
     [SerializeField] private int iterations = 5;
@@ -38,14 +38,25 @@ public class CellularAutomataAlgorithm : DungeonGeneration
     [SerializeField] private int minOffsetY = 0, maxOffsetY=30;
 
     private int[,] map = null; //1 -> wall , 0 -> floor
+
     private HilbertCurve hilbertCurve = null;
     private int mapOffsetX=0, mapOffsetY=0;
+    private int hilbertMapWidth = 400;
+    private int hilbertMapHeight = 400;
 
-    int hilbertMapWidth = 400;
-    int hilbertMapHeight = 400;
-
+    /// <summary>
+    /// Getter for knowing the neighborhood type
+    /// </summary>
     public Neighborhood NeighborhoodType { get => neighborhood;}
+
+    /// <summary>
+    /// Getter for knowing if we ant to connect regions
+    /// </summary>
     public bool ConnectRegions { get => connectRegions;}
+
+    /// <summary>
+    /// Getter for knowing if we are using a Hilbert curve
+    /// </summary>
     public bool UseHilbertCurve { get => useHilbertCurve;}
 
     //void Start()
@@ -74,6 +85,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
 
         map = GenerateNoise();
         RunCellularAutomata();
+
         EraseRegions();
 
         //Draw the map
@@ -109,11 +121,12 @@ public class CellularAutomataAlgorithm : DungeonGeneration
             }
         }
 
+        //We paint outter walls
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
     }
 
     /// <summary>
-    /// Creates and draws a Hilbert curve
+    /// Creates a Hilbert curve
     /// </summary>
     private void DrawHilbertCurve()
     {
@@ -123,7 +136,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
         for (int i = 0; i < initialCount; i++)
         {
             //tilemapVisualizer.PaintSingleFloorTile(hilbertCurve.HilbertCurvePoints.ElementAt(i));
-            DrawBiggerTile(hilbertCurve.HilbertCurvePoints.ElementAt(i), 2, hilbertCurve.HilbertCurvePoints, 1);
+            MakeBiggerTile(hilbertCurve.HilbertCurvePoints.ElementAt(i), 2, hilbertCurve.HilbertCurvePoints, 1);
         }
 
         //HashSet<Vector2Int> hilbertPointsInsdeMap = new HashSet<Vector2Int>();
@@ -273,7 +286,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
     /// <param name="x">Given X position</param>
     /// <param name="y">Given Y position</param>
     /// <param name="neighbourWallTiles">Number of walls neighbours</param>
-    private void ApplyAutomata(int[,] map, int x, int y,int neighbourWallTiles)
+    private void ApplyAutomata(int[,] map, int x, int y, int neighbourWallTiles)
     {
         int ruleNumber = (neighborhood == Neighborhood.Moore)? (int)mooreRule: (int)vonNeummannRule;
         
@@ -292,7 +305,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
     /// </summary>
     /// <param name="x">Given X position</param>
     /// <param name="y">Given Y position</param>
-    /// <returns></returns>
+    /// <returns>The number of wall neighbours</returns>
     private int GetWallNeighbours(int x, int y)
     {
         Vector2Int[] directions = (neighborhood == Neighborhood.Moore) ? Directions.GetEightDiretionsArray() : Directions.GetFourDirectionsArray();
@@ -346,7 +359,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
         {
             leftFloorRegions.Sort();
             leftFloorRegions[0].IsMainRoom = true;
-            leftFloorRegions[0].IsAccessibleFromMainRoom = true;
+            leftFloorRegions[0].IsAccessibleFromMainRegion = true;
             ConnectClosestRegions(leftFloorRegions);
         }
 
@@ -380,7 +393,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
         {
             foreach (Region room in survivingRegions)
             {
-                if(room.IsAccessibleFromMainRoom)
+                if(room.IsAccessibleFromMainRegion)
                 {
                     roomList2.Add(room);
                 }
@@ -408,7 +421,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
             if(!forceAccessibilityFromMainRoom)
             {
                 possibleConnectionFound = false;
-                if(room1.connectedRooms.Count > 0) continue;
+                if(room1.connectedRegions.Count > 0) continue;
             }
 
             foreach (Region room2 in roomList2)
@@ -463,20 +476,22 @@ public class CellularAutomataAlgorithm : DungeonGeneration
     /// <param name="tile2">Second region tile which is the closest one to the first region</param>
     private void CreateConnection(Region region1, Region region2, Vector2Int tile1, Vector2Int tile2) 
     {
-        Region.ConnectRooms(region1, region2);     
+        Region.ConnectRegions(region1, region2);     
         List<Vector2Int> line = BresenhamsLineAlgorithm.GetLinePointsList(tile1.x, tile1.y, tile2.x, tile2.y);
         foreach (Vector2Int coord in line)
         {
-            DrawBiggerTile(coord, connectionSize);          
+            MakeBiggerTile(coord, connectionSize);          
         }      
     }
 
     /// <summary>
-    /// Draws a bigger tile
+    /// Makes a bigger tile
     /// </summary>
     /// <param name="position">Tile position</param>
     /// <param name="radius">How much we wat to increase the tile size</param>
-    private void DrawBiggerTile(Vector2Int position, int radius, HashSet<Vector2Int> addedPoints=null,int cellType = 0)
+    /// <param name="addedPoints">The extra positions we created by increasing the tile's size</param>
+    /// <param name="cellType">Cell type (wall or floor)</param>
+    private void MakeBiggerTile(Vector2Int position, int radius, HashSet<Vector2Int> addedPoints=null, int cellType = 0)
     {
         for (int x = -radius; x <= radius; x++)
         {

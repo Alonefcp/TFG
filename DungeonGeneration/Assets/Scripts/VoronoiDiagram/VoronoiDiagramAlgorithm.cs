@@ -51,6 +51,9 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
     private Grid2D grid;
 
+    /// <summary>
+    /// Getter for knowing if we are using random seeds
+    /// </summary>
     public bool RandomSeeds { get => randomSeeds;}
 
     //void Start()
@@ -103,19 +106,6 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
         }
     }
 
-    //private void OnDrawGizmos()
-    //{
-    //    Gizmos.color = Color.red;
-    //    Gizmos.DrawWireCube(new Vector3(mapWidth / 2, mapHeight / 2), new Vector3(mapWidth, mapHeight));
-    //    if (primEdges != null)
-    //    {
-    //        foreach (Edge edge in primEdges)
-    //        {
-    //            Gizmos.DrawLine(new Vector3(edge.U.position.x, edge.U.position.y), new Vector3(edge.V.position.x, edge.V.position.y));
-    //        }
-    //    }
-    //}
-
     /// <summary>
     /// Draws the map
     /// </summary>
@@ -128,12 +118,13 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
             {
                 tilemapVisualizer.PaintSingleFloorTile(mapInfo[i].CellPos);
             }
-            else if (mapInfo[i].CellType == 1) //Wall
+            else if (mapInfo[i].CellType == 1) //Inner Wall
             {
                 tilemapVisualizer.PaintSingleInnerWallTile(mapInfo[i].CellPos);
             }
         }
 
+        //We paint the outter walls
         HashSet<Cell> cellFloors = mapInfo.Where(cell => cell.CellType == 0).ToHashSet();
         HashSet<Vector2Int> floorPositions = new HashSet<Vector2Int>();
         foreach (Cell cell in cellFloors)
@@ -144,8 +135,12 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
     }
 
     /// <summary>
-    /// Creates n "seeds"(positions) with a random position inside the map's boundaries
+    /// Creates n "seeds"(positions) with a random position inside given boundaries
     /// </summary>
+    /// <param name="minWidth">min boundary width</param>
+    /// <param name="minHeight">min boundary height</param>
+    /// <param name="maxWidth">max boundary width</param>
+    /// <param name="maxHeight">max boundary height</param>
     /// <returns>Returns a hashset with all seeds positions</returns>
     private HashSet<Vector2Int> GenerateSeeds(int minWidth, int minHeight, int maxWidth, int maxHeight)
     {
@@ -163,9 +158,13 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
     }
 
     /// <summary>
-    /// Creates n "seeds"(positions) with a random position inside the map's boundaries. The seeds positions
+    /// Creates n "seeds"(positions) with a random position inside given boundaries. The seeds positions
     /// are based on the distance of the previous seed
     /// </summary>
+    /// <param name="minWidth">min boundary width</param>
+    /// <param name="minHeight">min boundary height</param>
+    /// <param name="maxWidth">max boundary width</param>
+    /// <param name="maxHeight">max boundary height</param>
     /// <returns>Returns a hashset with all seeds positions</returns>
     private HashSet<Vector2Int> GenerateSeedBasedOnDistance(int minWidth, int minHeight,int maxWidth, int maxHeight)
     {
@@ -259,7 +258,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
     /// Performs the Voronoi diagram algorithm using brute force
     /// </summary>
     /// <param name="seeds">HashSet with all seed positions</param>
-    /// <returns></returns>
+    /// <returns>A lis with all informatiom about each cell</returns>
     private List<Cell> RunVoronoiDiagram(HashSet<Vector2Int> seeds)
     {
         List<Cell> mapInfo = new List<Cell>();
@@ -292,7 +291,7 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
     }
 
     /// <summary>
-    /// Creates the walls between all the sets
+    /// Creates the inner walls between all the sets
     /// </summary>
     /// <param name="mapInfo">List with info about every map seed</param>
     private void CreateInnerWalls(List<Cell> mapInfo)
@@ -423,7 +422,6 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
             mapInfoCellType[MapXYtoIndex(x, y)] = type;
         }
-
 
         //Erase floor regions
         List<List<Vector2Int>> floorRegions = FloodFillAlgorithm.GetRegionsOfType(mapInfoCellType, 0, mapWidth, mapHeight);

@@ -36,7 +36,7 @@ public static class PrimAlgorithm
     }
 
     /// <summary>
-    /// Returns the minimum spanning tree edges.
+    /// Returns the minimum spanning tree edges
     /// </summary>
     /// <param name="edges">Edges list</param>
     /// <param name="start">Start edge</param>

@@ -23,7 +23,7 @@ public class Node : IHeapItem<Node>
 		WorldPosition = worldPos;
 		GridX = gridX;
 		GridY = gridY;
-		AccessNodeType = NodeType.None;
+		GridNodeType = NodeType.None;
 	}
 
 	public int FCost
@@ -40,15 +40,51 @@ public class Node : IHeapItem<Node>
 		set { heapIndex = value; }
 	}
 
+	/// <summary>
+	/// Node grid X position
+	/// </summary>
     public int GridX { get => gridX; set => gridX = value; }
-    public int GridY { get => gridY; set => gridY = value; }
-    public int GCost { get => gCost; set => gCost = value; }
-    public int HCost { get => hCost; set => hCost = value; }
-    public Node Parent { get => parent; set => parent = value; }
-    public Vector2Int WorldPosition { get => worldPosition; set => worldPosition = value; }
-    public bool Walkable { get => walkable; set => walkable = value; }
-    public NodeType AccessNodeType { get => nodeType; set => nodeType = value; }
 
+	/// <summary>
+	/// Node grid X position
+	/// </summary>
+	public int GridY { get => gridY; set => gridY = value; }
+
+	/// <summary>
+	/// Node g cost
+	/// </summary>
+	public int GCost { get => gCost; set => gCost = value; }
+
+	/// <summary>
+	/// Node h cost
+	/// </summary>
+	public int HCost { get => hCost; set => hCost = value; }
+
+	/// <summary>
+	/// Node's parent
+	/// </summary>
+	public Node Parent { get => parent; set => parent = value; }
+
+	/// <summary>
+	/// Node world position
+	/// </summary>
+    public Vector2Int WorldPosition { get => worldPosition; set => worldPosition = value; }
+
+	/// <summary>
+	/// If the node is walkable
+	/// </summary>
+    public bool Walkable { get => walkable; set => walkable = value; }
+
+	/// <summary>
+	/// Node type
+	/// </summary>
+    public NodeType GridNodeType { get => nodeType; set => nodeType = value; }
+
+	/// <summary>
+	/// Compares the f cost 
+	/// </summary>
+	/// <param name="nodeToCompare">Node to compare</param>
+	/// <returns></returns>
     public int CompareTo(Node nodeToCompare)
 	{
 		int compare = FCost.CompareTo(nodeToCompare.FCost);

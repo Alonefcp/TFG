@@ -36,6 +36,9 @@ public class RandomWalkAlgorithm : DungeonGeneration
     [Range(2, 12)]
     [SerializeField] private int maxStepLength = 7;
 
+    /// <summary>
+    /// Getter for knowing if we are using the levy flight
+    /// </summary>
     public bool LevyFlight { get => levyFlight;}
 
     //void Start()
@@ -60,8 +63,10 @@ public class RandomWalkAlgorithm : DungeonGeneration
             floorPositions.UnionWith(positions); //we add the positions which have become walkables
         }
 
-        
+        //We create the walls
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+
+        //We set the player on the map
         playerController.SetPlayer(startPosition,new Vector3(1.0f,1.0f,1.0f));
     }
 
@@ -122,7 +127,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
             //Take one step in a random direction
             Vector2Int newPos = walker.Pos + walker.Dir;
 
-            //1.-For the levy fligh we calculate the positions between the walker position and the new position,
+            //1.- For the levy fligh we calculate the positions between the walker position and the new position,
             //and we add them to the path positions
             //2.- If the walker moves diagonally
             if (walker.Dir.magnitude > 1)
@@ -202,7 +207,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
             pathPositions.Add(walker.Pos);
 
             //If we are moving diagonally, we add more positions around the walker position,
-            //so this positions are walkable. If we don`t do this diagonal positions are not walkable.
+            //so this positions are walkable. If we don`t do this diagonal positions are not walkable
             if (moveDiagonally)
             {
                 AddMorePositions(walker.Pos, 1, pathPositions);             

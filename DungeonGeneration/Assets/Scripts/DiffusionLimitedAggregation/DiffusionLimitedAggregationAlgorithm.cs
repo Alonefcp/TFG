@@ -94,7 +94,10 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
         //    }
         //}
 
+        //We create the walls
         WallGenerator.CreateWalls(floorPositions, tilemapVisualizer);
+
+        //We set the player on the map
         playerController.SetPlayer(startPosition, new Vector3(1.0f, 1.0f, 1.0f));
     }
 
@@ -351,7 +354,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
     }
 
     /// <summary>
-    /// Converts a map position to an index.
+    /// Converts a map position to an index
     /// </summary>
     /// <param name="x">X map position</param>
     /// <param name="y">Y map position</param>

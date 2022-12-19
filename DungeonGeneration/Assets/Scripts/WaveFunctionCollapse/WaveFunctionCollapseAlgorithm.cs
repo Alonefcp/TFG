@@ -37,6 +37,9 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     //private bool firstTime = true;
     private HashSet<Vector2Int> walkablePositions;
 
+    /// <summary>
+    /// Getter for knowing if we are adding more walkable zones
+    /// </summary>
     public bool MoreWalkableZones { get => forceMoreWalkableZones;}
 
     //private void Start()
@@ -271,7 +274,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     /// <summary>
     /// Creates a grid with all cells uncollapsed with all available options
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A lis with all cells initialised</returns>
     private List<WFCCell> CreateGrid()
     {
         List<WFCCell> grid = new List<WFCCell>();
@@ -286,7 +289,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     /// <summary>
     /// Returns all the adjacent cells to the collapsed cells
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A list with all adjacent cells to collapsed cells</returns>
     private List<WFCCell> GetAdjacentCellsToCollapsedCells(List<WFCCell> grid)
     {
         List<WFCCell> collapsedCells = grid.Where(cell => cell.Collapsed).ToList();
@@ -385,7 +388,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
     /// any options it returns null
     /// </summary>
     /// <param name="gridCopy">Grid copy map</param>
-    /// <returns></returns>
+    /// <returns>A collapsed cell</returns>
     private WFCCell GetCollapsedCell(List<WFCCell> gridCopy)
     {
         WFCCell collapsedCell = gridCopy[0];
@@ -413,7 +416,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
 
     /// <summary>
     /// Performs the wave function collapse algorithm. It return true if a map is generated
-    /// otherwise it returns false.
+    /// otherwise it returns false
     /// </summary>
     /// <returns></returns>
     private bool RunWaveFunctionCollapsed()
