@@ -14,13 +14,6 @@ public static class Directions
         return directions;
     }
 
-    public static Vector2Int[] GetDiagonalsDirectionsArray()
-    {
-        Vector2Int[] directions = { new Vector2Int(1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1), new Vector2Int(-1, 1) };
-
-        return directions;
-    }
-
     /// <summary>
     /// Returns an array with this directions: (1,0), (-1,0), (0,1), (0,-1),
     /// (1,1),(-1,1),(1,-1),(-1,-1).
@@ -36,9 +29,8 @@ public static class Directions
             new Vector2Int(0, -1), 
             new Vector2Int(-1, -1), 
             new Vector2Int(-1, 0), 
-            new Vector2Int(-1, 1)};
-
-       
+            new Vector2Int(-1, 1)
+        };
 
         return directions;
     }

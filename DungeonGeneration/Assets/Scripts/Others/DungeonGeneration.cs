@@ -11,8 +11,6 @@ public class DungeonGeneration : MonoBehaviour
     [SerializeField] protected bool useRandomSeed = true;
     [SerializeField] protected int seed;
 
-    public bool showBottom = false;
-
     /// <summary>
     /// Creates a dungeon with an algorithm
     /// </summary>

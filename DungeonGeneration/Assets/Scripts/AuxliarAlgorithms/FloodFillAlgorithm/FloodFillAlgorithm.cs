@@ -181,5 +181,4 @@ public static class FloodFillAlgorithm
     {
         return x + (y * mapWidth);
     }
-
 }

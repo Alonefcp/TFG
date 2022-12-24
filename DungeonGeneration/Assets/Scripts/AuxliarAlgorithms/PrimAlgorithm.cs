@@ -8,17 +8,17 @@ public static class PrimAlgorithm
     /// <summary>
     /// Creates a minimum spanning tree and returns its edges
     /// </summary>
-    /// <param name="delaunayEdges">Delaunay edges</param>
+    /// <param name="edges">Delaunay edges</param>
     /// <param name="addSomeRemainingEdges">If we want to add the remainig edges of the minimum spanning tree</param>
     /// <returns>Returns a hashset the minimum spanning tree edges</returns>
-    public static HashSet<Edge> RunMinimumSpanningTree(List<Edge> delaunayEdges, bool addSomeRemainingEdges)
+    public static HashSet<Edge> RunMinimumSpanningTree(List<Edge> edges, bool addSomeRemainingEdges)
     {
         //Minimum spanning tree edges
-        List<Edge> mst = MinimumSpanningTree(delaunayEdges, delaunayEdges[0].U);
+        List<Edge> mst = MinimumSpanningTree(edges, edges[0].U);
         HashSet<Edge> selectedEdges = new HashSet<Edge>(mst);
 
         //Remaining edges
-        HashSet<Edge> remainingEdges = new HashSet<Edge>(delaunayEdges);
+        HashSet<Edge> remainingEdges = new HashSet<Edge>(edges);
         remainingEdges.ExceptWith(selectedEdges);
 
         if(addSomeRemainingEdges)

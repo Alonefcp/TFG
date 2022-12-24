@@ -13,8 +13,8 @@ public static class WallGenerator
     public static void CreateWalls(HashSet<Vector2Int> floorPositions, TilemapVisualizer tilemapVisualizer)
     {
         HashSet<Vector2Int> basicWallPositions = FindWallsInDirections(floorPositions, Directions.GetFourDirectionsArray());
-        HashSet<Vector2Int> cornerWallPositions = FindWallsInDirections(floorPositions, Directions.GetDiagonalsDirectionsArray());
-        CreateBasicWall(tilemapVisualizer, basicWallPositions, floorPositions);
+        HashSet<Vector2Int> cornerWallPositions = FindWallsInDirections(floorPositions, Directions.GetEightDiretionsArray());
+        CreateBasicWalls(tilemapVisualizer, basicWallPositions, floorPositions);
         CreateCornerWalls(tilemapVisualizer, cornerWallPositions, floorPositions);
     }
 
@@ -51,7 +51,7 @@ public static class WallGenerator
     /// <param name="tilemapVisualizer">Tilemap visualizer for painting</param>
     /// <param name="basicWallPositions">All basic walls positions</param>
     /// <param name="floorPositions">All floor positions</param>
-    private static void CreateBasicWall(TilemapVisualizer tilemapVisualizer, HashSet<Vector2Int> basicWallPositions, HashSet<Vector2Int> floorPositions)
+    private static void CreateBasicWalls(TilemapVisualizer tilemapVisualizer, HashSet<Vector2Int> basicWallPositions, HashSet<Vector2Int> floorPositions)
     {
         foreach (Vector2Int position in basicWallPositions)
         {
@@ -86,7 +86,7 @@ public static class WallGenerator
             foreach (Vector2Int direction in directions)
             {
                 Vector2Int neighbourPosition = position + direction;
-                if (floorPositions.Contains(neighbourPosition) == false)
+                if (!floorPositions.Contains(neighbourPosition))
                     wallPositions.Add(neighbourPosition);
             }
         }
