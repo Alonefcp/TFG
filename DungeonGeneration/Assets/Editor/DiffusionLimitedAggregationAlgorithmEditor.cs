@@ -13,6 +13,8 @@ public class DiffusionLimitedAggregationAlgorithmEditor : DungeonGenerationEdito
     SerializedProperty seedSize;
     SerializedProperty useCentralAttractor;
     SerializedProperty eliminateSingleWallsCells;
+    SerializedProperty floorThresholdSize;
+    SerializedProperty wallThresholdSize;
 
     public override void OnEnable()
     {
@@ -26,6 +28,8 @@ public class DiffusionLimitedAggregationAlgorithmEditor : DungeonGenerationEdito
         seedSize = serializedObject.FindProperty("seedSize");
         useCentralAttractor = serializedObject.FindProperty("useCentralAttractor");
         eliminateSingleWallsCells = serializedObject.FindProperty("eliminateSingleWallsCells");
+        floorThresholdSize = serializedObject.FindProperty("floorThresholdSize");
+        wallThresholdSize = serializedObject.FindProperty("wallThresholdSize");
 
     }
 
@@ -44,6 +48,8 @@ public class DiffusionLimitedAggregationAlgorithmEditor : DungeonGenerationEdito
         EditorGUILayout.PropertyField(brushSize);
         EditorGUILayout.PropertyField(seedSize);
         EditorGUILayout.PropertyField(useCentralAttractor);
+        if(dla.UseCentralAttractor) EditorGUILayout.PropertyField(floorThresholdSize);        
+        EditorGUILayout.PropertyField(wallThresholdSize);
         EditorGUILayout.PropertyField(eliminateSingleWallsCells);
 
         serializedObject.ApplyModifiedProperties();

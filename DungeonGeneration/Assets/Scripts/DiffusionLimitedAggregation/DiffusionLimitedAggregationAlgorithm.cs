@@ -18,12 +18,18 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
     [Range(1, 10)]
     [SerializeField] private int seedSize = 1;
     [SerializeField] private bool useCentralAttractor = false;
+    [Range(0, 15)]
+    [SerializeField] private int floorThresholdSize = 1;
+    [Range(0, 15)]
+    [SerializeField] private int wallThresholdSize = 1;
     [SerializeField] bool eliminateSingleWallsCells = false;
 
     private Vector2Int startPosition;
     private int maxFloorPositions;
     private List<bool> map; //true -> floor , false -> wall
     private HashSet<Vector2Int> floorPositions;
+
+    public bool UseCentralAttractor { get => useCentralAttractor;}
 
     //void Start()
     //{
@@ -84,6 +90,8 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
             floorPositions.UnionWith(extraPositions);
         }
 
+        EraseRegions(map);
+
         //for (int i = 0; i < map.Count; i++)
         //{
         //    int x = i % mapWidth;
@@ -112,6 +120,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
         {
             tilemapVisualizer.PaintSingleFloorTile(floorPosition);
             floorPositions.Add(floorPosition);
+            map[MapXYtoIndex(floorPosition.x, floorPosition.y)] = true;
         }
         else
         {          
@@ -352,6 +361,65 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
         for (int i = 0; i < mapWidth * mapHeight; i++) map.Add(false);
         return map;
     }
+
+    /// <summary>
+    /// Erases floor and wall regions which are bigger than a given threshold
+    /// </summary>
+    /// <param name="mapInfo">List with info about every map seed</param>
+    private void EraseRegions(List<bool> mapInfo)
+    {
+        //We get a list with all cells types
+        List<int> mapInfoCellType = new List<int>();
+        for (int i = 0; i < mapWidth * mapHeight; i++) mapInfoCellType.Add(0);
+
+        for (int i = 0; i < mapWidth * mapHeight; i++)
+        {
+            int x = i % mapWidth;
+            int y = i / mapWidth;
+
+            int type = mapInfo[MapXYtoIndex(x, y)]? 0 : 1;
+
+            mapInfoCellType[MapXYtoIndex(x, y)] = type;
+        }
+
+        //Erase floor regions
+        List<List<Vector2Int>> floorRegions = FloodFillAlgorithm.GetRegionsOfType(mapInfoCellType, 0, mapWidth, mapHeight);
+
+        foreach (List<Vector2Int> region in floorRegions)
+        {
+            if (region.Count <= floorThresholdSize)
+            {
+                foreach (Vector2Int pos in region)
+                {
+                    //bool cell = map[MapXYtoIndex(pos.x, pos.y)];
+                    //cell = true;
+                    mapInfo[MapXYtoIndex(pos.x, pos.y)] = false;
+                    tilemapVisualizer.EraseTile(pos);
+                    //tilemapVisualizer.PaintSinglePathTile(pos);
+                    floorPositions.Remove(pos);
+                }
+            }
+        }
+
+        //Erase wall regions
+        List<List<Vector2Int>> wallRegions = FloodFillAlgorithm.GetRegionsOfType(mapInfoCellType, 1, mapWidth, mapHeight);
+
+        foreach (List<Vector2Int> region in wallRegions)
+        {
+            if (region.Count <= wallThresholdSize)
+            {
+                foreach (Vector2Int pos in region)
+                {
+                    //bool cell = mapInfo[MapXYtoIndex(pos.x, pos.y)];
+                    //cell = false;
+                    mapInfo[MapXYtoIndex(pos.x, pos.y)] = true;
+                    tilemapVisualizer.PaintSingleFloorTile(pos);
+                    floorPositions.Add(pos);
+                }
+            }
+        }
+    }
+
 
     /// <summary>
     /// Converts a map position to an index
