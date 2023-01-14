@@ -77,7 +77,11 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
                 DrawWithBrush(floorPositions.ElementAt(i));
             }
         }
-       
+
+        EraseRegions(map);
+
+        DrawMap(map);
+
         if (eliminateSingleWallsCells)
         {
             tilemapVisualizer.EliminateSingleSpaces(out HashSet<Vector2Int> extraPositions);
@@ -89,8 +93,6 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
             }
             floorPositions.UnionWith(extraPositions);
         }
-
-        EraseRegions(map);
 
         //for (int i = 0; i < map.Count; i++)
         //{
@@ -118,7 +120,6 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
     {
         if(brushSize==1)
         {
-            tilemapVisualizer.PaintSingleFloorTile(floorPosition);
             floorPositions.Add(floorPosition);
             map[MapXYtoIndex(floorPosition.x, floorPosition.y)] = true;
         }
@@ -134,11 +135,30 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
                     {
                         map[MapXYtoIndex(x, y)] = true;
                         floorPositions.Add(new Vector2Int(x, y));
-                        tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x,y));
                     }
                 }
             }          
         }
+    }
+
+
+    /// <summary>
+    /// Draws the map
+    /// </summary>
+    /// <param name="mapInfo">Map information</param>
+    private void DrawMap(List<bool> mapInfo)
+    {
+        for (int i = 0; i < mapInfo.Count; i++)
+        {
+            int x = i % mapWidth;
+            int y = i / mapWidth;
+
+            if (mapInfo[i]) //Floor
+            {
+                tilemapVisualizer.PaintSingleFloorTile(new Vector2Int(x,y));
+            }
+                               
+        }  
     }
 
     /// <summary>
