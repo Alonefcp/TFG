@@ -18,11 +18,11 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
     [Range(1, 10)]
     [SerializeField] private int seedSize = 1;
     [SerializeField] private bool useCentralAttractor = false;
-    [Range(0, 15)]
+    [Range(0, 25)]
     [SerializeField] private int floorThresholdSize = 1;
-    [Range(0, 15)]
+    [Range(0, 25)]
     [SerializeField] private int wallThresholdSize = 1;
-    [SerializeField] bool eliminateSingleWallsCells = false;
+    //[SerializeField] bool eliminateSingleWallsCells = false;
 
     private Vector2Int startPosition;
     private int maxFloorPositions;
@@ -79,20 +79,20 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
         }
 
         EraseRegions(map);
-
         DrawMap(map);
 
-        if (eliminateSingleWallsCells)
-        {
-            tilemapVisualizer.EliminateSingleSpaces(out HashSet<Vector2Int> extraPositions);
 
-            //we add the positions which have become walkables
-            foreach (Vector2Int pos in extraPositions)
-            {
-                map[MapXYtoIndex(pos.x, pos.y)] = true;
-            }
-            floorPositions.UnionWith(extraPositions);
-        }
+        //if (eliminateSingleWallsCells)
+        //{
+        //    tilemapVisualizer.EliminateSingleSpaces(out HashSet<Vector2Int> extraPositions);
+
+        //    //we add the positions which have become walkables
+        //    foreach (Vector2Int pos in extraPositions)
+        //    {
+        //        map[MapXYtoIndex(pos.x, pos.y)] = true;
+        //    }
+        //    floorPositions.UnionWith(extraPositions);
+        //}
 
         //for (int i = 0; i < map.Count; i++)
         //{
@@ -411,12 +411,10 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
             {
                 foreach (Vector2Int pos in region)
                 {
-                    //bool cell = map[MapXYtoIndex(pos.x, pos.y)];
-                    //cell = true;
                     mapInfo[MapXYtoIndex(pos.x, pos.y)] = false;
                     tilemapVisualizer.EraseTile(pos);
-                    //tilemapVisualizer.PaintSinglePathTile(pos);
                     floorPositions.Remove(pos);
+                    mapInfoCellType[MapXYtoIndex(pos.x, pos.y)] = 1;
                 }
             }
         }
@@ -430,11 +428,11 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
             {
                 foreach (Vector2Int pos in region)
                 {
-                    //bool cell = mapInfo[MapXYtoIndex(pos.x, pos.y)];
-                    //cell = false;
-                    mapInfo[MapXYtoIndex(pos.x, pos.y)] = true;
-                    tilemapVisualizer.PaintSingleFloorTile(pos);
+                    int a = MapXYtoIndex(pos.x, pos.y);
+                    mapInfo[a] = true;
+                    //tilemapVisualizer.PaintSingleFloorTile(pos);
                     floorPositions.Add(pos);
+                    mapInfoCellType[MapXYtoIndex(pos.x, pos.y)] = 0;
                 }
             }
         }
