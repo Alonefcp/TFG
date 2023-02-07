@@ -5,26 +5,33 @@ using UnityEngine;
 public static class SpecialRooms
 {
     /// <summary>
-    /// Sets the start and end room. The end room is the furthest from the start room
+    /// Sets the start room
     /// </summary>
-    /// <param name="tilemapVisualizer">For marking the start and end room</param>
     /// <param name="roomCenters">Rooms positions which are the rooms centers</param>
-    public static void SetStartAndEndRoom(TilemapVisualizer tilemapVisualizer, List<Vertex> roomCenters, out Vector2Int roomStartPosition, out Vector2Int roomEndPosition)
+    /// <returns>A vector which is the start room position</returns>
+    public static Vector2Int SetStartRoom(List<Vertex> roomCenters)
     {
-        List<Vertex> rooms = new List<Vertex>(roomCenters);
+        Vertex start = roomCenters[Random.Range(0, roomCenters.Count)];
+        roomCenters.Remove(start);
 
-        Vertex start = rooms[Random.Range(0, rooms.Count)];
-        rooms.Remove(start);
+        return start.position;
+    }
 
-        roomStartPosition = start.position;
-
+    /// <summary>
+    /// Sets the end room. The end room is the furthest from the start room
+    /// </summary>
+    /// <param name="roomCenters">Rooms positions which are the rooms centers</param>
+    /// <param name="startPosition">Start room position</param>
+    /// <returns>A vector which is the end room position</returns>
+    public static Vector2Int SetEndRoom(List<Vertex> roomCenters, Vector2Int startPosition)
+    {
         float maxDistance = -1;
 
         Vertex furthest = null;
 
-        foreach (Vertex vertex in rooms)
+        foreach (Vertex vertex in roomCenters)
         {
-            float dist = Vector2Int.Distance(start.position, vertex.position);
+            float dist = Vector2Int.Distance(startPosition, vertex.position);
             if (dist > maxDistance)
             {
                 maxDistance = dist;
@@ -32,6 +39,6 @@ public static class SpecialRooms
             }
         }
 
-        roomEndPosition = furthest.position;       
+        return furthest.position;       
     }
 }

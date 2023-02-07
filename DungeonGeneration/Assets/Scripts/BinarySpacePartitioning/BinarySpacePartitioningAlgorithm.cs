@@ -68,14 +68,6 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
             roomCenters.Add(new Vertex(center));
         }
 
-        //Set special rooms
-        Vector2Int roomStartPosition = new Vector2Int();
-        Vector2Int roomEndPosition = new Vector2Int();
-        if (setSpecialRooms) SpecialRooms.SetStartAndEndRoom(tilemapVisualizer, roomCenters, out roomStartPosition, out roomEndPosition);
-
-        //Set player position
-        playerController.SetPlayer(new Vector2(roomStartPosition.x, roomStartPosition.y), new Vector3(1.0f, 1.0f, 1.0f));
-
         //Connect rooms
         if (corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
         {
@@ -97,11 +89,19 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
         //Creates outter walls
         WallGenerator.CreateWalls(floorPositions,tilemapVisualizer);
 
+        //Set special rooms
+        List<Vertex> rooms = new List<Vertex>(roomCenters);
+        Vector2Int roomStartPosition = SpecialRooms.SetStartRoom(rooms);
+
         if (setSpecialRooms)
         {
+            Vector2Int roomEndPosition = SpecialRooms.SetEndRoom(rooms, roomStartPosition);
             //tilemapVisualizer.PaintSinglePathTile(roomStartPosition);
             tilemapVisualizer.PaintSinglePathTile(roomEndPosition);
         }
+
+        //Set player position
+        playerController.SetPlayer(new Vector2(roomStartPosition.x, roomStartPosition.y), new Vector3(1.0f, 1.0f, 1.0f));
     }
 
     /// <summary>
