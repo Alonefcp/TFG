@@ -57,7 +57,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
         grid = new Grid2D(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
         HashSet<Vector2Int> floorPositions = CreateRooms(roomList, grid);
 
-        tilemapVisualizer.PaintFloorTiles(floorPositions);
+        //tilemapVisualizer.PaintFloorTiles(floorPositions);
 
         //Create connections between rooms
         List<Vertex> roomCenters = new List<Vertex>();
@@ -72,7 +72,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
         if (corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
         {
             HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, WiderCorridors,corridorSize,spaceWidth,spaceHeight);
-            tilemapVisualizer.PaintFloorTiles(corridors);
+            //tilemapVisualizer.PaintFloorTiles(corridors);
             floorPositions.UnionWith(corridors);
         }
         else
@@ -80,11 +80,12 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
             List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCenters, grid, WiderCorridors, corridorSize,spaceWidth, spaceHeight, addSomeRemainingEdges);
             foreach (HashSet<Vector2Int> path in paths)
             {
-                tilemapVisualizer.PaintFloorTiles(path);
+                //tilemapVisualizer.PaintFloorTiles(path);
                 floorPositions.UnionWith(path);
             }
         }
-       
+
+        tilemapVisualizer.PaintFloorTiles(floorPositions);
 
         //Creates outter walls
         WallGenerator.CreateWalls(floorPositions,tilemapVisualizer);

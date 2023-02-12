@@ -22,6 +22,22 @@ public static class CorridorsAlgorithms
         //Delaunay triangulation
         List<Edge> delaunayEdges = DelaunayTriangulation.Triangulate(roomCenters);
 
+        //If we can't make a graph with Delaunay
+        if (delaunayEdges.Count <= 0)
+        {
+            //We have more than 1 vertex
+            if (roomCenters.Count > 1)
+            {
+                Vertex prev = roomCenters[0];
+                for (int i = 1; i < roomCenters.Count; i++)
+                {
+                    delaunayEdges.Add(new Edge(prev, roomCenters[i]));
+                    prev = roomCenters[i];
+                }
+            }
+            else return new List<HashSet<Vector2Int>>(); //We have only 1 vertex   
+        }
+
         //Prim algorithm
         HashSet<Edge> edges = PrimAlgorithm.RunMinimumSpanningTree(delaunayEdges, addSomeRemainingEdges);
 
