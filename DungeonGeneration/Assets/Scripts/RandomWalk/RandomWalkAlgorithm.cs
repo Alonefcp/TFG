@@ -21,6 +21,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
 
     [SerializeField] private Vector2Int startPosition = new Vector2Int(0, 0);
     [SerializeField] private bool startRandomlyEachIteration = true;
+    [Range(1, 10000)]
     [SerializeField] private int numberOfFloorPositions = 50;
     [Range(1, 500)]
     [SerializeField] private int minSteps = 10, maxSteps = 20;
@@ -54,8 +55,8 @@ public class RandomWalkAlgorithm : DungeonGeneration
         base.GenerateDungeon();
 
         HashSet<Vector2Int> floorPositions = RunRandomWalk();
-       /* Debug.Log(floorPositions.Count);*///QUITAR!!
-       
+        Debug.Log(floorPositions.Count);//QUITAR!!
+
         tilemapVisualizer.PaintFloorTiles(floorPositions);
         if (eliminateSingleWallsCells)
         {
@@ -88,7 +89,13 @@ public class RandomWalkAlgorithm : DungeonGeneration
         while (positions.Count < numberOfFloorPositions)
         {
             //Take X steps (path length) 
-            int numberOfSteps = Random.Range(minSteps, maxSteps);
+            int numberOfSteps = Random.Range(minSteps, maxSteps+1);
+
+            //We check tha we don't exceed the number of floor positions
+            if(numberOfSteps+positions.Count > numberOfFloorPositions)
+            {
+                numberOfSteps = numberOfFloorPositions - positions.Count;
+            }
 
             //Path positions
             HashSet<Vector2Int> path = SimpleRandomWalk(walker, numberOfSteps);
@@ -110,7 +117,6 @@ public class RandomWalkAlgorithm : DungeonGeneration
     }
 
 
-
     /// <summary>
     /// Makes a path of nSteps
     /// </summary>
@@ -127,7 +133,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
             //Take one step in a random direction
             Vector2Int newPos = walker.Pos + walker.Dir;
 
-            //1.- For the levy fligh we calculate the positions between the walker position and the new position,
+            //1.- For the levy flight we calculate the positions between the walker position and the new position,
             //and we add them to the path positions
             //2.- If the walker moves diagonally
             if (walker.Dir.magnitude > 1)
@@ -135,10 +141,10 @@ public class RandomWalkAlgorithm : DungeonGeneration
                 CalculatePositions(walker, newPos, pathPositions);
             }
             else //Otherwise we simply add the position to the path positions
-            {
+            {               
                 pathPositions.Add(newPos);
             }
-
+          
             //We set a new walker position
             walker.Pos = newPos;
 
