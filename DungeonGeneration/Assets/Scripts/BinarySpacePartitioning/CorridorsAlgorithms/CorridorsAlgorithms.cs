@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public static class CorridorsAlgorithms
 {
@@ -16,13 +17,13 @@ public static class CorridorsAlgorithms
     /// <param name="mapWidth">MapWidth</param>
     /// <param name="mapHeight">MapHeight</param>
     /// <param name="addSomeRemainingEdges">If we want to add the remaining edges of Prim algortihm</param>
-    /// <returns></returns>
+    /// <returns>All the paths that connect the rooms</returns>
     public static List<HashSet<Vector2Int>> ConnectRooms(List<Vertex> roomCenters, Grid2D grid, bool widerCorridors, int corridorSize, int mapWidth, int mapHeight,bool addSomeRemainingEdges=false)
     {
         //Delaunay triangulation
         List<Edge> delaunayEdges = DelaunayTriangulation.Triangulate(roomCenters);
-
-        //If we can't make a graph with Delaunay
+       
+        //1.- If we can't make a graph with Delaunay
         if (delaunayEdges.Count <= 0)
         {
             //We have more than 1 vertex
@@ -36,6 +37,33 @@ public static class CorridorsAlgorithms
                 }
             }
             else return new List<HashSet<Vector2Int>>(); //We have only 1 vertex   
+        }
+        else
+        {
+            //2.- If we can make a graph with Delaunay but some vertex are disjointed
+            HashSet<Vertex> delaunayVertex = new HashSet<Vertex>();
+
+            foreach (Edge e in delaunayEdges)
+            {
+                delaunayVertex.Add(new Vertex(new Vector2Int(e.U.position.x, e.U.position.y)));
+                delaunayVertex.Add(new Vertex(new Vector2Int(e.V.position.x, e.V.position.y)));
+            }
+            //We look for the disjointed vertex
+            HashSet<Vertex> disjointedVertex = new HashSet<Vertex>();
+            foreach (Vertex v in roomCenters)
+            {
+                if (!delaunayVertex.Contains(v))
+                {
+                    disjointedVertex.Add(v);
+                }
+            }
+            //We add the disjointed vertex to the graph
+            foreach (Vertex v in disjointedVertex)
+            {
+                Vertex closestVertex = FindClosestVertexTo(v.position, delaunayVertex.ToList());
+
+                delaunayEdges.Add(new Edge(v, closestVertex));
+            }
         }
 
         //Prim algorithm
@@ -157,7 +185,7 @@ public static class CorridorsAlgorithms
     /// </summary>
     /// <param name="currentRoomCenter">Current room position</param>
     /// <param name="roomCenters">Rooms positions which are the rooms centers</param>
-    /// <returns></returns>
+    /// <returns>The closest vertex to the currentRoomCenter</returns>
     private static Vertex FindClosestVertexTo(Vector2Int currentRoomCenter, List<Vertex> roomCenters)
     {
         Vertex closest = null;

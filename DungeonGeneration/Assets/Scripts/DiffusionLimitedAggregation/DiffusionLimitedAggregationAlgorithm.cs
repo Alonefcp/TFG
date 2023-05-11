@@ -29,6 +29,9 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
     private List<bool> map; //true -> floor , false -> wall
     private HashSet<Vector2Int> floorPositions;
 
+    /// <summary>
+    /// Getter for knowing if we are using central attractor
+    /// </summary>
     public bool UseCentralAttractor { get => useCentralAttractor;}
 
     //void Start()
@@ -141,7 +144,6 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
         }
     }
 
-
     /// <summary>
     /// Draws the map
     /// </summary>
@@ -167,7 +169,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
     /// <returns>Returns a HashSet with all floor positions</returns>
     private HashSet<Vector2Int> RunDiffusionLimitedAggregation()
     {
-        map = CreateMap(); //false -> hasn't floor , true -> has floor
+        map = CreateMap(); //false -> hasn't got floor , true -> has floor
        
         HashSet<Vector2Int> positions = new HashSet<Vector2Int>();
 
@@ -193,6 +195,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
                 diggerPrevPos = diggerPos;
 
                 int number = Random.Range(1, 5);
+
                 //We move the digger
                 if (number == 1)
                 {
@@ -272,18 +275,7 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
     /// <param name="map">Map info</param>
     /// <param name="positions">Floor positions</param>
     private void CreateSeed(List<bool> map, HashSet<Vector2Int> positions)
-    {
-        //map[MapXYtoIndex(startPosition.x, startPosition.y)] = true;
-        //map[MapXYtoIndex(startPosition.x + 1, startPosition.y)] = true;
-        //map[MapXYtoIndex(startPosition.x - 1, startPosition.y)] = true;
-        //map[MapXYtoIndex(startPosition.x, startPosition.y + 1)] = true;
-        //map[MapXYtoIndex(startPosition.x, startPosition.y - 1)] = true;
-        //positions.Add(startPosition);
-        //positions.Add(startPosition + new Vector2Int(1, 0));
-        //positions.Add(startPosition + new Vector2Int(-1, 0));
-        //positions.Add(startPosition + new Vector2Int(0, 1));
-        //positions.Add(startPosition + new Vector2Int(0, -1));
-        
+    {  
         int halfSize = seedSize / 2;
 
         for (int x = startPosition.x-halfSize; x <= startPosition.x+halfSize; x++)
@@ -296,7 +288,6 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
         }
     }
 
- 
     /// <summary>
     /// Paints all floor positions with an horizontal symmetry
     /// </summary>
@@ -428,8 +419,8 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
             {
                 foreach (Vector2Int pos in region)
                 {
-                    int a = MapXYtoIndex(pos.x, pos.y);
-                    mapInfo[a] = true;
+                    int index = MapXYtoIndex(pos.x, pos.y);
+                    mapInfo[index] = true;
                     //tilemapVisualizer.PaintSingleFloorTile(pos);
                     floorPositions.Add(pos);
                     mapInfoCellType[MapXYtoIndex(pos.x, pos.y)] = 0;
@@ -437,7 +428,6 @@ public class DiffusionLimitedAggregationAlgorithm : DungeonGeneration
             }
         }
     }
-
 
     /// <summary>
     /// Converts a map position to an index

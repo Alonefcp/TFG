@@ -53,11 +53,10 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
         Vector2Int startPosition = new Vector2Int(0, 0);
         BoundsInt totalSpace = new BoundsInt((Vector3Int)startPosition, new Vector3Int(spaceWidth, spaceHeight, 0));
         roomList = BinarySpacePartitioning(totalSpace, minRoomWidth, minRoomHeight);
+        if (roomList.Count <= 0) roomList.Add(totalSpace);
 
         grid = new Grid2D(spaceWidth, spaceHeight, tilemapVisualizer.GetCellRadius());
         HashSet<Vector2Int> floorPositions = CreateRooms(roomList, grid);
-
-        //tilemapVisualizer.PaintFloorTiles(floorPositions);
 
         //Create connections between rooms
         List<Vertex> roomCenters = new List<Vertex>();
@@ -67,20 +66,19 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
             Vector2Int center = (Vector2Int)Vector3Int.RoundToInt(room.center);
             roomCenters.Add(new Vertex(center));
         }
-
+              
         //Connect rooms
         if (corridorsAlgorithm == CorridorsAlgorithm.TunnelingAlgorithm)
         {
-            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, WiderCorridors,corridorSize,spaceWidth,spaceHeight);
-            //tilemapVisualizer.PaintFloorTiles(corridors);
+            HashSet<Vector2Int> corridors = CorridorsAlgorithms.ConnectRooms(roomCenters, WiderCorridors,corridorSize,spaceWidth,spaceHeight);            
             floorPositions.UnionWith(corridors);
         }
         else
         {
+
             List<HashSet<Vector2Int>> paths = CorridorsAlgorithms.ConnectRooms(roomCenters, grid, WiderCorridors, corridorSize,spaceWidth, spaceHeight, addSomeRemainingEdges);
             foreach (HashSet<Vector2Int> path in paths)
             {
-                //tilemapVisualizer.PaintFloorTiles(path);
                 floorPositions.UnionWith(path);
             }
         }
@@ -92,12 +90,12 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
 
         //Set special rooms
         List<Vertex> rooms = new List<Vertex>(roomCenters);
-        Vector2Int roomStartPosition = SpecialRooms.SetStartRoom(rooms);
+
+        Vector2Int roomStartPosition = SpecialRooms.SetStartRoom(rooms);       
 
         if (setSpecialRooms)
         {
             Vector2Int roomEndPosition = SpecialRooms.SetEndRoom(rooms, roomStartPosition);
-            //tilemapVisualizer.PaintSinglePathTile(roomStartPosition);
             tilemapVisualizer.PaintSinglePathTile(roomEndPosition);
         }
 
@@ -149,7 +147,7 @@ public class BinarySpacePartitioningAlgorithm : DungeonGeneration
             if (room.size.y >= minHeight && room.size.x >= minWidth)
             {
                 float roomMultiplier = Random.Range(1.25f, 3.0f);
-                if (Random.value < 0.5f)
+                if (Random.value < 0.5f) //We have 50% of probability of splitting a room vertically or horizontally
                 {
                     if (room.size.y >= minHeight * roomMultiplier)
                     {

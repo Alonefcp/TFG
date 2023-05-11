@@ -25,6 +25,9 @@ public static class SpecialRooms
     /// <returns>A vector which is the end room position</returns>
     public static Vector2Int SetEndRoom(List<Vertex> roomCenters, Vector2Int startPosition)
     {
+        //If we only have one room the end room becomes also the start room
+        if (roomCenters.Count <= 0) return startPosition;
+
         float maxDistance = -1;
 
         Vertex furthest = null;

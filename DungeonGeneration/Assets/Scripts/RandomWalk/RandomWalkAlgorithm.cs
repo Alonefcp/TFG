@@ -54,8 +54,7 @@ public class RandomWalkAlgorithm : DungeonGeneration
     {
         base.GenerateDungeon();
 
-        HashSet<Vector2Int> floorPositions = RunRandomWalk();
-        Debug.Log(floorPositions.Count);//QUITAR!!
+        HashSet<Vector2Int> floorPositions = RunRandomWalk();        
 
         tilemapVisualizer.PaintFloorTiles(floorPositions);
         if (eliminateSingleWallsCells)

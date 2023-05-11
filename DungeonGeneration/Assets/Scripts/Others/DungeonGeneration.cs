@@ -16,7 +16,7 @@ public class DungeonGeneration : MonoBehaviour
     /// </summary>
     public virtual void GenerateDungeon()
     {
-        if (useRandomSeed) seed = (int)DateTime.Now.Ticks/*Time.time*/;
+        if (useRandomSeed) seed = (int)DateTime.Now.Ticks;
         Random.InitState(seed);
 
         tilemapVisualizer.ClearTilemaps();
