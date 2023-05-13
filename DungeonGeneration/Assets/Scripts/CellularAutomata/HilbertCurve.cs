@@ -61,7 +61,7 @@ public class HilbertCurve
     /// Gets and calculate a Hilbert point for the curve
     /// </summary>
     /// <param name="point">Which point we want</param>
-    /// <returns></returns>
+    /// <returns>A Hilbet point (Vector2Int)</returns>
     private Vector2Int HilbertPoint(int point)
     {
         Vector2Int[] points = {

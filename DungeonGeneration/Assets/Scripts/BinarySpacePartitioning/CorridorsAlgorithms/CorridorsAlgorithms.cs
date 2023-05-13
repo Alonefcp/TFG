@@ -38,7 +38,7 @@ public static class CorridorsAlgorithms
             }
             else return new List<HashSet<Vector2Int>>(); //We have only 1 vertex   
         }
-        else
+        else 
         {
             //2.- If we can make a graph with Delaunay but some vertex are disjointed
             HashSet<Vertex> delaunayVertex = new HashSet<Vertex>();
@@ -62,8 +62,9 @@ public static class CorridorsAlgorithms
             {
                 Vertex closestVertex = FindClosestVertexTo(v.position, delaunayVertex.ToList());
 
-                delaunayEdges.Add(new Edge(v, closestVertex));
+                delaunayEdges.Add(new Edge(v, closestVertex));              
             }
+
         }
 
         //Prim algorithm

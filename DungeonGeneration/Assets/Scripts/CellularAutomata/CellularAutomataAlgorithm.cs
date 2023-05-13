@@ -137,44 +137,7 @@ public class CellularAutomataAlgorithm : DungeonGeneration
         {
             //tilemapVisualizer.PaintSingleFloorTile(hilbertCurve.HilbertCurvePoints.ElementAt(i));
             MakeBiggerTile(hilbertCurve.HilbertCurvePoints.ElementAt(i), 2, hilbertCurve.HilbertCurvePoints, 1);
-        }
-
-        //HashSet<Vector2Int> hilbertPointsInsdeMap = new HashSet<Vector2Int>();
-        //for (int i = 0; i < initialCount; i++)
-        //{
-        //    Vector2Int hilberCurvePoint = hilbertCurve.HilbertCurvePoints.ElementAt(i);
-
-        //    if(hilberCurvePoint.x>=minOffsetX && hilberCurvePoint.y>=minOffsetY && hilberCurvePoint.x<mapWidth+maxOffsetX && hilberCurvePoint.y<mapHeight+maxOffsetY)
-        //    {
-        //        //tilemapVisualizer.PaintSinglePathTile(hilberCurvePoint);
-        //        hilbertPointsInsdeMap.Add(hilberCurvePoint);
-        //        if(i-1>0)
-        //        {
-        //            Vector2Int hilberCurvePoint2 = hilbertCurve.HilbertCurvePoints.ElementAt(i - 1);
-        //            if (hilberCurvePoint2.x < minOffsetX || hilberCurvePoint2.y < minOffsetY || hilberCurvePoint2.x >= mapWidth + maxOffsetX || hilberCurvePoint2.y >= mapHeight + maxOffsetY)
-        //            {
-        //                tilemapVisualizer.PaintSinglePathTile(hilberCurvePoint);
-        //            }
-        //        }
-               
-        //        Vector2Int hilberCurvePoint1 = hilbertCurve.HilbertCurvePoints.ElementAt(i+1);
-        //        if (hilberCurvePoint1.x < minOffsetX || hilberCurvePoint1.y < minOffsetY || hilberCurvePoint1.x >= mapWidth + maxOffsetX || hilberCurvePoint1.y >= mapHeight + maxOffsetY)
-        //        {
-        //            tilemapVisualizer.PaintSinglePathTile(hilberCurvePoint);
-        //        }
-        //    }
-        //}
-
-
-        //foreach (Vector2Int pos in hilbertPointsInsdeMap)
-        //{
-        //    if(pos.x < minOffsetX && pos.y < minOffsetY && pos.x >= mapWidth + maxOffsetX && pos.y >= mapHeight + maxOffsetY)
-        //    {
-        //        tilemapVisualizer.PaintSinglePathTile(pos);
-        //    }
-        //}
-
-        //tilemapVisualizer.PaintPathTiles(hilbertCurve.HilbertCurvePoints);
+        }       
     }
 
     /// <summary>
@@ -234,18 +197,18 @@ public class CellularAutomataAlgorithm : DungeonGeneration
         {
             for (int y = mapOffsetY; y < mapHeight+ mapOffsetY; y++)
             {
-                if (x == mapOffsetX || x == mapWidth+ mapOffsetX - 1 || y == mapOffsetY || y == mapHeight + mapOffsetY - 1)
+                if (x == mapOffsetX || x == mapWidth + mapOffsetX - 1 || y == mapOffsetY || y == mapHeight + mapOffsetY - 1)
                 {
                     map[x, y] = 1;
                 }
                 else if (useHilbertCurve && hilbertCurve.HilbertCurvePoints.Contains(new Vector2Int(x, y)))
                 {
                     hilbertCurve.HilbertCurvePointsInsideTheMap.Add(new Vector2Int(x, y));
-                    map[x, y] = 1;                   
+                    map[x, y] = 1;                    
                 }
                 else
                 {
-                    map[x, y] = (Random.Range(0.0f, 1.0f) < fillPercent) ? 1 : 0;
+                    map[x, y] = (Random.value < fillPercent) ? 1 : 0;
                 }
             }
         }
@@ -271,7 +234,6 @@ public class CellularAutomataAlgorithm : DungeonGeneration
                     }
 
                     int neighbourWallTiles = GetWallNeighbours(x, y);
-
                     ApplyAutomata(mapClone, x, y, neighbourWallTiles);
                 }
             }

@@ -55,7 +55,7 @@ public static class Connectivity
 
                 foreach (Vector2Int pos in path)
                 {
-                    tilemapVisualizer.PaintSingleFloorTile(pos);
+                    //tilemapVisualizer.PaintSingleFloorTile(pos);
                     Cell cell = mapInfo[MapXYtoIndex(pos.x, pos.y, mapWidth)];
                     cell.CellType = 0; //Floor
                     mapInfo[MapXYtoIndex(pos.x, pos.y, mapWidth)] = cell;
@@ -69,7 +69,7 @@ public static class Connectivity
                 MakeWiderPath(extraPath,mapWidth,mapHeight);
                 foreach (Vector2Int pos in extraPath)
                 {
-                    tilemapVisualizer.PaintSingleFloorTile(pos);
+                    //tilemapVisualizer.PaintSingleFloorTile(pos);
                     Cell cell = mapInfo[MapXYtoIndex(pos.x, pos.y, mapWidth)];
                     cell.CellType = 0; //Floor
                     mapInfo[MapXYtoIndex(pos.x, pos.y, mapWidth)] = cell;

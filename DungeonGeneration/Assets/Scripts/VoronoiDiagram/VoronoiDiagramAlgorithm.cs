@@ -342,12 +342,12 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
                     }
                     else 
                     { 
-                        mySeed.CellType = 0;
+                        mySeed.CellType = 0; //Floor
                     }
                 }
                 else
                 {
-                    mySeed.CellType = 0;
+                    mySeed.CellType = 0; //Floor
                 }
             }
         }
@@ -365,7 +365,6 @@ public class VoronoiDiagramAlgorithm : DungeonGeneration
 
         foreach (Vector2Int seed in seeds)
         {
-            /*if (!sets.ContainsKey(seed)) */
             sets.Add(seed, new HashSet<Vector2Int>());
         }
 
