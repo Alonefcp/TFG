@@ -44,7 +44,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
 
     //private void Start()
     //{
-    //    if (useRandomSeed) seed = (int)DateTime.Now.Ticks/*Time.time*/;
+    //    if (useRandomSeed) seed = (int)DateTime.Now.Ticks;
     //    Random.InitState(seed);
     //    tilemapVisualizer.ClearTilemaps();
     //    SetUp();
@@ -126,9 +126,9 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
                 if (cell.Collapsed)
                 {
                     int index = cell.Options[0];
-                    if (index == floorSpriteIndex)
-                        tilemapVisualizer.PaintSingleFloorTile(tiles[index].Tile, new Vector2Int(col, row));
-                    else
+                    //if (index == floorSpriteIndex)
+                    //    tilemapVisualizer.PaintSingleFloorTile(tiles[index].Tile, new Vector2Int(col, row));
+                    //else
                         tilemapVisualizer.PaintSingleWallTile(tiles[index].Tile, new Vector2Int(col, row));
                 }
             }
@@ -171,12 +171,12 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
         //{
         //    tilemapVisualizer.PaintSingleWallTile(tile.Tile, new Vector2Int(pos, 0));
 
-        //    //foreach (string edge in tile.edges)
-        //    //{
-        //    //    Debug.Log(edge);
-        //    //}
+        //    foreach (string edge in tile.edges)
+        //    {
+        //        Debug.Log(edge);
+        //    }
 
-        //    //Debug.Log("\n");
+        //    Debug.Log("\n");
 
         //    pos++;
         //}
@@ -438,7 +438,7 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
         WFCCell collapsedCell = GetCollapsedCell(gridCopy);
         if(collapsedCell.Options.Count <= 0) //It the collapsed cell is null, we start over
         {
-            Debug.Log("Restart");
+            //Debug.Log("Restart");
             tilemapVisualizer.ClearTilemaps();
             if(!useBacktracking)
             {
@@ -479,11 +479,11 @@ public class WaveFunctionCollapseAlgorithm : DungeonGeneration
             {
                 int index = MapXYtoIndex(x, y);
 
-                if (grid[index].Collapsed) //DEBUG: For seeing the algorithm step by step
-                {
-                    int img = grid[index].Options[0];
-                    tilemapVisualizer.PaintSingleFloorTile(tiles[img].Tile, new Vector2Int(x, y));
-                }
+                //if (grid[index].Collapsed) //DEBUG: For seeing the algorithm step by step
+                //{
+                //    int img = grid[index].Options[0];
+                //    tilemapVisualizer.PaintSingleFloorTile(tiles[img].Tile, new Vector2Int(x, y));
+                //}
 
                 //If the cell is not a neighbour of a collapsed cell or it is collapsed
                 if (grid[index].Collapsed || !adjacentCellsToTheCollapsedCells.Contains(grid[index]))

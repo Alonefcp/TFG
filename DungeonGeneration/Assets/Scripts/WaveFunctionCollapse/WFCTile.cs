@@ -7,10 +7,10 @@ using UnityEngine.Tilemaps;
 public class WFCTile
 {
     public Tile Tile { get; }
-    public List<int> Up { get; }    //Which tiles can hace int the upper edge
-    public List<int> Down { get; }  //Which tiles can hace int the bottom edge
-    public List<int> Left { get; }  //Which tiles can hace int the left edge
-    public List<int> Right { get; } //Which tiles can hace int the right edge
+    public List<int> Up { get; }    //Which tiles can place in the upper edge
+    public List<int> Down { get; }  //Which tiles can place in the bottom edge
+    public List<int> Left { get; }  //Which tiles can place in the left edge
+    public List<int> Right { get; } //Which tiles can place in the right edge
 
     //This indicates which tile's edge can match with other tile's edge
     private List<string> edges; //{up(0), right(1), down(2), left(3)}
